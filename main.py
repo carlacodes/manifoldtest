@@ -83,7 +83,7 @@ def load_data_from_paths(path):
         unit_id = np.full(len(flattened_spike_times), unit_id)
         phy_cluster = unit['phyCluster'][0].astype(str)
         phy_cluster = np.full(len(flattened_spike_times), phy_cluster)
-        neuron_type = unit['neuronType'][0][0]
+        neuron_type = unit['neuronType'][0][0][0][0].astype(str)
         neuron_type = np.full(len(flattened_spike_times), neuron_type)
 
 
