@@ -13,6 +13,7 @@ def load_data_from_paths(path):
     units = spike_data['units']
     fs = spike_data['sample_rate'][0][0]
 
+
     positional_data = scipy.io.loadmat(path / 'positionalDataByTrialType.mat')
     #load the positional data, pos key
     print(positional_data.keys())
@@ -22,6 +23,8 @@ def load_data_from_paths(path):
 
     time = hcomb_data['videoTime']
     ts = hcomb_data['ts']
+    sample = hcomb_data['sample']
+
     dlc_angle = hcomb_data['dlc_angle']
 
     #create a new array that interpolates based on the video time
@@ -38,14 +41,24 @@ def load_data_from_paths(path):
         spike_times = unit['spikeSamples']
         #convert to float
         spike_times = spike_times[0].astype(float)
+
         spike_times_seconds = spike_times/fs
         head_angle_times = np.array([])
         dlc_angle_list = np.array([])
+        head_angle_times_ms = np.array([])
+        trial_number_array = np.array([])
         for i2 in range(0, len(dlc_angle)):
             trial_dlc = dlc_angle[i2]
             trial_ts = ts[i2]
+            trial_sample = sample[i2]
+            time_in_seconds = trial_sample/fs
+
+            #ts -- this is the time in ms
+
             trial_time = time[i2]
-            head_angle_times = np.append(head_angle_times, trial_time)
+            trial_number_array = np.append(trial_number_array, i2)
+            head_angle_times = np.append(head_angle_times, time_in_seconds)
+            head_angle_times_ms = np.append(head_angle_times_ms, trial_time)
             dlc_angle_list = np.append(dlc_angle_list, trial_dlc)
 
             if np.max(trial_time) > np.max(spike_times_seconds):
@@ -56,10 +69,11 @@ def load_data_from_paths(path):
         #this will allow us to compare the spike times to the dlc angle
         #and see if the spike times are aligned with the dlc angle
         dlc_angle_list = np.array(dlc_angle_list)
-        dlc_new = np.interp(spike_times_seconds, head_angle_times, dlc_angle_list)
+        dlc_new = np.interp(spike_times_seconds, head_angle_times_ms, dlc_angle_list)
         #construct a dataframe with the spike times and the dlc angle
         unit_id = unit['name'][0].astype(str)
-        flattened_spike_times = np.concatenate(spike_times_seconds).ravel()
+        flattened_spike_times_seconds = np.concatenate(spike_times_seconds).ravel()
+        flattened_spike_times = np.concatenate(spike_times).ravel()
         flattened_dlc_new = np.concatenate(dlc_new).ravel()
         #make unit_id the same length as the spike times
         unit_id = np.full(len(flattened_spike_times), unit_id)
@@ -69,7 +83,7 @@ def load_data_from_paths(path):
         neuron_type = np.full(len(flattened_spike_times), neuron_type)
 
 
-        df = pd.DataFrame({'spike_times': flattened_spike_times, 'dlc_angle': flattened_dlc_new, 'unit_id': unit_id, 'phy_cluster': phy_cluster, 'neuron_type': neuron_type})
+        df = pd.DataFrame({'spike_times_seconds': flattened_spike_times_seconds, 'spike_times_samples': spike_times, 'dlc_angle': flattened_dlc_new, 'unit_id': unit_id, 'phy_cluster': phy_cluster, 'neuron_type': neuron_type, 'time (ms)': head_angle_times_ms, 'time (seconds)': head_angle_times, 'trial_number': trial_number_array})
         #append to a larger dataframe
         if j == 0:
             df_all = df
