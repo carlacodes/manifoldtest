@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="8c74f585-27c8-43a7-a97d-daeee3090a1c" name="Changes" comment="first commit">
-      <change afterPath="$PROJECT_DIR$/../manifold_neural/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../manifold_neural/.idea/manifoldtest.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../manifold_neural/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../manifold_neural/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../manifold_neural/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../manifold_neural/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../manifold_neural/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../manifold_neural/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../manifold_neural/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../manifold_neural/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../manifold_neural/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,6 +38,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.main.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
@@ -249,8 +248,17 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1707146725647</updated>
-      <workItem from="1707146727417" duration="553000" />
+      <workItem from="1707146727417" duration="1413000" />
     </task>
+    <task id="LOCAL-00001" summary="first commit">
+      <option name="closed" value="true" />
+      <created>1707147322737</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1707147322737</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -276,8 +284,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../manifold_neural/main.py</url>
-          <line>13</line>
-          <option name="timeStamp" value="2" />
+          <line>26</line>
+          <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
