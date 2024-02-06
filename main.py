@@ -111,6 +111,8 @@ def load_theta_data(path, fs=30000):
     #caluculate theta phase and amplitude
     for i in range(0, len(theta_signal_hcomb)):
         signal = theta_signal_hcomb[i][0]
+        #flatten the data
+        signal = signal.ravel()
         hilbert_transform = hilbert(signal)
 
         # Calculate the instantaneous phase
