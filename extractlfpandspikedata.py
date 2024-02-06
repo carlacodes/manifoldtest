@@ -211,6 +211,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         unit_spike_data = spike_data[spike_data['unit_id'] == i]
         #extract the trial number for the unit
         plv_for_unit = np.array([])
+        cross_corr_for_unit = np.array([])
         for j in unit_spike_data['trial_number'].unique():
             unit_spike_data_trial = unit_spike_data[unit_spike_data['trial_number'] == j]
             #calculate the phase locking value between the spike times, theta phase, and dlc angle
@@ -219,6 +220,18 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             angle_in_trial = unit_spike_data_trial['dlc_angle']
             #downsample so that the length of the arrays are the same
             angle_in_trial = np.interp(np.linspace(0, len(angle_in_trial), len(theta_in_trial)), np.arange(0, len(angle_in_trial)), angle_in_trial)
+            #find the samples where the angle_in_trial is non stationary
+            moving_std = np.convolve(angle_in_trial, np.ones(100) / 100, mode='same',
+                                     boundary='symm')
+
+            # Set a threshold for detecting non-stationary periods
+            threshold = 0.1  # Adjust this threshold based on your data
+
+            # Detect non-stationary periods
+            non_stationary_periods = moving_std > threshold
+            #filter for non stationary periods
+            angle_in_trial = angle_in_trial[non_stationary_periods]
+            theta_in_trial = theta_in_trial[non_stationary_periods]
 
 
             theta_analytic = hilbert(theta_in_trial)
@@ -227,6 +240,8 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             # Calculate the Phase Locking Value
 
             phase_difference = np.angle(theta_analytic/head_analytic)
+            #calculate the cross correlation between the theta phase and the dlc angle
+            cross_correlation = np.correlate(theta_in_trial, angle_in_trial, mode='full')
 
             # Calculate the Phase Locking Value
             plv = np.abs(np.mean(np.exp(1j * phase_difference)))
@@ -266,9 +281,11 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         plt.show()
         mean_plv = np.mean(plv_for_unit)
         mean_plv = np.full(len(plv_for_unit), mean_plv)
+        mean_cross_corr = np.mean(cross_correlation)
+        mean_cross_corr = np.full(len(cross_correlation), mean_cross_corr)
 
         #add the plv to the dataframe
-        df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv})
+        df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv, 'cross correlation': cross_correlation, 'mean cross correlation': mean_cross_corr, 'trial_number': unit_spike_data['trial_number'].unique()})
         if i == 0:
             df_plv_all = df_plv
         else:
