@@ -201,12 +201,14 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
     #compare the spike times to the theta phase
     #for each spike time, find the corresponding theta phase
     #and trial number
+    df_plv_all = pd.DataFrame()
     for i in spike_data['unit_id'].unique():
         #extract the spike times for the unit
         # unit_spike_times = spike_data[spike_data['unit_id'] == i]['spike_times_seconds']
         # unit_spike_times = unit_spike_times.to_numpy()
         unit_spike_data = spike_data[spike_data['unit_id'] == i]
         #extract the trial number for the unit
+        plv_for_unit = np.array([])
         for j in unit_spike_data['trial_number'].unique():
             unit_spike_data_trial = unit_spike_data[unit_spike_data['trial_number'] == j]
             #calculate the phase locking value between the spike times, theta phase, and dlc angle
@@ -227,29 +229,48 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             # Calculate the Phase Locking Value
             plv = np.abs(np.mean(np.exp(1j * phase_difference)))
             print('Phase locking value: ' + str(plv))
+            plv_for_unit = np.append(plv_for_unit, plv)
             #plot the phase difference
-            plt.figure()
-            plt.plot(phase_difference)
-            plt.title('Phase difference')
-            plt.show()
-            #plot the spike times and the theta phase
-            # plt.figure()
-            # plt.plot(unit_spike_data_trial['spike_times_seconds'], theta_in_trial, 'bo')
-            # plt.title('Spike times and theta phase')
-            # plt.show()
+            if plv >=0.7:
+                plt.figure()
+                plt.plot(phase_difference)
+                plt.title('Phase difference')
+                plt.show()
+                #plot the spike times and the theta phase
+                # plt.figure()
+                # plt.plot(unit_spike_data_trial['spike_times_seconds'], theta_in_trial, 'bo')
+                # plt.title('Spike times and theta phase')
+                # plt.show()
 
-            # #plot the spike times and the dlc angle
-            # plt.figure()
-            # plt.plot(unit_spike_data_trial['spike_times_seconds'], angle_in_trial, 'ro')
-            # plt.title('Spike times and dlc angle')
-            # plt.show()
+                # #plot the spike times and the dlc angle
+                # plt.figure()
+                # plt.plot(unit_spike_data_trial['spike_times_seconds'], angle_in_trial, 'ro')
+                # plt.title('Spike times and dlc angle')
+                # plt.show()
 
-            #plot the theta, spike times, and dlc angle
-            plt.figure()
-            plt.plot(theta_in_trial, 'bo')
-            plt.plot(angle_in_trial, 'ro')
-            plt.title('Spike times, theta phase, and dlc angle')
-            plt.show()
+                #plot the theta, spike times, and dlc angle
+                plt.figure()
+                plt.plot(theta_in_trial, label = 'Theta phase')
+                plt.plot(angle_in_trial, label = 'DLC angle')
+                plt.legend()
+                plt.title(f'theta phase for trial number {j} and dlc angle, plv is {plv}')
+
+                plt.savefig(f'figures/theta_phase_dlc_angle_unit_{i}_{plv}.png')
+                plt.show()
+        #plot the plv for the unit
+        plt.figure()
+        plt.plot(plv_for_unit)
+        plt.title('PLV for unit ' + str(i))
+        plt.show()
+        mean_plv = np.mean(plv_for_unit)
+        mean_plv = np.full(len(plv_for_unit), mean_plv)
+
+        #add the plv to the dataframe
+        df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv})
+        if i == 0:
+            df_plv_all = df_plv
+        else:
+            df_plv_all = pd.concat([df_plv_all, df_plv])
 
         #extract the theta phase for the unit
 
@@ -268,6 +289,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         #     plt.plot(unit_spike_times, unit_theta_phase, 'bo')
         #     plt.title('Spike time and theta phase')
         #     plt.show()
+    return df_plv_all
 
 
 
