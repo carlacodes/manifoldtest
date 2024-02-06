@@ -120,7 +120,7 @@ def resample_by_interpolation(signal, input_fs, output_fs):
     )
     return resampled_signal
 
-def load_theta_data(path, fs=1000, spike_data = [], plot_figures = True):
+def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
     #   load the theta data from the local path
     theta_data = scipy.io.loadmat(path / 'thetaAndRipplePower.mat')
     theta_power = theta_data['thetaPower']
@@ -197,9 +197,11 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = True):
 
 
         #extract the trial type from the unit
+def moving_average(data, window_size):
+    return np.convolve(data, np.ones(window_size)/window_size, mode='same')
 
 
-def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, trial_array):
+def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, trial_array, window_size = 100):
     #compare the spike times to the theta phase
     #for each spike time, find the corresponding theta phase
     #and trial number
@@ -220,22 +222,21 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             angle_in_trial = unit_spike_data_trial['dlc_angle']
             #downsample so that the length of the arrays are the same
             angle_in_trial = np.interp(np.linspace(0, len(angle_in_trial), len(theta_in_trial)), np.arange(0, len(angle_in_trial)), angle_in_trial)
-            #find the samples where the angle_in_trial is non stationary
-            moving_std = np.convolve(angle_in_trial, np.ones(100) / 100, mode='same',
-                                     boundary='symm')
+            #calculate the gradient of the angle
+            angle_in_trial_grad = np.gradient(angle_in_trial)
 
-            # Set a threshold for detecting non-stationary periods
-            threshold = 0.1  # Adjust this threshold based on your data
 
             # Detect non-stationary periods
-            non_stationary_periods = moving_std > threshold
+            non_stationary_periods = angle_in_trial_grad > 0
             #filter for non stationary periods
             angle_in_trial = angle_in_trial[non_stationary_periods]
             theta_in_trial = theta_in_trial[non_stationary_periods]
+            if angle_in_trial.isempty() or theta_in_trial.isempty():
+                print('Angle or theta is empty, skipping...')
+                continue
 
 
             theta_analytic = hilbert(theta_in_trial)
-
             head_analytic = hilbert(angle_in_trial)
             # Calculate the Phase Locking Value
 
