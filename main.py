@@ -13,8 +13,6 @@ def load_data_from_paths(path):
     spike_data = scipy.io.loadmat(path / 'units.mat')
     units = spike_data['units']
     fs = spike_data['sample_rate'][0][0]
-
-
     positional_data = scipy.io.loadmat(path / 'positionalDataByTrialType.mat')
     #load the positional data, pos key
     print(positional_data.keys())
@@ -25,7 +23,6 @@ def load_data_from_paths(path):
     time = hcomb_data['videoTime']
     ts = hcomb_data['ts']
     sample = hcomb_data['sample']
-
     dlc_angle = hcomb_data['dlc_angle']
 
     #create a new array that interpolates based on the video time
@@ -42,7 +39,6 @@ def load_data_from_paths(path):
         spike_times = unit['spikeSamples']
         #convert to float
         spike_times = spike_times[0].astype(float)
-
         spike_times_seconds = spike_times/fs
         head_angle_times = np.array([])
         dlc_angle_list = np.array([])
@@ -101,7 +97,7 @@ def load_data_from_paths(path):
     return
 
 
-def load_theta_data(path, fs=30000):
+def load_theta_data(path, fs=1000, plot_figures = True):
     #   load the theta data from the local path
     theta_data = scipy.io.loadmat(path / 'thetaAndRipplePower.mat')
     theta_power = theta_data['thetaPower']
@@ -109,6 +105,8 @@ def load_theta_data(path, fs=30000):
 
     ripple_power = theta_data['ripplePower']
     #caluculate theta phase and amplitude
+    phase_array = np.array([])
+    trial_array = np.array([])
     for i in range(0, len(theta_signal_hcomb)):
         signal = theta_signal_hcomb[i][0]
         #flatten the data
@@ -121,23 +119,38 @@ def load_theta_data(path, fs=30000):
         # Calculate the instantaneous frequency
         t = np.arange(0, len(signal)) / fs
         instantaneous_frequency = np.diff(instantaneous_phase) / (2.0 * np.pi * np.diff(t))
+        phase_array = np.append(phase_array, instantaneous_phase)
+        trial_array = np.append(trial_array, np.full(len(instantaneous_phase), i))
+
+
 
         # Plot the results
-        plt.figure(figsize=(10, 6))
-        plt.subplot(3, 1, 1)
-        plt.plot(t, signal, label='Original Signal')
-        plt.title('Original Signal')
+        if plot_figures == True:
+            plt.figure(figsize=(10, 10))
 
-        plt.subplot(3, 1, 2)
-        plt.plot(t, np.abs(hilbert_transform), label='Hilbert Transform')
-        plt.title('Hilbert Transform Magnitude')
+            plt.subplot(4, 1, 1)
+            plt.plot(t, signal, label='Original Signal')
+            plt.title('Original Signal, trial ' + str(i))
 
-        plt.subplot(3, 1, 3)
-        plt.plot(t[:-1], instantaneous_frequency, label='Instantaneous Frequency')
-        plt.title('Instantaneous Frequency')
-        plt.tight_layout()
-        plt.show()
-    return
+            plt.subplot(4, 1, 2)
+            plt.plot(t, hilbert_transform.real, label='Hilbert Transform (Real)')
+            plt.title('Hilbert Transform Real Part')
+
+            plt.subplot(4, 1, 3)
+            plt.plot(t, hilbert_transform.imag, label='Hilbert Transform (Imaginary)')
+            plt.title('Hilbert Transform Imaginary Part')
+
+            plt.subplot(4, 1, 4)
+            plt.plot(t, instantaneous_phase, label='Instantaneous Phase')
+            plt.title('Instantaneous Phase')
+
+            plt.tight_layout()
+            plt.show()
+        #append the instantaneous phase
+
+
+
+    return phase_array, trial_array
 
 
 
@@ -157,7 +170,7 @@ def load_theta_data(path, fs=30000):
 
 
 def main():
-    load_theta_data(Path('C:/neural_data/'))
+    phase_array, trial_array = load_theta_data(Path('C:/neural_data/'))
     load_data_from_paths(Path('C:/neural_data/'))
 
 
