@@ -68,6 +68,8 @@ def load_data_from_paths(path):
         dlc_angle_list = dlc_angle_list.ravel()
         dlc_new = np.interp(spike_times_seconds*1000, head_angle_times_ms, dlc_angle_list)
         trial_new = np.interp(spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
+        #round the trial number
+        trial_new = np.round(trial_new)
 
         #construct a dataframe with the spike times and the dlc angle
         unit_id = unit['name'][0].astype(str)
@@ -253,10 +255,10 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
                 plt.plot(theta_in_trial, label = 'Theta phase')
                 plt.plot(angle_in_trial, label = 'DLC angle')
                 plt.legend()
-                plt.title(f'theta phase for trial number {j} and dlc angle, plv is {plv}')
+                plt.title(f'theta phase for trial number {j} and dlc angle, \n  plv is {plv} and unit ID: {i}')
 
                 plt.savefig(f'figures/theta_phase_dlc_angle_unit_{i}_{plv}.png')
-                plt.show()
+                # plt.show()
         #plot the plv for the unit
         plt.figure()
         plt.plot(plv_for_unit)
