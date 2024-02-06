@@ -94,10 +94,31 @@ def load_data_from_paths(path):
         else:
             df_all = pd.concat([df_all, df])
 
-    return
+    return df_all
 
 
-def load_theta_data(path, fs=1000, plot_figures = True):
+def resample_by_interpolation(signal, input_fs, output_fs):
+
+    scale = output_fs / input_fs
+    # calculate new length of sample
+    n = round(len(signal) * scale)
+
+    # use linear interpolation
+    # endpoint keyword means than linspace doesn't go all the way to 1.0
+    # If it did, there are some off-by-one errors
+    # e.g. scale=2.0, [1,2,3] should go to [1,1.5,2,2.5,3,3]
+    # but with endpoint=True, we get [1,1.4,1.8,2.2,2.6,3]
+    # Both are OK, but since resampling will often involve
+    # exact ratios (i.e. for 44100 to 22050 or vice versa)
+    # using endpoint=False gets less noise in the resampled sound
+    resampled_signal = np.interp(
+        np.linspace(0.0, 1.0, n, endpoint=False),  # where to interpret
+        np.linspace(0.0, 1.0, len(signal), endpoint=False),  # known positions
+        signal,  # known data points
+    )
+    return resampled_signal
+
+def load_theta_data(path, fs=1000, spike_data = [], plot_figures = True):
     #   load the theta data from the local path
     theta_data = scipy.io.loadmat(path / 'thetaAndRipplePower.mat')
     theta_power = theta_data['thetaPower']
@@ -107,10 +128,14 @@ def load_theta_data(path, fs=1000, plot_figures = True):
     #caluculate theta phase and amplitude
     phase_array = np.array([])
     trial_array = np.array([])
-    for i in range(0, len(theta_signal_hcomb)):
-        signal = theta_signal_hcomb[i][0]
+    theta_array = np.array([])
+    for i in range(0, len(theta_signal_hcomb[0])):
+
+        signal = theta_signal_hcomb[0][i]
+
         #flatten the data
         signal = signal.ravel()
+        theta_array = np.append(theta_array, signal)
         hilbert_transform = hilbert(signal)
 
         # Calculate the instantaneous phase
@@ -121,6 +146,8 @@ def load_theta_data(path, fs=1000, plot_figures = True):
         instantaneous_frequency = np.diff(instantaneous_phase) / (2.0 * np.pi * np.diff(t))
         phase_array = np.append(phase_array, instantaneous_phase)
         trial_array = np.append(trial_array, np.full(len(instantaneous_phase), i))
+
+        #upsample the data to 30,000 Hz
 
 
 
@@ -148,10 +175,18 @@ def load_theta_data(path, fs=1000, plot_figures = True):
             plt.show()
         #append the instantaneous phase
 
+    # trial_new = np.interp(spike_times_seconds, head_angle_times_ms, trial_number_array)
+    t = np.arange(0, len(phase_array)) / fs
+    phase_array_new = np.interp(spike_data['spike_times_seconds'], t, phase_array)
 
+    trial_array_new = np.interp(spike_data['spike_times_seconds'], t, trial_array)
+    #check if trial arrays are equivalent
+    if np.array_equal(trial_array_new, spike_data['trial_number']):
+        print('Trial arrays are equivalent')
+    else:
+        print('Trial arrays are not equivalent')
 
-    return phase_array, trial_array
-
+    return phase_array, trial_array, theta_array
 
 
 
@@ -162,6 +197,54 @@ def load_theta_data(path, fs=1000, plot_figures = True):
         #extract the trial type from the unit
 
 
+def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, trial_array):
+    #compare the spike times to the theta phase
+    #for each spike time, find the corresponding theta phase
+    #and trial number
+    for i in spike_data['unit_id'].unique():
+        #extract the spike times for the unit
+        # unit_spike_times = spike_data[spike_data['unit_id'] == i]['spike_times_seconds']
+        # unit_spike_times = unit_spike_times.to_numpy()
+        unit_spike_data = spike_data[spike_data['unit_id'] == i]
+        #extract the trial number for the unit
+        for j in unit_spike_data['trial_number'].unique():
+            unit_spike_data_trial = unit_spike_data[unit_spike_data['trial_number'] == j]
+            #calculate the phase locking value between the spike times, theta phase, and dlc angle
+            #for the unit
+            theta_in_trial = theta_array[trial_array == j]
+            angle_in_trial = unit_spike_data_trial['dlc_angle']
+            #downsample to 1000 Hz
+            angle_in_trial = resample_by_interpolation(angle_in_trial, 30000, 1000)
+
+
+            theta_analytic = hilbert(theta_in_trial)
+            head_analytic = hilbert(angle_in_trial)
+            # Calculate the Phase Locking Value
+
+            phase_difference = np.angle(theta_analytic/head_analytic)
+
+            # Calculate the Phase Locking Value
+            plv = np.abs(np.mean(np.exp(1j * phase_difference)))
+            print('Phase locking value: ' + str(plv))
+
+        #extract the theta phase for the unit
+
+        #for each spike time, find the corresponding theta phase
+        # for j in unit_spike_times:
+        #     #find the closest theta phase to the spike time
+        #     closest_theta_phase = np.argmin(np.abs(unit_theta_phase - j))
+        #     print('Closest theta phase to spike time: ' + str(closest_theta_phase))
+        #     print('Spike time: ' + str(j))
+        #     print('Theta phase: ' + str(unit_theta_phase[closest_theta_phase]))
+        #     print('Trial number: ' + str(unit_trial_numbers[closest_theta_phase]))
+        #
+        #     #plot the spike time and the theta phase
+        #     plt.figure()
+        #     plt.plot(j, unit_theta_phase[closest_theta_phase], 'ro')
+        #     plt.plot(unit_spike_times, unit_theta_phase, 'bo')
+        #     plt.title('Spike time and theta phase')
+        #     plt.show()
+
 
 
 
@@ -170,8 +253,11 @@ def load_theta_data(path, fs=1000, plot_figures = True):
 
 
 def main():
-    phase_array, trial_array = load_theta_data(Path('C:/neural_data/'))
-    load_data_from_paths(Path('C:/neural_data/'))
+    df_all = load_data_from_paths(Path('C:/neural_data/'))
+    phase_array, trial_array, theta_array = load_theta_data(Path('C:/neural_data/'), spike_data = df_all)
+    compare_spike_times_to_theta_phase(df_all, phase_array, theta_array, trial_array)
+
+
 
 
 
