@@ -5,6 +5,7 @@ import mat73
 from pathlib import Path
 import scipy
 import numpy as np
+from scipy.signal import hilbert
 
 
 def load_data_from_paths(path):
@@ -100,6 +101,48 @@ def load_data_from_paths(path):
     return
 
 
+def load_theta_data(path, fs=30000):
+    #   load the theta data from the local path
+    theta_data = scipy.io.loadmat(path / 'thetaAndRipplePower.mat')
+    theta_power = theta_data['thetaPower']
+    theta_signal_hcomb = theta_power['hComb'][0][0]['raw']
+
+    ripple_power = theta_data['ripplePower']
+    #caluculate theta phase and amplitude
+    for i in range(0, len(theta_signal_hcomb)):
+        signal = theta_signal_hcomb[i][0]
+        hilbert_transform = hilbert(signal)
+
+        # Calculate the instantaneous phase
+        instantaneous_phase = np.angle(hilbert_transform)
+
+        # Calculate the instantaneous frequency
+        t = np.arange(0, len(signal)) / fs
+        instantaneous_frequency = np.diff(instantaneous_phase) / (2.0 * np.pi * np.diff(t))
+
+        # Plot the results
+        plt.figure(figsize=(10, 6))
+        plt.subplot(3, 1, 1)
+        plt.plot(t, signal, label='Original Signal')
+        plt.title('Original Signal')
+
+        plt.subplot(3, 1, 2)
+        plt.plot(t, np.abs(hilbert_transform), label='Hilbert Transform')
+        plt.title('Hilbert Transform Magnitude')
+
+        plt.subplot(3, 1, 3)
+        plt.plot(t[:-1], instantaneous_frequency, label='Instantaneous Frequency')
+        plt.title('Instantaneous Frequency')
+        plt.tight_layout()
+        plt.show()
+    return
+
+
+
+
+
+
+
 
         #extract the trial type from the unit
 
@@ -112,6 +155,7 @@ def load_data_from_paths(path):
 
 
 def main():
+    load_theta_data(Path('C:/neural_data/'))
     load_data_from_paths(Path('C:/neural_data/'))
 
 
