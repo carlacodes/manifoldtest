@@ -231,7 +231,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             #filter for non stationary periods
             angle_in_trial = angle_in_trial[non_stationary_periods]
             theta_in_trial = theta_in_trial[non_stationary_periods]
-            if angle_in_trial.isempty() or theta_in_trial.isempty():
+            if len(angle_in_trial) == 0 or len(theta_in_trial) == 0:
                 print('Angle or theta is empty, skipping...')
                 continue
 
