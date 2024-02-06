@@ -65,9 +65,9 @@ def load_data_from_paths(path):
         #interpolate the dlc angle to the spike times
         #this will allow us to compare the spike times to the dlc angle
         #and see if the spike times are aligned with the dlc angle
-        dlc_angle_list = np.array(dlc_angle_list)
-        dlc_new = np.interp(spike_times_seconds, head_angle_times_ms, dlc_angle_list)
-        trial_new = np.interp(spike_times_seconds, head_angle_times_ms, trial_number_array)
+        dlc_angle_list = dlc_angle_list.ravel()
+        dlc_new = np.interp(spike_times_seconds*1000, head_angle_times_ms, dlc_angle_list)
+        trial_new = np.interp(spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
 
         #construct a dataframe with the spike times and the dlc angle
         unit_id = unit['name'][0].astype(str)
@@ -213,11 +213,12 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             #for the unit
             theta_in_trial = theta_array[trial_array == j]
             angle_in_trial = unit_spike_data_trial['dlc_angle']
-            #downsample to 1000 Hz
-            angle_in_trial = resample_by_interpolation(angle_in_trial, 30000, 1000)
+            #downsample so that the length of the arrays are the same
+            angle_in_trial = np.interp(np.linspace(0, len(angle_in_trial), len(theta_in_trial)), np.arange(0, len(angle_in_trial)), angle_in_trial)
 
 
             theta_analytic = hilbert(theta_in_trial)
+
             head_analytic = hilbert(angle_in_trial)
             # Calculate the Phase Locking Value
 
@@ -226,6 +227,29 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             # Calculate the Phase Locking Value
             plv = np.abs(np.mean(np.exp(1j * phase_difference)))
             print('Phase locking value: ' + str(plv))
+            #plot the phase difference
+            plt.figure()
+            plt.plot(phase_difference)
+            plt.title('Phase difference')
+            plt.show()
+            #plot the spike times and the theta phase
+            # plt.figure()
+            # plt.plot(unit_spike_data_trial['spike_times_seconds'], theta_in_trial, 'bo')
+            # plt.title('Spike times and theta phase')
+            # plt.show()
+
+            # #plot the spike times and the dlc angle
+            # plt.figure()
+            # plt.plot(unit_spike_data_trial['spike_times_seconds'], angle_in_trial, 'ro')
+            # plt.title('Spike times and dlc angle')
+            # plt.show()
+
+            #plot the theta, spike times, and dlc angle
+            plt.figure()
+            plt.plot(theta_in_trial, 'bo')
+            plt.plot(angle_in_trial, 'ro')
+            plt.title('Spike times, theta phase, and dlc angle')
+            plt.show()
 
         #extract the theta phase for the unit
 
