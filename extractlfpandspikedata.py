@@ -360,12 +360,6 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         mean_cross_corr = np.mean(cross_correlation)
         mean_cross_corr = np.full(len(cross_correlation), mean_cross_corr)
 
-
-        #get the mean granger causality test values
-        granger_dict_all_mean = pd.DataFrame(granger_dict_all)
-        granger_dict_all_mean = granger_dict_all_mean.groupby(['unit_id']).mean()
-        granger_dict_all_mean = granger_dict_all_mean.reset_index()
-
         df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv, 'cross correlation': cross_correlation, 'mean cross correlation': mean_cross_corr, 'trial_number': unit_spike_data['trial_number'].unique()})
         if count == 0:
             df_plv_all = df_plv
