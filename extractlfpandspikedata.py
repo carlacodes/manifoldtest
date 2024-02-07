@@ -264,8 +264,18 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             is_stationary_theta = adf_result_theta[1] <= 0.05
 
             if not is_stationary_angle or not is_stationary_theta:
-                print(f"Unit {i}, Trial {j}: Not stationary. Skipping...")
-                continue
+                print(f"Unit {i}, Trial {j}: Not stationary. Applying differencing...")
+                # Apply differencing to make the time series stationary
+                angle_in_trial = np.diff(angle_in_trial)
+                theta_in_trial = np.diff(theta_in_trial)
+                # Check the p-values again
+                adf_result_angle = adfuller(angle_in_trial)
+                adf_result_theta = adfuller(theta_in_trial)
+                is_stationary_angle = adf_result_angle[1] <= 0.05
+                is_stationary_theta = adf_result_theta[1] <= 0.05
+                if not is_stationary_angle or not is_stationary_theta:
+                    print(f"Unit {i}, Trial {j}: Still not stationary. Skipping...")
+                    continue
             #calculate the ideal lag for granger causality
 
             #calculate the cross correlation between the theta phase and the dlc angle
