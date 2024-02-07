@@ -21,6 +21,7 @@ def load_data_from_paths(path):
     spike_data = scipy.io.loadmat(path / 'units.mat')
     units = spike_data['units']
     fs = spike_data['sample_rate'][0][0]
+
     positional_data = scipy.io.loadmat(path / 'positionalDataByTrialType.mat')
     #load the positional data, pos key
     print(positional_data.keys())
@@ -31,6 +32,8 @@ def load_data_from_paths(path):
     time = hcomb_data['videoTime']
     ts = hcomb_data['ts']
     sample = hcomb_data['sample']
+
+    fs = ((sample[0][0] / ts[0][0])*10000)[0]
     dlc_angle = hcomb_data['dlc_angle']
 
     #create a new array that interpolates based on the video time
@@ -216,7 +219,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
     df_plv_all = pd.DataFrame()
     granger_dict_all_acrossunits = np.array([])
 
-    for i in spike_data['unit_id'].unique():
+    for i, count in enumerate(spike_data['unit_id'].unique()):
         #extract the spike times for the unit
         # unit_spike_times = spike_data[spike_data['unit_id'] == i]['spike_times_seconds']
         # unit_spike_times = unit_spike_times.to_numpy()
@@ -282,16 +285,34 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             cross_correlation = np.correlate(theta_in_trial, angle_in_trial, mode='full')
 
             granger_test = grangercausalitytests(np.column_stack((angle_in_trial, theta_in_trial)), maxlag=20)
-            #append gramger
-            #print the results of the granger test
             for key in granger_test.keys():
                 print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
+                #add to a dataframe
+                granger_test = granger_test[key][0]['ssr_ftest']
+                granger_test_lag_dataframe = pd.DataFrame(granger_test)
+                granger_test_lag_dataframe['unit_id'] = i
+                granger_test_lag_dataframe['trial_number'] = j
+                granger_test_lag_dataframe['lag'] = key
+                if key == 0:
+                    granger_dataframe_all_lag = granger_test_lag_dataframe
+                else:
+                    granger_dataframe_all_lag = pd.concat([granger_dataframe_all_lag, granger_test_lag_dataframe])
             #append to a larger dictionary
             granger_dict = {'unit_id': i, 'trial_number': j, 'granger_test': granger_test}
+            #extract the ssr_ftest value
             if j == 0:
+                granger_dataframe_all_trial = granger_dataframe_all_lag
                 granger_dict_all = granger_dict
             else:
+                granger_dataframe_all_trial = pd.concat([granger_dataframe_all_trial, granger_dataframe_all_lag])
                 granger_dict_all = np.append(granger_dict_all, granger_dict)
+
+
+
+
+
+
+
 
 
 
@@ -339,8 +360,6 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         mean_cross_corr = np.mean(cross_correlation)
         mean_cross_corr = np.full(len(cross_correlation), mean_cross_corr)
 
-        #add the plv to the dataframe
-
 
         #get the mean granger causality test values
         granger_dict_all_mean = pd.DataFrame(granger_dict_all)
@@ -348,14 +367,16 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         granger_dict_all_mean = granger_dict_all_mean.reset_index()
 
         df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv, 'cross correlation': cross_correlation, 'mean cross correlation': mean_cross_corr, 'trial_number': unit_spike_data['trial_number'].unique()})
-        if i == 0:
+        if count == 0:
             df_plv_all = df_plv
             granger_dict_all_acrossunits = granger_dict_all
             granger_dict_avg_acrossunits = granger_dict_all_mean
+            granger_dataframe_all_unit = granger_dataframe_all_trial
         else:
             df_plv_all = pd.concat([df_plv_all, df_plv])
             granger_dict_all_acrossunits = np.append(granger_dict_all_acrossunits, granger_dict_all)
             granger_dict_avg_acrossunits = pd.concat([granger_dict_avg_acrossunits, granger_dict_all_mean])
+            granger_dataframe_all_unit = pd.concat([granger_dataframe_all_unit, granger_dataframe_all_trial])
 
         #extract the theta phase for the unit
 
