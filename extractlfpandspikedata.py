@@ -205,6 +205,8 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
     #for each spike time, find the corresponding theta phase
     #and trial number
     df_plv_all = pd.DataFrame()
+    granger_dict_all_acrossunits = np.array([])
+
     for i in spike_data['unit_id'].unique():
         #extract the spike times for the unit
         # unit_spike_times = spike_data[spike_data['unit_id'] == i]['spike_times_seconds']
@@ -213,7 +215,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         #extract the trial number for the unit
         plv_for_unit = np.array([])
         cross_corr_for_unit = np.array([])
-        granger_dict_all_acrossunits = np.array([])
+        granger_dict_all = np.array([])
         for j in unit_spike_data['trial_number'].unique():
             unit_spike_data_trial = unit_spike_data[unit_spike_data['trial_number'] == j]
             #calculate the phase locking value between the spike times, theta phase, and dlc angle
