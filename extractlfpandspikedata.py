@@ -264,18 +264,17 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             if not is_stationary_angle or not is_stationary_theta:
                 print(f"Unit {i}, Trial {j}: Not stationary. Skipping...")
                 continue
+            #calculate the ideal lag for granger causality
 
             #calculate the cross correlation between the theta phase and the dlc angle
             cross_correlation = np.correlate(theta_in_trial, angle_in_trial, mode='full')
-            #calculate the granger causality between the theta phase and the dlc angle
-
-            #test for stationarity
 
             granger_test = grangercausalitytests(np.column_stack((theta_in_trial, angle_in_trial)), maxlag=20)
 
             #print the results of the granger test
             for key in granger_test.keys():
                 print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
+
 
 
 
