@@ -251,6 +251,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             # Calculate the Phase Locking Value
             plv = np.abs(np.mean(np.exp(1j * phase_difference)))
             print('Phase locking value: ' + str(plv))
+            print(f'cross correlation at trial {j} is {cross_correlation}')
             plv_for_unit = np.append(plv_for_unit, plv)
             #plot the phase difference
             if plv >=0.7:
