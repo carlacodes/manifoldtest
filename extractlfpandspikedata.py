@@ -129,6 +129,15 @@ def resample_by_interpolation(signal, input_fs, output_fs):
     return resampled_signal
 
 def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
+    ''' Load the theta data from the local path and calculate the instantaneous phase
+    and frequency of the theta signal. Then, compare the spike times to the theta phase
+    and amplitude to see if the spike times are aligned with the theta phase and amplitude
+    :param path: the local path to the theta data
+    :param fs: the sample rate of the theta data
+    :param spike_data: the spike data
+    :param plot_figures: whether to plot the figures
+    :return: the theta phase, amplitude, and trial number for each spike time
+    '''
     #   load the theta data from the local path
     theta_data = scipy.io.loadmat(path / 'thetaAndRipplePower.mat')
     theta_power = theta_data['thetaPower']
