@@ -6,7 +6,6 @@ from pathlib import Path
 import scipy
 import numpy as np
 from scipy.signal import hilbert
-#import granger causality from statsmodels
 from statsmodels.tsa.stattools import grangercausalitytests
 from statsmodels.tsa.stattools import adfuller  # Augmented Dickey-Fuller Test
 
@@ -223,6 +222,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         #extract the trial number for the unit
         plv_for_unit = np.array([])
         cross_corr_for_unit = np.array([])
+        granger_dict_all_acrossunits = np.array([])
         for j in unit_spike_data['trial_number'].unique():
             unit_spike_data_trial = unit_spike_data[unit_spike_data['trial_number'] == j]
             #calculate the phase locking value between the spike times, theta phase, and dlc angle
@@ -269,11 +269,18 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             #calculate the cross correlation between the theta phase and the dlc angle
             cross_correlation = np.correlate(theta_in_trial, angle_in_trial, mode='full')
 
-            granger_test = grangercausalitytests(np.column_stack((theta_in_trial, angle_in_trial)), maxlag=20)
-
+            granger_test = grangercausalitytests(np.column_stack((angle_in_trial, theta_in_trial)), maxlag=20)
+            #append gramger
             #print the results of the granger test
             for key in granger_test.keys():
                 print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
+            #append to a larger dictionary
+            granger_dict = {'unit_id': i, 'trial_number': j, 'granger_test': granger_test}
+            if j == 0:
+                granger_dict_all = granger_dict
+            else:
+                granger_dict_all = np.append(granger_dict_all, granger_dict)
+
 
 
 
@@ -324,8 +331,10 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv, 'cross correlation': cross_correlation, 'mean cross correlation': mean_cross_corr, 'trial_number': unit_spike_data['trial_number'].unique()})
         if i == 0:
             df_plv_all = df_plv
+            granger_dict_all_acrossunits = granger_dict_all
         else:
             df_plv_all = pd.concat([df_plv_all, df_plv])
+            granger_dict_all_acrossunits = np.append(granger_dict_all_acrossunits, granger_dict_all)
 
         #extract the theta phase for the unit
 
