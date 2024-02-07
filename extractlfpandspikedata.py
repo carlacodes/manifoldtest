@@ -197,16 +197,16 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
             plt.show()
         #append the instantaneous phase
 
-    # trial_new = np.interp(spike_times_seconds, head_angle_times_ms, trial_number_array)
-    t = np.arange(0, len(phase_array)) / fs
-    phase_array_new = np.interp(spike_data['spike_times_seconds'], t, phase_array)
-
-    trial_array_new = np.interp(spike_data['spike_times_seconds'], t, trial_array)
-    #check if trial arrays are equivalent
-    if np.array_equal(trial_array_new, spike_data['trial_number']):
-        print('Trial arrays are equivalent')
-    else:
-        print('Trial arrays are not equivalent')
+    # # trial_new = np.interp(spike_times_seconds, head_angle_times_ms, trial_number_array)
+    # t = np.arange(0, len(phase_array)) / fs
+    # phase_array_new = np.interp(spike_data['spike_times_seconds'], t, phase_array)
+    #
+    # trial_array_new = np.interp(spike_data['spike_times_seconds'], t, trial_array)
+    # #check if trial arrays are equivalent
+    # if np.array_equal(trial_array_new, spike_data['trial_number']):
+    #     print('Trial arrays are equivalent')
+    # else:
+    #     print('Trial arrays are not equivalent')
 
     return phase_array, trial_array, theta_array
 
@@ -219,7 +219,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
     df_plv_all = pd.DataFrame()
     granger_dict_all_acrossunits = np.array([])
 
-    for i, count in enumerate(spike_data['unit_id'].unique()):
+    for count, i in enumerate(spike_data['unit_id'].unique()):
         #extract the spike times for the unit
         # unit_spike_times = spike_data[spike_data['unit_id'] == i]['spike_times_seconds']
         # unit_spike_times = unit_spike_times.to_numpy()
@@ -293,7 +293,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
                 granger_test_lag_dataframe['unit_id'] = i
                 granger_test_lag_dataframe['trial_number'] = j
                 granger_test_lag_dataframe['lag'] = key
-                if key == 0:
+                if key == 1:
                     granger_dataframe_all_lag = granger_test_lag_dataframe
                 else:
                     granger_dataframe_all_lag = pd.concat([granger_dataframe_all_lag, granger_test_lag_dataframe])
