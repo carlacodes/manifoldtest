@@ -34,6 +34,7 @@ def load_data_from_paths(path):
     sample = hcomb_data['sample']
 
     fs = ((sample[0][0] / ts[0][0])*10000)[0]
+
     dlc_angle = hcomb_data['dlc_angle']
 
     #create a new array that interpolates based on the video time
@@ -73,14 +74,12 @@ def load_data_from_paths(path):
                 print('Trial time is greater than spike time, aborting...')
                 break
 
-        #interpolate the dlc angle to the spike times
-        #this will allow us to compare the spike times to the dlc angle
-        #and see if the spike times are aligned with the dlc angle
-        dlc_angle_list = dlc_angle_list.ravel()
-        dlc_new = np.interp(spike_times_seconds*1000, head_angle_times_ms, dlc_angle_list)
-        trial_new = np.interp(spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
-        #round the trial number
-        trial_new = np.round(trial_new)
+        #interpolate the dlc angle to 30,000 Hz
+        dlc_new = resample_by_interpolation(dlc_angle_list, fs, 30000)
+        trial_new = resample_by_interpolation(trial_number_array, fs, 30000)
+        #make sure the length of the dlc angle is the same as the spike times, i
+
+
 
         #construct a dataframe with the spike times and the dlc angle
         unit_id = unit['name'][0].astype(str)
@@ -387,7 +386,16 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         #     plt.plot(unit_spike_times, unit_theta_phase, 'bo')
         #     plt.title('Spike time and theta phase')
         #     plt.show()
-    #
+
+    #for each unit, and each lag, calculate the average p value
+    granger_dataframe_avg_all = pd.DataFrame()
+    for i in granger_dataframe_all_unit['unit_id'].unique():
+        for j in granger_dataframe_all_unit['trial_number'].unique():
+            granger_dataframe_avg = granger_dataframe_all_unit[(granger_dataframe_all_unit['unit_id'] == i) & (granger_dataframe_all_unit['lag'] == j)]
+            granger_dataframe_avg = granger_dataframe_avg.groupby('lag').mean()
+            granger_dataframe_avg['unit_id'] = i
+            granger_dataframe_avg_all = pd.concat([granger_dataframe_avg_all, granger_dataframe_avg])
+
     if export_to_csv:
         df_plv_all.to_csv('csvs/plv.csv')
         granger_dict_all_acrossunits.to_csv('csvs/granger.csv')
