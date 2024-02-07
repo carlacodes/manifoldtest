@@ -200,15 +200,6 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
 
 
 
-
-
-
-
-        #extract the trial type from the unit
-def moving_average(data, window_size):
-    return np.convolve(data, np.ones(window_size)/window_size, mode='same')
-
-
 def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, trial_array, window_size = 100):
     #compare the spike times to the theta phase
     #for each spike time, find the corresponding theta phase
