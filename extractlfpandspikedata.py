@@ -8,6 +8,7 @@ import numpy as np
 from scipy.signal import hilbert
 from statsmodels.tsa.stattools import grangercausalitytests
 from statsmodels.tsa.stattools import adfuller  # Augmented Dickey-Fuller Test
+from scipy.interpolate import interp1d
 
 
 def load_data_from_paths(path):
@@ -74,12 +75,17 @@ def load_data_from_paths(path):
                 print('Trial time is greater than spike time, aborting...')
                 break
 
-        #interpolate the dlc angle to 30,000 Hz
-        dlc_new = resample_by_interpolation(dlc_angle_list, fs, 30000)
-        trial_new = resample_by_interpolation(trial_number_array, fs, 30000)
+        # #interpolate the dlc angle to 30,000 Hz
+        # dlc_new = resample_by_interpolation(dlc_angle_list, fs, 30000)
+        # trial_new = resample_by_interpolation(trial_number_array, fs, 30000)
         #make sure the length of the dlc angle is the same as the spike times, i
 
+        interp_func = interp1d(head_angle_times, dlc_angle_list, kind='linear', fill_value='extrapolate')
+        new_head_angle_times = np.arange(0, np.max(head_angle_times), 1 / fs)
+        new_dlc_angle_list = interp_func(new_head_angle_times)
 
+        interp_func_trial = interp1d(head_angle_times, trial_number_array, kind='linear', fill_value='extrapolate')
+        new_trial_number_array = interp_func_trial(new_head_angle_times)
 
         #construct a dataframe with the spike times and the dlc angle
         unit_id = unit['name'][0].astype(str)
