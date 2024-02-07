@@ -289,7 +289,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
                 print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
                 #add to a dataframe
                 granger_test_for_indiv_lag = granger_test[key][0]['ssr_ftest']
-                granger_test_lag_dataframe = pd.DataFrame(granger_test_for_indiv_lag)
+                granger_test_lag_dataframe = pd.DataFrame({'F-statistic': granger_test_for_indiv_lag[0], 'p-value': granger_test_for_indiv_lag[1], 'df_denom': granger_test_for_indiv_lag[2], 'df_num': granger_test_for_indiv_lag[3]}, index=[0])
                 granger_test_lag_dataframe['unit_id'] = i
                 granger_test_lag_dataframe['trial_number'] = j
                 granger_test_lag_dataframe['lag'] = key
@@ -391,7 +391,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
     if export_to_csv:
         df_plv_all.to_csv('csvs/plv.csv')
         granger_dict_all_acrossunits.to_csv('csvs/granger.csv')
-        granger_dict_avg_acrossunits.to_csv('csvs/granger_avg.csv')
+        # granger_dict_avg_acrossunits.to_csv('csvs/granger_avg.csv')
 
     return df_plv_all
 
