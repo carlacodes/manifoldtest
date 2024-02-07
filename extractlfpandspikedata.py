@@ -209,7 +209,7 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
 
 
 
-def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, trial_array, window_size = 100):
+def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, trial_array, export_to_csv = True):
     #compare the spike times to the theta phase
     #for each spike time, find the corresponding theta phase
     #and trial number
@@ -340,13 +340,22 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         mean_cross_corr = np.full(len(cross_correlation), mean_cross_corr)
 
         #add the plv to the dataframe
+
+
+        #get the mean granger causality test values
+        granger_dict_all_mean = pd.DataFrame(granger_dict_all)
+        granger_dict_all_mean = granger_dict_all_mean.groupby(['unit_id']).mean()
+        granger_dict_all_mean = granger_dict_all_mean.reset_index()
+
         df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv, 'cross correlation': cross_correlation, 'mean cross correlation': mean_cross_corr, 'trial_number': unit_spike_data['trial_number'].unique()})
         if i == 0:
             df_plv_all = df_plv
             granger_dict_all_acrossunits = granger_dict_all
+            granger_dict_avg_acrossunits = granger_dict_all_mean
         else:
             df_plv_all = pd.concat([df_plv_all, df_plv])
             granger_dict_all_acrossunits = np.append(granger_dict_all_acrossunits, granger_dict_all)
+            granger_dict_avg_acrossunits = pd.concat([granger_dict_avg_acrossunits, granger_dict_all_mean])
 
         #extract the theta phase for the unit
 
@@ -365,6 +374,12 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         #     plt.plot(unit_spike_times, unit_theta_phase, 'bo')
         #     plt.title('Spike time and theta phase')
         #     plt.show()
+    #
+    if export_to_csv:
+        df_plv_all.to_csv('csvs/plv.csv')
+        granger_dict_all_acrossunits.to_csv('csvs/granger.csv')
+        granger_dict_avg_acrossunits.to_csv('csvs/granger_avg.csv')
+
     return df_plv_all
 
 
