@@ -360,16 +360,14 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
         mean_cross_corr = np.mean(cross_correlation)
         mean_cross_corr = np.full(len(cross_correlation), mean_cross_corr)
 
-        df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv, 'cross correlation': cross_correlation, 'mean cross correlation': mean_cross_corr, 'trial_number': unit_spike_data['trial_number'].unique()})
+        df_plv = pd.DataFrame({'plv': plv_for_unit, 'unit_id': i, 'mean plv': mean_plv})
         if count == 0:
             df_plv_all = df_plv
             granger_dict_all_acrossunits = granger_dict_all
-            granger_dict_avg_acrossunits = granger_dict_all_mean
             granger_dataframe_all_unit = granger_dataframe_all_trial
         else:
             df_plv_all = pd.concat([df_plv_all, df_plv])
             granger_dict_all_acrossunits = np.append(granger_dict_all_acrossunits, granger_dict_all)
-            granger_dict_avg_acrossunits = pd.concat([granger_dict_avg_acrossunits, granger_dict_all_mean])
             granger_dataframe_all_unit = pd.concat([granger_dataframe_all_unit, granger_dataframe_all_trial])
 
         #extract the theta phase for the unit
