@@ -288,8 +288,8 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             for key in granger_test.keys():
                 print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
                 #add to a dataframe
-                granger_test = granger_test[key][0]['ssr_ftest']
-                granger_test_lag_dataframe = pd.DataFrame(granger_test)
+                granger_test_for_indiv_lag = granger_test[key][0]['ssr_ftest']
+                granger_test_lag_dataframe = pd.DataFrame(granger_test_for_indiv_lag)
                 granger_test_lag_dataframe['unit_id'] = i
                 granger_test_lag_dataframe['trial_number'] = j
                 granger_test_lag_dataframe['lag'] = key
