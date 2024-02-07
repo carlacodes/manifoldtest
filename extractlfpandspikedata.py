@@ -6,9 +6,18 @@ from pathlib import Path
 import scipy
 import numpy as np
 from scipy.signal import hilbert
+#import granger causality from statsmodels
+from statsmodels.tsa.stattools import grangercausalitytests
+from statsmodels.tsa.stattools import adfuller  # Augmented Dickey-Fuller Test
 
 
 def load_data_from_paths(path):
+    '''Load the spike data and the positional data from the local path
+    and return a dataframe with the spike times and the dlc angle
+    for each unit. The dlc and trial numbers are interpolated to a 30,000 Hz
+    :param path: the local path to the data
+    :return: a dataframe with the spike times and the dlc angle for each unit'''
+
     #load MATLAB spike data from the local path:
     spike_data = scipy.io.loadmat(path / 'units.mat')
     units = spike_data['units']
@@ -227,7 +236,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
 
 
             # Detect non-stationary periods
-            non_stationary_periods = np.abs(angle_in_trial_grad) > 0
+            non_stationary_periods = np.abs(angle_in_trial_grad) >= 0.1
             #get the indices of the non-stationary periods
             non_stationary_periods = np.where(non_stationary_periods == True)
             #only include the non-stationary periods
@@ -245,8 +254,30 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             # Calculate the Phase Locking Value
 
             phase_difference = np.angle(theta_analytic/head_analytic)
+            adf_result_angle = adfuller(angle_in_trial)
+            adf_result_theta = adfuller(theta_in_trial)
+
+            # Check the p-values to determine stationarity
+            is_stationary_angle = adf_result_angle[1] <= 0.05
+            is_stationary_theta = adf_result_theta[1] <= 0.05
+
+            if not is_stationary_angle or not is_stationary_theta:
+                print(f"Unit {i}, Trial {j}: Not stationary. Skipping...")
+                continue
+
             #calculate the cross correlation between the theta phase and the dlc angle
             cross_correlation = np.correlate(theta_in_trial, angle_in_trial, mode='full')
+            #calculate the granger causality between the theta phase and the dlc angle
+
+            #test for stationarity
+
+            granger_test = grangercausalitytests(np.column_stack((theta_in_trial, angle_in_trial)), maxlag=20)
+
+            #print the results of the granger test
+            for key in granger_test.keys():
+                print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
+
+
 
             # Calculate the Phase Locking Value
             plv = np.abs(np.mean(np.exp(1j * phase_difference)))
@@ -255,10 +286,10 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             plv_for_unit = np.append(plv_for_unit, plv)
             #plot the phase difference
             if plv >=0.7:
-                plt.figure()
-                plt.plot(phase_difference)
-                plt.title('Phase difference')
-                plt.show()
+                # plt.figure()
+                # plt.plot(phase_difference)
+                # plt.title('Phase difference')
+                # plt.show()
                 #plot the spike times and the theta phase
                 # plt.figure()
                 # plt.plot(unit_spike_data_trial['spike_times_seconds'], theta_in_trial, 'bo')
