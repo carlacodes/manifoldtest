@@ -433,21 +433,23 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
         is_stationary_theta = adf_result_theta[1] <= 0.05
 
         if not is_stationary_angle or not is_stationary_theta:
-            print(f"Trial {trial}: Not stationary. Skipping...")
-            continue
-            # # Apply differencing to make the time series stationary
-            # df_trial['dlc_angle_phase'] = np.diff(df_trial['dlc_angle_phase'])
-            # df_trial['theta_phase'] = np.diff(df_trial['theta_phase'])
-            # # Check the p-values again
-            # adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
-            # adf_result_theta = adfuller(df_trial['theta_phase'])
-            # is_stationary_angle = adf_result_angle[1] <= 0.05
-            # is_stationary_theta = adf_result_theta[1] <= 0.05
-            # if not is_stationary_angle or not is_stationary_theta:
-            #     print(f"Trial {trial}: Still not stationary. Skipping...")
-            #     continue
+            print(f"Trial {trial}: Not stationary. Applying differencing...")
 
-        granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=20)
+            # Apply differencing to make the time series stationary
+            dlc_angle_trial = np.diff(df_trial['dlc_angle_phase'])
+            theta_phase_trial = np.diff(df_trial['theta_phase'])
+            # Check the p-values again
+            adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
+            adf_result_theta = adfuller(df_trial['theta_phase'])
+            is_stationary_angle = adf_result_angle[1] <= 0.05
+            is_stationary_theta = adf_result_theta[1] <= 0.05
+            if not is_stationary_angle or not is_stationary_theta:
+                print(f"Trial {trial}: Still not stationary. Skipping...")
+                continue
+            grangertest = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=20)
+        else:
+            granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=20)
+
         print(granger_test)
         for key in granger_test.keys():
             print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
