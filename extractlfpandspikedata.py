@@ -530,11 +530,14 @@ def simulate_data(n_samples, correlation_strength, lag_order):
     return x, y, z
 
 def compare_simulated_data_to_granger_test(n_samples):
-
+    '''create simulated time series data and compare the granger causality test when the time series are correlated and non correlated
+    :param n_samples: the number of samples
+    :return: the granger causality test results for the correlated and uncorrelated time series
+    '''
 
     # Correlation strength for the Granger causality
     correlation_strength = 0.7
-
+    print('running a granger causality test on simulated data, with a correlation strength of: ' + str(correlation_strength) + ' and ' + str(n_samples) + ' samples.')
     # Lag order for the Granger causality
     lag_order = 20
 
@@ -542,7 +545,7 @@ def compare_simulated_data_to_granger_test(n_samples):
     x, y, z = simulate_data(n_samples, correlation_strength, lag_order)
 
     # Plot the time series
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(40, 6))
     plt.plot(x, label='Independent Time Series (X)')
     plt.plot(y, label='Correlated Time Series (Y)')
     plt.plot(z, label='Uncorrelated Time Series (Z)')
@@ -553,6 +556,14 @@ def compare_simulated_data_to_granger_test(n_samples):
     plt.show()
 
     # Granger causality test
+    #make sure it passes the adfuller test
+    adf_result_x = adfuller(x)
+    adf_result_y = adfuller(y)
+    adf_result_z = adfuller(z)
+    print('ADF test for x: ' + str(adf_result_x))
+    print('ADF test for y: ' + str(adf_result_y))
+    print('ADF test for z: ' + str(adf_result_z))
+
 
     result_xy = grangercausalitytests(np.column_stack((y, x)), maxlag=lag_order, verbose=True)
     result_xz = grangercausalitytests(np.column_stack((z, x)), maxlag=lag_order, verbose=True)
@@ -562,8 +573,9 @@ def compare_simulated_data_to_granger_test(n_samples):
 
 
 def main():
-    phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
     result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
+
+    phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
 
     granger_results = run_granger_cauality_test(df_theta_and_angle)
 
