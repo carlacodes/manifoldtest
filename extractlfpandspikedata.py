@@ -553,8 +553,9 @@ def compare_simulated_data_to_granger_test(n_samples):
     plt.show()
 
     # Granger causality test
-    result_xy = sm.tsa.stattools.grangercausalitytests(np.column_stack((y, x)), max_lag=lag_order, verbose=True)
-    result_xz = sm.tsa.stattools.grangercausalitytests(np.column_stack((z, x)), max_lag=lag_order, verbose=True)
+
+    result_xy = grangercausalitytests(np.column_stack((y, x)), maxlag=lag_order, verbose=True)
+    result_xz = grangercausalitytests(np.column_stack((z, x)), maxlag=lag_order, verbose=True)
     return result_xy, result_xz
 
 
