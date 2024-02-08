@@ -104,26 +104,6 @@ def load_data_from_paths(path):
     return df_all
 
 
-def resample_by_interpolation(signal, input_fs, output_fs):
-
-    scale = output_fs / input_fs
-    # calculate new length of sample
-    n = round(len(signal) * scale)
-
-    # use linear interpolation
-    # endpoint keyword means than linspace doesn't go all the way to 1.0
-    # If it did, there are some off-by-one errors
-    # e.g. scale=2.0, [1,2,3] should go to [1,1.5,2,2.5,3,3]
-    # but with endpoint=True, we get [1,1.4,1.8,2.2,2.6,3]
-    # Both are OK, but since resampling will often involve
-    # exact ratios (i.e. for 44100 to 22050 or vice versa)
-    # using endpoint=False gets less noise in the resampled sound
-    resampled_signal = np.interp(
-        np.linspace(0.0, 1.0, n, endpoint=False),  # where to interpret
-        np.linspace(0.0, 1.0, len(signal), endpoint=False),  # known positions
-        signal,  # known data points
-    )
-    return resampled_signal
 
 def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
     ''' Load the theta data from the local path and calculate the instantaneous phase
@@ -139,32 +119,64 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
     theta_data = scipy.io.loadmat(path / 'thetaAndRipplePower.mat')
     theta_power = theta_data['thetaPower']
     theta_signal_hcomb = theta_power['hComb'][0][0]['raw']
+    power_sample_index = theta_data['powerSampleInd']['hComb'][0][0]
+
+    positional_data = scipy.io.loadmat(path / 'positionalDataByTrialType.mat')
+    pos_cell = positional_data['pos']
+    hcomb_data_pos = pos_cell[0][0][0][0]
+    time = hcomb_data_pos['videoTime']
+    ts = hcomb_data_pos['ts']
+    dlc_angle = hcomb_data_pos['dlc_angle']
+    sample = hcomb_data_pos['sample']
+
+    #recreate ts to check -- ts is time in milliseconds
+    test = sample/30000
+
 
     ripple_power = theta_data['ripplePower']
     #caluculate theta phase and amplitude
     phase_array = np.array([])
     trial_array = np.array([])
     theta_array = np.array([])
+    #load the positional data
+    positional_data = scipy.io.loadmat(path / 'positionalDataByTrialType.mat')
     for i in range(0, len(theta_signal_hcomb[0])):
 
         signal = theta_signal_hcomb[0][i]
+        dlc_angle_trial = dlc_angle[i]
+        ts_angle_trial = ts[i]
 
-        #flatten the data
+        power_sample_index_trial = power_sample_index[i,:]
+        start_time = power_sample_index_trial[0] / 30000
+        stop_time = power_sample_index_trial[1] / 30000
+
+        timestamp_array_theta = np.arange(start_time, stop_time, 1 / fs)
+        #convert to milliseconds
+        timestamp_array_theta = timestamp_array_theta * 1000
+        #create time vector for the theta signal, the timepoimts are power_sample_index_trial
         signal = signal.ravel()
         theta_array = np.append(theta_array, signal)
         hilbert_transform = hilbert(signal)
-
         # Calculate the instantaneous phase
-        instantaneous_phase = np.angle(hilbert_transform)
+        ts_angle_trial = ts_angle_trial.ravel()
+        dlc_angle_trial = dlc_angle_trial.ravel()
 
+        interpolated_dlc_angle = np.interp(timestamp_array_theta, ts_angle_trial, dlc_angle_trial)
+
+        instantaneous_phase = np.angle(hilbert_transform)
         # Calculate the instantaneous frequency
         t = np.arange(0, len(signal)) / fs
         instantaneous_frequency = np.diff(instantaneous_phase) / (2.0 * np.pi * np.diff(t))
         phase_array = np.append(phase_array, instantaneous_phase)
         trial_array = np.append(trial_array, np.full(len(instantaneous_phase), i))
+        #upsample the dlc_angle_trial to the same length as the theta signal
 
-        #upsample the data to 30,000 Hz
-
+        #create a dataframe for this trial
+        df_trial = pd.DataFrame({'theta_phase': instantaneous_phase, 'dlc_angle': interpolated_dlc_angle, 'trial_number': np.full(len(instantaneous_phase), i)})
+        if i == 0:
+            df_theta_and_angle = df_trial
+        else:
+            df_theta_and_angle = pd.concat([df_theta_and_angle, df_trial])
 
 
         # Plot the results
@@ -190,19 +202,10 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
             plt.tight_layout()
             plt.show()
         #append the instantaneous phase
+    #upsampl
 
-    # # trial_new = np.interp(spike_times_seconds, head_angle_times_ms, trial_number_array)
-    # t = np.arange(0, len(phase_array)) / fs
-    # phase_array_new = np.interp(spike_data['spike_times_seconds'], t, phase_array)
-    #
-    # trial_array_new = np.interp(spike_data['spike_times_seconds'], t, trial_array)
-    # #check if trial arrays are equivalent
-    # if np.array_equal(trial_array_new, spike_data['trial_number']):
-    #     print('Trial arrays are equivalent')
-    # else:
-    #     print('Trial arrays are not equivalent')
 
-    return phase_array, trial_array, theta_array
+    return phase_array, trial_array, theta_array, df_theta_and_angle
 
 
 
@@ -402,12 +405,24 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
 
 
 
+def load_theta_and_compare_to_dlc_angle(path, fs=1000, plot_figures = False):
+    hcomb_data = pos_cell[0][0][0][0]
+
+    time = hcomb_data['videoTime']
+    ts = hcomb_data['ts']
+    sample = hcomb_data['sample']
+
+    fs = ((sample[0][0] / ts[0][0]) * 10000)[0]
+
+    dlc_angle = hcomb_data['dlc_angle']
+
 
 
 
 def main():
+    phase_array, trial_array, theta_array = load_theta_data(Path('C:/neural_data/'), spike_data = [])
     df_all = load_data_from_paths(Path('C:/neural_data/'))
-    phase_array, trial_array, theta_array = load_theta_data(Path('C:/neural_data/'), spike_data = df_all)
+
     compare_spike_times_to_theta_phase(df_all, phase_array, theta_array, trial_array)
 
 
