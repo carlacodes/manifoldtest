@@ -135,12 +135,15 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
 
     ripple_power = theta_data['ripplePower']
     #caluculate theta phase and amplitude
-    phase_array = np.array([])
-    trial_array = np.array([])
-    theta_array = np.array([])
+
     #load the positional data
     positional_data = scipy.io.loadmat(path / 'positionalDataByTrialType.mat')
     for i in range(0, len(theta_signal_hcomb[0])):
+        phase_array = np.array([])
+        trial_array = np.array([])
+        theta_array = np.array([])
+        dlc_phase_array = np.array([])
+
 
         signal = theta_signal_hcomb[0][i]
         dlc_angle_trial = dlc_angle[i]
@@ -150,8 +153,11 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
         start_time = power_sample_index_trial[0] / 30000
         stop_time = power_sample_index_trial[1] / 30000
 
-        timestamp_array_theta = np.arange(start_time, stop_time, 1 / fs)
+        # timestamp_array_theta = np.arange(start_time, stop_time, 1 / fs)
         #convert to milliseconds
+        num_points = len(signal.ravel())
+        timestamp_array_theta = np.linspace(start_time, stop_time, num_points)
+
         timestamp_array_theta = timestamp_array_theta * 1000
         #create time vector for the theta signal, the timepoimts are power_sample_index_trial
         signal = signal.ravel()
@@ -162,17 +168,26 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
         dlc_angle_trial = dlc_angle_trial.ravel()
 
         interpolated_dlc_angle = np.interp(timestamp_array_theta, ts_angle_trial, dlc_angle_trial)
-
+        if len(interpolated_dlc_angle) != len(signal):
+            # Adjust the length if necessary
+            interpolated_dlc_angle = np.resize(interpolated_dlc_angle, len(signal))
         instantaneous_phase = np.angle(hilbert_transform)
+
+        hilbert_transform_angle = hilbert(interpolated_dlc_angle)
+        instantaneous_phase_angle = np.angle(hilbert_transform_angle)
+
+
         # Calculate the instantaneous frequency
         t = np.arange(0, len(signal)) / fs
         instantaneous_frequency = np.diff(instantaneous_phase) / (2.0 * np.pi * np.diff(t))
         phase_array = np.append(phase_array, instantaneous_phase)
+        dlc_phase_array = np.append(dlc_phase_array, instantaneous_phase_angle)
         trial_array = np.append(trial_array, np.full(len(instantaneous_phase), i))
+        #
         #upsample the dlc_angle_trial to the same length as the theta signal
 
         #create a dataframe for this trial
-        df_trial = pd.DataFrame({'theta_phase': instantaneous_phase, 'dlc_angle': interpolated_dlc_angle, 'trial_number': np.full(len(instantaneous_phase), i)})
+        df_trial = pd.DataFrame({'theta_phase': instantaneous_phase, 'dlc_angle': interpolated_dlc_angle, 'dlc_angle_phase': dlc_phase_array, 'trial_number': np.full(len(instantaneous_phase), i), 'time_ms': timestamp_array_theta})
         if i == 0:
             df_theta_and_angle = df_trial
         else:
@@ -404,25 +419,67 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
 
 
 
+def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
+    #compare the granger causality between theta phase and dlc angle
+    #for each trial
+    for trial in df_theta_and_angle['trial_number'].unique():
+        df_trial = df_theta_and_angle[df_theta_and_angle['trial_number'] == trial]
+        #run the granger causality test
+        adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
+        adf_result_theta = adfuller(df_trial['theta_phase'])
 
-def load_theta_and_compare_to_dlc_angle(path, fs=1000, plot_figures = False):
-    hcomb_data = pos_cell[0][0][0][0]
+        # Check the p-values to determine stationarity
+        is_stationary_angle = adf_result_angle[1] <= 0.05
+        is_stationary_theta = adf_result_theta[1] <= 0.05
 
-    time = hcomb_data['videoTime']
-    ts = hcomb_data['ts']
-    sample = hcomb_data['sample']
+        if not is_stationary_angle or not is_stationary_theta:
+            print(f"Trial {trial}: Not stationary. Applying differencing...")
+            # Apply differencing to make the time series stationary
+            df_trial['dlc_angle_phase'] = np.diff(df_trial['dlc_angle_phase'])
+            df_trial['theta_phase'] = np.diff(df_trial['theta_phase'])
+            # Check the p-values again
+            adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
+            adf_result_theta = adfuller(df_trial['theta_phase'])
+            is_stationary_angle = adf_result_angle[1] <= 0.05
+            is_stationary_theta = adf_result_theta[1] <= 0.05
+            if not is_stationary_angle or not is_stationary_theta:
+                print(f"Trial {trial}: Still not stationary. Skipping...")
+                continue
 
-    fs = ((sample[0][0] / ts[0][0]) * 10000)[0]
+        granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=20)
+        print(granger_test)
+        for key in granger_test.keys():
+            print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
+            # add to a dataframe
+            granger_test_for_indiv_lag = granger_test[key][0]['ssr_ftest']
+            granger_test_lag_dataframe = pd.DataFrame(
+                {'F-statistic': granger_test_for_indiv_lag[0], 'p-value': granger_test_for_indiv_lag[1],
+                 'df_denom': granger_test_for_indiv_lag[2], 'df_num': granger_test_for_indiv_lag[3]}, index=[0])
+            granger_test_lag_dataframe['trial_number'] = trial
+            granger_test_lag_dataframe['lag'] = key
+            if key == 1:
+                granger_dataframe_all_lag = granger_test_lag_dataframe
+            else:
+                granger_dataframe_all_lag = pd.concat([granger_dataframe_all_lag, granger_test_lag_dataframe])
+        # append to a larger dataframe
+        if trial == 0:
+            granger_dataframe_all_trial = granger_dataframe_all_lag
+        else:
+            granger_dataframe_all_trial = pd.concat([granger_dataframe_all_trial, granger_dataframe_all_lag])
 
-    dlc_angle = hcomb_data['dlc_angle']
+    if export_to_csv:
+        granger_dataframe_all_trial.to_csv('csvs/granger_trial_cumulative.csv')
+    return granger_dataframe_all_trial
 
 
 
 
 def main():
-    phase_array, trial_array, theta_array = load_theta_data(Path('C:/neural_data/'), spike_data = [])
-    df_all = load_data_from_paths(Path('C:/neural_data/'))
+    phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
 
+    granger_results = run_granger_cauality_test(df_theta_and_angle)
+
+    df_all = load_data_from_paths(Path('C:/neural_data/'))
     compare_spike_times_to_theta_phase(df_all, phase_array, theta_array, trial_array)
 
 
