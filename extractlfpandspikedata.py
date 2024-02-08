@@ -503,7 +503,8 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
                 granger_dataframe_all_trial = pd.concat([granger_dataframe_all_trial, granger_dataframe_all_lag])
             except:
                 granger_dataframe_all_trial = granger_dataframe_all_lag
-
+    #get the mean for each lag
+    granger_dataframe_all_trial['mean_p_value_for_lag'] = granger_dataframe_all_trial.groupby('lag')['p-value'].transform('mean')
     if export_to_csv:
         granger_dataframe_all_trial.to_csv('csvs/granger_trial_cumulative.csv')
     return granger_dataframe_all_trial
