@@ -433,18 +433,19 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
         is_stationary_theta = adf_result_theta[1] <= 0.05
 
         if not is_stationary_angle or not is_stationary_theta:
-            print(f"Trial {trial}: Not stationary. Applying differencing...")
-            # Apply differencing to make the time series stationary
-            df_trial['dlc_angle_phase'] = np.diff(df_trial['dlc_angle_phase'])
-            df_trial['theta_phase'] = np.diff(df_trial['theta_phase'])
-            # Check the p-values again
-            adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
-            adf_result_theta = adfuller(df_trial['theta_phase'])
-            is_stationary_angle = adf_result_angle[1] <= 0.05
-            is_stationary_theta = adf_result_theta[1] <= 0.05
-            if not is_stationary_angle or not is_stationary_theta:
-                print(f"Trial {trial}: Still not stationary. Skipping...")
-                continue
+            print(f"Trial {trial}: Not stationary. Skipping...")
+            continue
+            # # Apply differencing to make the time series stationary
+            # df_trial['dlc_angle_phase'] = np.diff(df_trial['dlc_angle_phase'])
+            # df_trial['theta_phase'] = np.diff(df_trial['theta_phase'])
+            # # Check the p-values again
+            # adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
+            # adf_result_theta = adfuller(df_trial['theta_phase'])
+            # is_stationary_angle = adf_result_angle[1] <= 0.05
+            # is_stationary_theta = adf_result_theta[1] <= 0.05
+            # if not is_stationary_angle or not is_stationary_theta:
+            #     print(f"Trial {trial}: Still not stationary. Skipping...")
+            #     continue
 
         granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=20)
         print(granger_test)
@@ -465,7 +466,10 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
         if trial == 0:
             granger_dataframe_all_trial = granger_dataframe_all_lag
         else:
-            granger_dataframe_all_trial = pd.concat([granger_dataframe_all_trial, granger_dataframe_all_lag])
+            try:
+                granger_dataframe_all_trial = pd.concat([granger_dataframe_all_trial, granger_dataframe_all_lag])
+            except:
+                granger_dataframe_all_trial = granger_dataframe_all_lag
 
     if export_to_csv:
         granger_dataframe_all_trial.to_csv('csvs/granger_trial_cumulative.csv')
