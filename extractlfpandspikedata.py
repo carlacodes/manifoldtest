@@ -575,7 +575,7 @@ def simulate_data(n_samples, correlation_strength, lag_order, sinusoid_frequency
         y[t] = correlation_strength * x[t - lag_order] + np.random.randn()
 
     # Generate uncorrelated sinusoidal time series for z
-    z = np.sin(2 * np.pi * sinusoid_frequency * t / n_samples) + np.random.randn()
+    z = np.sin(2 * np.pi * sinusoid_frequency * t / n_samples) + np.random.randn(n_samples)
 
     return x, y, z
 
@@ -629,7 +629,7 @@ def compare_simulated_data_to_granger_test(n_samples):
 
 
 def main():
-    # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(200)
+    result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(200)
 
     phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
     circ_corr_df = run_circular_correlation_test(df_theta_and_angle)
