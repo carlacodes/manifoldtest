@@ -230,6 +230,17 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
 
 
 def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, trial_array, export_to_csv = True):
+    '''Compare the spike times to the theta phase and amplitude
+    for each unit. Calculate the phase locking value between the spike times
+    and the theta phase, and the cross correlation between the spike times
+    IN PROGRESS AS OF 08/10/2024
+    :param spike_data: the spike data
+    :param phase_array: the theta phase
+    :param theta_array: the theta amplitude
+    :param trial_array: the trial number
+    :param export_to_csv: whether to export the results to a csv
+    :return: a dataframe with the phase locking value for each unit
+    '''
     #compare the spike times to the theta phase
     #for each spike time, find the corresponding theta phase
     #and trial number
@@ -451,18 +462,18 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
             if not is_stationary_angle or not is_stationary_theta:
                 print(f"Trial {trial}: Still not stationary. Skipping...")
                 continue
-            granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=[100,200,300,400])
+            granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=20)
         else:
-            granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=[100,200,300,400])
+            granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=20)
 
         print(granger_test)
         #plot the dlc_angle and theta phase
         plt.figure()
-        plt.plot(df_trial['dlc_angle_phase'], label = 'DLC angle phase')
+        plt.plot(df_trial['dlc_angle_phase'], label = '[DLC] head angle phase')
         plt.plot(df_trial['theta_phase'], label = 'Theta phase')
         plt.ylabel('Phase')
-        plt.xlabel('Time')
-        plt.xticks()
+        plt.xlabel('Time since start of trial (s)')
+        plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*100), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 100))
         plt.legend()
         plt.title(f'DLC angle and theta phase for trial number {trial}')
         plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}.png', dpi=300, bbox_inches='tight')
