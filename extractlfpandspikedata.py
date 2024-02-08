@@ -451,7 +451,7 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
             if not is_stationary_angle or not is_stationary_theta:
                 print(f"Trial {trial}: Still not stationary. Skipping...")
                 continue
-            grangertest = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=[100,200,300,400])
+            granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=[100,200,300,400])
         else:
             granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=[100,200,300,400])
 
