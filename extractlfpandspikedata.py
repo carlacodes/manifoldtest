@@ -2,6 +2,7 @@ import matplotlib
 import pandas as pd
 import matplotlib.pyplot as plt
 import mat73
+import statsmodels.api as sm
 from pathlib import Path
 import scipy
 import numpy as np
@@ -510,10 +511,58 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
     return granger_dataframe_all_trial
 
 
+np.random.seed(42)
+
+
+# Function to create simulated time series data
+def simulate_data(n_samples, correlation_strength, lag_order):
+    # Generate independent random time series
+    x = np.random.randn(n_samples)
+
+    # Generate correlated time series (Granger causality)
+    y = np.zeros_like(x)
+    for t in range(lag_order, n_samples):
+        y[t] = correlation_strength * x[t - lag_order] + np.random.randn()
+
+    # Generate uncorrelated time series
+    z = np.random.randn(n_samples)
+
+    return x, y, z
+
+def compare_simulated_data_to_granger_test(n_samples):
+
+
+    # Correlation strength for the Granger causality
+    correlation_strength = 0.7
+
+    # Lag order for the Granger causality
+    lag_order = 20
+
+    # Simulate data
+    x, y, z = simulate_data(n_samples, correlation_strength, lag_order)
+
+    # Plot the time series
+    plt.figure(figsize=(10, 6))
+    plt.plot(x, label='Independent Time Series (X)')
+    plt.plot(y, label='Correlated Time Series (Y)')
+    plt.plot(z, label='Uncorrelated Time Series (Z)')
+    plt.legend()
+    plt.title('Simulated Time Series Data')
+    plt.xlabel('Time')
+    plt.ylabel('Values')
+    plt.show()
+
+    # Granger causality test
+    result_xy = sm.tsa.stattools.grangercausalitytests(np.column_stack((y, x)), max_lag=lag_order, verbose=True)
+    result_xz = sm.tsa.stattools.grangercausalitytests(np.column_stack((z, x)), max_lag=lag_order, verbose=True)
+    return result_xy, result_xz
+
+
 
 
 def main():
     phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
+    result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
 
     granger_results = run_granger_cauality_test(df_theta_and_angle)
 
