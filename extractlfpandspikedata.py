@@ -548,19 +548,34 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
 
 
 
-# Function to create simulated time series data
-def simulate_data(n_samples, correlation_strength, lag_order):
-    # Generate independent random time series
-    np.random.seed(42)
-    x = np.random.randn(n_samples)
+# # Function to create simulated time series data
+# def simulate_data(n_samples, correlation_strength, lag_order):
+#     # Generate independent random time series
+#     np.random.seed(42)
+#     x = np.random.randn(n_samples)
+#
+#     # Generate correlated time series (Granger causality)
+#     y = np.zeros_like(x)
+#     for t in range(lag_order, n_samples):
+#         y[t] = correlation_strength * x[t - lag_order] + np.random.randn()
+#
+#     # Generate uncorrelated time series
+#     z = np.random.randn(n_samples)
+#
+#     return x, y, z
 
-    # Generate correlated time series (Granger causality)
+def simulate_data(n_samples, correlation_strength, lag_order, sinusoid_frequency):
+    # Generate sinusoidal time series for x
+    t = np.arange(0, n_samples)
+    x = np.sin(2 * np.pi * sinusoid_frequency * t / n_samples)
+
+    # Generate correlated time series (Granger causality) for y
     y = np.zeros_like(x)
     for t in range(lag_order, n_samples):
         y[t] = correlation_strength * x[t - lag_order] + np.random.randn()
 
-    # Generate uncorrelated time series
-    z = np.random.randn(n_samples)
+    # Generate uncorrelated sinusoidal time series for z
+    z = np.sin(2 * np.pi * sinusoid_frequency * t / n_samples) + np.random.randn()
 
     return x, y, z
 
@@ -577,7 +592,7 @@ def compare_simulated_data_to_granger_test(n_samples):
     lag_order = 20
 
     # Simulate data
-    x, y, z = simulate_data(n_samples, correlation_strength, lag_order)
+    x, y, z = simulate_data(n_samples, correlation_strength, lag_order, 5)
 
     # Plot the time series
     plt.figure(figsize=(40, 6))
