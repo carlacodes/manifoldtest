@@ -197,6 +197,11 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
         # Plot the results
         if plot_figures == True:
             plt.figure(figsize=(10, 10))
+            # plt.plot(t, signal, label='Original Signal')
+            # plt.plot(t, hilbert_transform.real, label='Hilbert Transform (Real)')
+            # plt.plot(t, hilbert_transform.imag, label='Hilbert Transform (Imaginary)')
+            # plt.plot(t, instantaneous_phase, label='Instantaneous Phase')
+
 
             plt.subplot(4, 1, 1)
             plt.plot(t, signal, label='Original Signal')
@@ -451,7 +456,15 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
             granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=[100,200,300,400])
 
         print(granger_test)
-        for key, count in enumerate(granger_test.keys()):
+        #plot the dlc_angle and theta phase
+        plt.figure()
+        plt.plot(df_trial['dlc_angle_phase'], label = 'DLC angle')
+        plt.plot(df_trial['theta_phase'], label = 'Theta phase')
+        plt.legend()
+        plt.title(f'DLC angle and theta phase for trial number {trial}')
+        plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}.png', dpi=300, bbox_inches='tight')
+
+        for count, key in enumerate(granger_test.keys()):
             print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
             # add to a dataframe
             granger_test_for_indiv_lag = granger_test[key][0]['ssr_ftest']
