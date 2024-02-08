@@ -511,12 +511,13 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
     return granger_dataframe_all_trial
 
 
-np.random.seed(42)
+
 
 
 # Function to create simulated time series data
 def simulate_data(n_samples, correlation_strength, lag_order):
     # Generate independent random time series
+    np.random.seed(42)
     x = np.random.randn(n_samples)
 
     # Generate correlated time series (Granger causality)
@@ -536,7 +537,7 @@ def compare_simulated_data_to_granger_test(n_samples):
     '''
 
     # Correlation strength for the Granger causality
-    correlation_strength = 0.7
+    correlation_strength = 0.95
     print('running a granger causality test on simulated data, with a correlation strength of: ' + str(correlation_strength) + ' and ' + str(n_samples) + ' samples.')
     # Lag order for the Granger causality
     lag_order = 20
@@ -551,8 +552,9 @@ def compare_simulated_data_to_granger_test(n_samples):
     plt.plot(z, label='Uncorrelated Time Series (Z)')
     plt.legend()
     plt.title('Simulated Time Series Data')
-    plt.xlabel('Time')
+    plt.xlabel('Time (in nonsense units)')
     plt.ylabel('Values')
+    plt.savefig('figures/simulated_time_series.png', dpi=300, bbox_inches='tight')
     plt.show()
 
     # Granger causality test
@@ -567,13 +569,18 @@ def compare_simulated_data_to_granger_test(n_samples):
 
     result_xy = grangercausalitytests(np.column_stack((y, x)), maxlag=lag_order, verbose=True)
     result_xz = grangercausalitytests(np.column_stack((z, x)), maxlag=lag_order, verbose=True)
+    #export to csv
+    df_result_xy = pd.DataFrame(result_xy)
+    df_result_xz = pd.DataFrame(result_xz)
+    df_result_xy.to_csv('csvs/granger_simulated_xy_CORRELATED.csv')
+    df_result_xz.to_csv('csvs/granger_simulated_xz_UNCORRELATED.csv')
     return result_xy, result_xz
 
 
 
 
 def main():
-    result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
+    # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(200)
 
     phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
 
