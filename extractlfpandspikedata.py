@@ -446,24 +446,28 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
             if not is_stationary_angle or not is_stationary_theta:
                 print(f"Trial {trial}: Still not stationary. Skipping...")
                 continue
-            grangertest = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=20)
+            grangertest = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=[100,200,300,400])
         else:
-            granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=20)
+            granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=[100,200,300,400])
 
         print(granger_test)
-        for key in granger_test.keys():
+        for key, count in enumerate(granger_test.keys()):
             print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
             # add to a dataframe
             granger_test_for_indiv_lag = granger_test[key][0]['ssr_ftest']
+            #apply a bonferroni correction for the p value
+            #CHANGE BELOW LINE, 4 is the number of lags CURRENTLY
+            corrected_bonferroni_p = granger_test_for_indiv_lag[1] * 4
             granger_test_lag_dataframe = pd.DataFrame(
-                {'F-statistic': granger_test_for_indiv_lag[0], 'p-value': granger_test_for_indiv_lag[1],
+                {'F-statistic': granger_test_for_indiv_lag[0], 'p-value': granger_test_for_indiv_lag[1], 'corrected p-value': corrected_bonferroni_p,
                  'df_denom': granger_test_for_indiv_lag[2], 'df_num': granger_test_for_indiv_lag[3]}, index=[0])
             granger_test_lag_dataframe['trial_number'] = trial
             granger_test_lag_dataframe['lag'] = key
-            if key == 1:
+            if count == 0:
                 granger_dataframe_all_lag = granger_test_lag_dataframe
             else:
                 granger_dataframe_all_lag = pd.concat([granger_dataframe_all_lag, granger_test_lag_dataframe])
+
         # append to a larger dataframe
         if trial == 0:
             granger_dataframe_all_trial = granger_dataframe_all_lag
