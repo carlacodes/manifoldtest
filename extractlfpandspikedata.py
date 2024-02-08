@@ -459,7 +459,7 @@ def run_circular_correlation_test(df_theta_and_angle, export_to_csv=True):
         plt.title(f'DLC angle and theta phase for trial number {trial}')
         plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}.png', dpi=300, bbox_inches='tight')
         #append to a dataframe
-        circular_corr_df = pd.DataFrame({'circular_corr': circular_corr, 'trial_number': trial}, index=[0])
+        circular_corr_df = pd.DataFrame({'circular_corr_value': circular_corr[0],'circ_corr_pvalue': circular_corr[1], 'trial_number': trial}, index=[0])
         if trial == 0:
             circular_corr_all_trials = circular_corr_df
         else:
