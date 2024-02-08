@@ -10,6 +10,7 @@ from scipy.signal import hilbert
 from statsmodels.tsa.stattools import grangercausalitytests
 from statsmodels.tsa.stattools import adfuller  # Augmented Dickey-Fuller Test
 from scipy.interpolate import interp1d
+import pingouin as pg
 
 
 def load_data_from_paths(path):
@@ -433,6 +434,39 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
 
     return df_plv_all
 
+def run_circular_correlation_test(df_theta_and_angle, export_to_csv=True):
+    for trial in df_theta_and_angle['trial_number'].unique():
+        df_trial = df_theta_and_angle[df_theta_and_angle['trial_number'] == trial]
+
+        # Extract circular data
+        angles1 = np.radians(df_trial['dlc_angle_phase'])
+        angles2 = np.radians(df_trial['theta_phase'])
+
+        # Calculate circular correlation coefficient
+        circular_corr = pg.circ_corrcc(angles1, angles2)
+
+        # Print the result
+        print(f"Circular Correlation Coefficient for Trial {trial}: {circular_corr}")
+
+        # Plotting
+        plt.figure(figsize=(15, 6))
+        plt.plot(df_trial['dlc_angle_phase'], label='[DLC] Head Angle Phase')
+        plt.plot(df_trial['theta_phase'], label='Theta Phase')
+        plt.ylabel('Phase')
+        plt.xlabel('Time since start of trial (s)')
+        plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
+        plt.legend()
+        plt.title(f'DLC angle and theta phase for trial number {trial}')
+        plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}.png', dpi=300, bbox_inches='tight')
+        #append to a dataframe
+        circular_corr_df = pd.DataFrame({'circular_corr': circular_corr, 'trial_number': trial}, index=[0])
+        if trial == 0:
+            circular_corr_all_trials = circular_corr_df
+        else:
+            circular_corr_all_trials = pd.concat([circular_corr_all_trials, circular_corr_df])
+    if export_to_csv:
+        circular_corr_all_trials.to_csv('csvs/circular_corr.csv')
+    return circular_corr_all_trials
 
 
 
@@ -583,8 +617,11 @@ def main():
     # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(200)
 
     phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
+    circ_corr_df = run_circular_correlation_test(df_theta_and_angle)
+
 
     granger_results = run_granger_cauality_test(df_theta_and_angle)
+
 
     df_all = load_data_from_paths(Path('C:/neural_data/'))
     compare_spike_times_to_theta_phase(df_all, phase_array, theta_array, trial_array)
