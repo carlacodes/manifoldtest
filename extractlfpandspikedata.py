@@ -296,7 +296,7 @@ def compare_spike_times_to_theta_phase(spike_data, phase_array,theta_array, tria
             #calculate the cross correlation between the theta phase and the dlc angle
             cross_correlation = np.correlate(theta_in_trial, angle_in_trial, mode='full')
 
-            granger_test = grangercausalitytests(np.column_stack((angle_in_trial, theta_in_trial)), maxlag=20)
+            granger_test = grangercausalitytests(np.column_stack((angle_in_trial, theta_in_trial)), maxlag=150)
             for key in granger_test.keys():
                 print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
                 #add to a dataframe
