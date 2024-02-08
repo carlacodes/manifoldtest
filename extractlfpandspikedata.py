@@ -458,8 +458,11 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
         print(granger_test)
         #plot the dlc_angle and theta phase
         plt.figure()
-        plt.plot(df_trial['dlc_angle_phase'], label = 'DLC angle')
+        plt.plot(df_trial['dlc_angle_phase'], label = 'DLC angle phase')
         plt.plot(df_trial['theta_phase'], label = 'Theta phase')
+        plt.ylabel('Phase')
+        plt.xlabel('Time')
+        plt.xticks()
         plt.legend()
         plt.title(f'DLC angle and theta phase for trial number {trial}')
         plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}.png', dpi=300, bbox_inches='tight')
