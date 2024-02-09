@@ -503,8 +503,12 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
 
             granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=20)
         else:
-            dlc_angle_trial = df_trial['dlc_angle_phase']
-            theta_phase_trial = df_trial['theta_phase']
+            #copy df_trial to dlc_angle_trial and theta_phase_trial
+            dlc_angle_trial = df_trial['dlc_angle_phase'].copy()
+            #convery to numpy
+            dlc_angle_trial = dlc_angle_trial.to_numpy()
+            theta_phase_trial = df_trial['theta_phase'].copy()
+            theta_phase_trial = theta_phase_trial.to_numpy()
             if shuffle_data == True:
                 np.random.shuffle(dlc_angle_trial)
                 np.random.shuffle(theta_phase_trial)
