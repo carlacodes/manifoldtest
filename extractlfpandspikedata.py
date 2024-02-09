@@ -470,6 +470,13 @@ def run_circular_correlation_test(df_theta_and_angle, export_to_csv=True):
 
 
 def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_data = False):
+    '''Run the granger causality test between the theta phase and the dlc angle
+    for each trial
+    :param df_theta_and_angle: the dataframe with the theta phase and dlc angle
+    :param export_to_csv: whether to export the results to a csv
+    :param shuffle_data: whether to shuffle the data, essentially calculating a form of permutation test
+    :return: a dataframe with the granger causality test results for each trial
+    '''
     #compare the granger causality between theta phase and dlc angle
     #for each trial
     for trial in df_theta_and_angle['trial_number'].unique():
