@@ -83,6 +83,5 @@ class DataHandler():
             })
 
             # Append to the larger dataframe
-            df_all = df_all.append(df, ignore_index=True)
-
+            df_all = pd.concat([df_all, df], ignore_index=True)
         return df_all
