@@ -64,9 +64,6 @@ class DataHandler():
             dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_list)
             trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
 
-            flattened_dlc_new = np.concatenate(dlc_new).ravel()
-            flattened_trial_new = np.concatenate(trial_new).ravel()
-
             # Create DataFrame for the current unit
             unit_id = np.full(len(flattened_spike_times), unit['name'][0].astype(str))
             phy_cluster = np.full(len(flattened_spike_times), unit['phyCluster'][0].astype(str))
@@ -78,11 +75,11 @@ class DataHandler():
             df = pd.DataFrame({
                 'spike_times_seconds': flattened_spike_times_seconds,
                 'spike_times_samples': flattened_spike_times,
-                'dlc_angle': flattened_dlc_new,
+                'dlc_angle': dlc_new,
                 'unit_id': unit_id,
                 'phy_cluster': phy_cluster,
                 'neuron_type': neuron_type,
-                'trial_number': flattened_trial_new
+                'trial_number': trial_new
             })
 
             # Append to the larger dataframe
