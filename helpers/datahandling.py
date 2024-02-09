@@ -58,12 +58,11 @@ class DataHandler():
                     break
 
             # Interpolate spike times and dlc_angle to a common sample rate
-            interp_func = scipy.interpolate.interp1d(spike_times * 1000, dlc_angle_list)
 
             flattened_spike_times_seconds = np.concatenate(spike_times).ravel()
             flattened_spike_times = np.concatenate(unit['spikeSamples']).ravel()
-            dlc_new = interp_func(flattened_spike_times_seconds)
-            trial_new = np.interp(flattened_spike_times_seconds, head_angle_times_ms, trial_number_array)
+            dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_list)
+            trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
 
             flattened_dlc_new = np.concatenate(dlc_new).ravel()
             flattened_trial_new = np.concatenate(trial_new).ravel()
