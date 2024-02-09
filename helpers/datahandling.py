@@ -2,9 +2,15 @@ import scipy
 import numpy as np
 import pandas as pd
 
+
+def multiInterp2(x, xp, fp):
+    i = np.arange(x.size)
+    j = np.searchsorted(xp, x) - 1
+    d = (x - xp[j]) / (xp[j + 1] - xp[j])
+    return (1 - d) * fp[i, j] + fp[i, j + 1] * d
+
 class DataHandler():
     '''A class to handle the data for the manifold neural project'''
-
     @staticmethod
     def load_data_from_paths(path):
         '''Load the spike data and the positional data from the local path
@@ -71,7 +77,8 @@ class DataHandler():
             flattened_spike_times = np.concatenate(unit['spikeSamples']).ravel()
             dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_array)
             trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
-            xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, (dlc_xy_array[:, 0], dlc_xy_array[:, 1]), method='linear')
+            xy_pos_new = multiInterp2(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_xy_array)
+            # xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, dlc_xy_array, method='linear')
 
 
             # Create DataFrame for the current unit
