@@ -82,6 +82,10 @@ def load_data_from_paths(path):
         unit_id = unit['name'][0].astype(str)
         flattened_spike_times_seconds = np.concatenate(spike_times_seconds).ravel()
         flattened_spike_times = np.concatenate(spike_times).ravel()
+        dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_list)
+        trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
+
+
         flattened_dlc_new = np.concatenate(dlc_new).ravel()
         flattened_trial_new = np.concatenate(trial_new).ravel()
 
@@ -154,12 +158,10 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
         power_sample_index_trial = power_sample_index[i,:]
         start_time = power_sample_index_trial[0] / 30000
         stop_time = power_sample_index_trial[1] / 30000
-
         # timestamp_array_theta = np.arange(start_time, stop_time, 1 / fs)
         #convert to milliseconds
         num_points = len(signal.ravel())
         timestamp_array_theta = np.linspace(start_time, stop_time, num_points)
-
         timestamp_array_theta = timestamp_array_theta * 1000
         #create time vector for the theta signal, the timepoimts are power_sample_index_trial
         signal = signal.ravel()
@@ -187,7 +189,6 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
         trial_array = np.append(trial_array, np.full(len(instantaneous_phase), i))
         #
         #upsample the dlc_angle_trial to the same length as the theta signal
-
         #create a dataframe for this trial
         df_trial = pd.DataFrame({'theta_phase': instantaneous_phase, 'dlc_angle': interpolated_dlc_angle, 'dlc_angle_phase': dlc_phase_array, 'trial_number': np.full(len(instantaneous_phase), i), 'time_ms': timestamp_array_theta})
         if i == 0:
