@@ -2,7 +2,9 @@ import scipy
 import numpy as np
 import pandas as pd
 
-class DataHandler:
+class DataHandler():
+    '''A class to handle the data for the manifold neural project'''
+
     @staticmethod
     def load_data_from_paths(path):
         '''Load the spike data and the positional data from the local path

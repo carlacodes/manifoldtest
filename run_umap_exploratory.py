@@ -10,7 +10,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from helpers import datahandling as dh
+from helpers import datahandling
+from helpers.datahandling import DataHandler
+
 from scipy.ndimage import gaussian_filter1d
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -245,8 +247,10 @@ def main():
     save_path = Path('C:/neural_data/results')
     if not save_path.exists():
         save_path.mkdir()
+    #import the datahandler class
+    dh = DataHandler.load_data_from_paths(data_path)
 
-    df_spk = dh.load_data_from_paths(data_path)
+
 
 
     time_window = [-0.2, 0.9]
