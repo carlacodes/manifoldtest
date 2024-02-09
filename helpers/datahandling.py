@@ -42,7 +42,10 @@ class DataHandler():
             dlc_angle_array = np.array([])
             head_angle_times_ms = np.array([])
             trial_number_array = np.array([])
+            #initialise xy position as an empty 2d array
             xy_pos_array = np.array([])
+            dlc_xy_array = np.empty((1, 2), dtype=float)
+
 
             for i2 in range(len(dlc_angle)):
                 trial_dlc, trial_ts, trial_sample = dlc_angle[i2], ts[i2], sample[i2]
@@ -54,7 +57,7 @@ class DataHandler():
                 head_angle_times = np.append(head_angle_times, time_in_seconds)
                 head_angle_times_ms = np.append(head_angle_times_ms, trial_ts)
                 dlc_angle_array = np.append(dlc_angle_array, trial_dlc)
-                dlc_xy_array = np.append(xy_pos_array, dlc_xy[i2])
+                dlc_xy_array = np.vstack((dlc_xy_array, dlc_xy[i2]))
 
 
                 if np.max(time_in_seconds) > np.max(spike_times):
@@ -67,7 +70,8 @@ class DataHandler():
             flattened_spike_times = np.concatenate(unit['spikeSamples']).ravel()
             dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_array)
             trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
-            xy_pos_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_xy_array)
+            xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, dlc_xy_array,
+                                  method='linear')
 
             # Create DataFrame for the current unit
             unit_id = np.full(len(flattened_spike_times), unit['name'][0].astype(str))
