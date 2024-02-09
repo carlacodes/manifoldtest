@@ -3,12 +3,39 @@ import numpy as np
 import pandas as pd
 
 
-def multiInterp2(x, xp, fp):
-    i = np.arange(x.size)
-    j = np.searchsorted(xp, x) - 1
-    d = (x - xp[j]) / (xp[j + 1] - xp[j])
-    return (1 - d) * fp[i, j] + fp[i, j + 1] * d
+class MathHelper():
+    @staticmethod
+    def multiInterp2(x, xp, fp):
+        i = np.arange(len(x))
+        j = np.searchsorted(xp, x) - 1
 
+        # Clip indices to ensure they are within bounds
+        j = np.clip(j, 0, len(xp) - 2)
+
+        # Calculate the interpolation fraction 'd'
+        d = (x - xp[j]) / (xp[j + 1] - xp[j])
+
+        # Clip indices again to ensure they are within bounds
+        j = np.clip(j, 0, len(xp) - 2)
+
+        # Check if indices are valid
+        valid_indices = (j >= 0) & (j < len(fp[0]))
+
+        # Print debugging information
+        print("x:", x)
+        print("xp:", xp)
+        print("fp.shape:", fp.shape)
+        print("i:", i)
+        print("j:", j)
+        print("d:", d)
+
+        # Interpolate only for valid indices
+        # Interpolate only for valid indices
+        result = np.zeros_like(x)
+        result[valid_indices] = (1 - d[valid_indices]) * fp[i[valid_indices], j[valid_indices]] + d[valid_indices] * fp[
+            i[valid_indices], np.clip(j[valid_indices] + 1, 0, len(fp[0]) - 1)]
+
+        return result
 class DataHandler():
     '''A class to handle the data for the manifold neural project'''
     @staticmethod
@@ -77,7 +104,7 @@ class DataHandler():
             flattened_spike_times = np.concatenate(unit['spikeSamples']).ravel()
             dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_array)
             trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
-            xy_pos_new = multiInterp2(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_xy_array)
+            xy_pos_new = MathHelper.multiInterp2(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_xy_array)
             # xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, dlc_xy_array, method='linear')
 
 
