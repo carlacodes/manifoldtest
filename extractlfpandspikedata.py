@@ -569,8 +569,8 @@ def main():
     granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=False)
 
 
-    df_all = load_data_from_paths(Path('C:/neural_data/'))
-    compare_spike_times_to_theta_phase(df_all, phase_array, theta_array, trial_array)
+    # df_all = load_data_from_paths(Path('C:/neural_data/'))
+    # compare_spike_times_to_theta_phase(df_all, phase_array, theta_array, trial_array)
 
 
 

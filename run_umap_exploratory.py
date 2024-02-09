@@ -8,6 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from helpers import datahandling as dh
 
 from scipy.ndimage import gaussian_filter1d
 
@@ -239,9 +240,12 @@ def train_within(
 
 def main():
     # Load and preprocess data here
-    data_path = Path(
-        '/home/jules/code/vowel_in_noise/vowel_in_noise/vowel_in_noise/electrophysiology/Data/PSTHs_1msBins')
+    # df_all = load_data_from_paths(Path('C:/neural_data/'))
+    data_path = Path('C:/neural_data/')
     save_path = Path('/home/jules/code/vowel_in_noise/vowel_in_noise/saved_vars/cosyne_submission_2024')
+    df_spk = dh.load_data_from_paths(data_path)
+
+
     time_window = [-0.2, 0.9]
     bin_width = 0.02
     window_for_decoding = 0.1  # in s
