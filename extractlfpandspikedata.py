@@ -470,7 +470,7 @@ def run_circular_correlation_test(df_theta_and_angle, export_to_csv=True):
 
 
 
-def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
+def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_data = False):
     #compare the granger causality between theta phase and dlc angle
     #for each trial
     for trial in df_theta_and_angle['trial_number'].unique():
@@ -497,9 +497,19 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
             if not is_stationary_angle or not is_stationary_theta:
                 print(f"Trial {trial}: Still not stationary. Skipping...")
                 continue
+            if shuffle_data == True:
+                np.random.shuffle(dlc_angle_trial)
+                np.random.shuffle(theta_phase_trial)
+
             granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=20)
         else:
-            granger_test = grangercausalitytests(np.column_stack((df_trial['dlc_angle_phase'], df_trial['theta_phase'])), maxlag=20)
+            dlc_angle_trial = df_trial['dlc_angle_phase']
+            theta_phase_trial = df_trial['theta_phase']
+            if shuffle_data == True:
+                np.random.shuffle(dlc_angle_trial)
+                np.random.shuffle(theta_phase_trial)
+
+            granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=20)
 
         print(granger_test)
         #plot the dlc_angle and theta phase
@@ -511,7 +521,7 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
         plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
         plt.legend()
         plt.title(f'DLC angle and theta phase for trial number {trial}')
-        plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}.png', dpi=300, bbox_inches='tight')
 
         for count, key in enumerate(granger_test.keys()):
             print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
@@ -541,7 +551,7 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True):
     #get the mean for each lag
     granger_dataframe_all_trial['mean_p_value_for_lag'] = granger_dataframe_all_trial.groupby('lag')['p-value'].transform('mean')
     if export_to_csv:
-        granger_dataframe_all_trial.to_csv('csvs/granger_trial_cumulative.csv')
+        granger_dataframe_all_trial.to_csv(f'csvs/granger_trial_cumulative_shuffle_{shuffle_data}.csv')
     return granger_dataframe_all_trial
 
 
@@ -628,11 +638,14 @@ def compare_simulated_data_to_granger_test(n_samples):
 
 
 
+
+
+
 def main():
-    result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
+    # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
     phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
     # circ_corr_df = run_circular_correlation_test(df_theta_and_angle)
-    granger_results = run_granger_cauality_test(df_theta_and_angle)
+    granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=True)
 
 
     df_all = load_data_from_paths(Path('C:/neural_data/'))
