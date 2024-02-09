@@ -1,4 +1,6 @@
 #spks i sa numpy array of size trial* timebins*neuron
+#bhv is a pandas dataframe where each row represents a trial
+
 from pathlib import Path
 from datetime import datetime
 
@@ -9,9 +11,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from helpers import datahandling as dh
-
 from scipy.ndimage import gaussian_filter1d
-
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
@@ -24,8 +24,8 @@ from sklearn.metrics import balanced_accuracy_score, f1_score
 from sklearn.dummy import DummyClassifier
 
 from umap import UMAP
-import vowel_in_noise.electrophysiology.population_analysis as vowel_pop
-from vowel_in_noise import plot_utils
+# import vowel_in_noise.electrophysiology.population_analysis as vowel_pop
+# from vowel_in_noise import plot_utils
 
 
 def process_window(
@@ -242,7 +242,10 @@ def main():
     # Load and preprocess data here
     # df_all = load_data_from_paths(Path('C:/neural_data/'))
     data_path = Path('C:/neural_data/')
-    save_path = Path('/home/jules/code/vowel_in_noise/vowel_in_noise/saved_vars/cosyne_submission_2024')
+    save_path = Path('C:/neural_data/results')
+    if not save_path.exists():
+        save_path.mkdir()
+
     df_spk = dh.load_data_from_paths(data_path)
 
 
@@ -278,6 +281,7 @@ def main():
     filename = f'results_{now}.npy'
     results_between = {}
     results_within = {}
+    n_permutations = 0
     n_permutations = 0
     for run in range(n_runs):
         bhv, spks = vowel_pop.process_and_load_pseudo_pop(
