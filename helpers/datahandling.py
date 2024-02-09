@@ -71,8 +71,8 @@ class DataHandler():
             flattened_spike_times = np.concatenate(unit['spikeSamples']).ravel()
             dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_array)
             trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
-            xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, dlc_xy_array,
-                                  method='linear')
+            xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, (dlc_xy_array[:, 0], dlc_xy_array[:, 1]), method='linear')
+
 
             # Create DataFrame for the current unit
             unit_id = np.full(len(flattened_spike_times), unit['name'][0].astype(str))
