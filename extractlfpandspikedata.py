@@ -649,7 +649,7 @@ def main():
     # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
     phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(Path('C:/neural_data/'), spike_data = [])
     # circ_corr_df = run_circular_correlation_test(df_theta_and_angle)
-    granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=True)
+    granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=False)
 
 
     df_all = load_data_from_paths(Path('C:/neural_data/'))
