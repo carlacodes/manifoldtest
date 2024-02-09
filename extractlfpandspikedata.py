@@ -137,8 +137,6 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
 
     #recreate ts to check -- ts is time in milliseconds
     test = sample/30000
-
-
     ripple_power = theta_data['ripplePower']
     #caluculate theta phase and amplitude
 
@@ -580,6 +578,13 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
 #     return x, y, z
 
 def simulate_data(n_samples, correlation_strength, lag_order, sinusoid_frequency):
+    '''create simulated time series data
+    :param n_samples: the number of samples
+    :param correlation_strength: the correlation strength
+    :param lag_order: the lag order
+    :param sinusoid_frequency: the frequency of the sinusoid
+    :return: the simulated time series data, sinusoidal time series for x, correlated time series for y, and uncorrelated time series for z
+    '''
     # Generate sinusoidal time series for x
     t = np.arange(0, n_samples)
     x = np.sin(2 * np.pi * sinusoid_frequency * t / n_samples)
