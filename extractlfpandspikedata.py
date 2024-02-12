@@ -568,7 +568,7 @@ def compare_simulated_data_to_granger_test(n_samples):
 
 def main():
     # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
-    for rat in [ 'rat_8', 'rat_9', 'rat_10']:  #rat_3
+    for rat in [ 'rat_10']:  #rat_3, 'rat_8', 'rat_9',
         print('Running granger causality test for rat: ' + rat)
         path_to_load = Path('C:/neural_data/') / rat
         phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(path_to_load, spike_data = [])
