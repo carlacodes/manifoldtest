@@ -434,7 +434,7 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
         plt.xlabel('Time since start of trial (s)')
         plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
         plt.legend()
-        plt.title(f'DLC angle and theta phase for trial number {trial}')
+        plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
         plt.savefig(f'figures/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}.png', dpi=300, bbox_inches='tight')
 
         for count, key in enumerate(granger_test.keys()):
