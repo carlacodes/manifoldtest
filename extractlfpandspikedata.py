@@ -585,6 +585,7 @@ def compare_simulated_data_to_granger_test(n_samples):
     plt.savefig('figures/simulated_time_series.png', dpi=300, bbox_inches='tight')
     plt.show()
 
+
     # Granger causality test
     #make sure it passes the adfuller test
     adf_result_x = adfuller(x)
@@ -602,6 +603,20 @@ def compare_simulated_data_to_granger_test(n_samples):
     df_result_xz = pd.DataFrame(result_xz)
     df_result_xy.to_csv('csvs/granger_simulated_xy_CORRELATED.csv')
     df_result_xz.to_csv('csvs/granger_simulated_xz_UNCORRELATED.csv')
+
+    plt.figure(figsize=(40, 6))
+    np.random.shuffle(x)
+    np.random.shuffle(y)
+    np.random.shuffle(z)
+    plt.plot(x, label='Independent Time Series (X)')
+    plt.plot(y, label='Correlated Time Series (Y) shuffled')
+    plt.plot(z, label='Uncorrelated Time Series (Z)')
+    plt.legend()
+    plt.title('Simulated Time Series Data, shuffled')
+    plt.xlabel('Time (in nonsense units)')
+    plt.ylabel('Values')
+    plt.savefig('figures/simulated_time_series_shuffled.png', dpi=300, bbox_inches='tight')
+
     return result_xy, result_xz
 
 
