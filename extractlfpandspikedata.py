@@ -409,25 +409,24 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
         if not is_stationary_angle or not is_stationary_theta:
             print(f"Trial {trial}: Not stationary. Skipping...")
             continue
-
-            # # Apply differencing to make the time series stationary
-            # dlc_angle_trial = np.diff(df_trial['dlc_angle_phase'])
-            # theta_phase_trial = np.diff(df_trial['theta_phase'])
-            # # Check the p-values again
-            # adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
-            # adf_result_theta = adfuller(df_trial['theta_phase'])
-            # is_stationary_angle = adf_result_angle[1] <= 0.05
-            # is_stationary_theta = adf_result_theta[1] <= 0.05
-            # if not is_stationary_angle or not is_stationary_theta:
-            #     print(f"Trial {trial}: Still not stationary. Skipping...")
-            #     continue
-            # if shuffle_data == True:
-            #     np.random.shuffle(dlc_angle_trial)
-            #     np.random.shuffle(theta_phase_trial)
-            # if direction == 'theta_after':
-            #     granger_test = grangercausalitytests(np.column_stack((theta_phase_trial, dlc_angle_trial)), maxlag=40)
-            # elif direction == 'theta_before':
-            #     granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=40)
+            # Apply differencing to make the time series stationary
+            dlc_angle_trial = np.diff(df_trial['dlc_angle_phase'])
+            theta_phase_trial = np.diff(df_trial['theta_phase'])
+            # Check the p-values again
+            adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
+            adf_result_theta = adfuller(df_trial['theta_phase'])
+            is_stationary_angle = adf_result_angle[1] <= 0.05
+            is_stationary_theta = adf_result_theta[1] <= 0.05
+            if not is_stationary_angle or not is_stationary_theta:
+                print(f"Trial {trial}: Still not stationary. Skipping...")
+                continue
+            if shuffle_data == True:
+                np.random.shuffle(dlc_angle_trial)
+                np.random.shuffle(theta_phase_trial)
+            if direction == 'theta_after':
+                granger_test = grangercausalitytests(np.column_stack((theta_phase_trial, dlc_angle_trial)), maxlag=40)
+            elif direction == 'theta_before':
+                granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=40)
         else:
             #copy df_trial to dlc_angle_trial and theta_phase_trial
             if no_phase == True:
@@ -454,15 +453,16 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
         #plot the dlc_angle and theta phase
         if no_phase == True:
             plt.figure(figsize=(40, 10))
-            plt.plot(df_trial['dlc_angle'], label = '[DLC] head angle')
-            plt.plot(df_trial['theta_phase'], label = 'Theta phase')
+            plt.plot(dlc_angle_trial, label = '[DLC] head angle')
+            plt.plot(theta_phase_trial, label = 'Theta phase')
             plt.ylabel('Phase')
             plt.xlabel('Time since start of trial (s)')
             plt.xticks(np.arange(0, len(df_trial['dlc_angle']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle'])/1000, 50))
             plt.legend()
             plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
-            plt.savefig(f'figures_2/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(f'figures_2/trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
         else:
+
             plt.figure(figsize=(40, 10))
             plt.plot(dlc_angle_trial, label = '[DLC] head angle phase')
             plt.plot(theta_phase_trial, label = 'Theta phase')
