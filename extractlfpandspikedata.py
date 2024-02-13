@@ -438,8 +438,16 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
             theta_phase_trial = df_trial['theta_phase'].copy()
             theta_phase_trial = theta_phase_trial.to_numpy()
             if shuffle_data == True:
+                original_dlc_angle_trial = dlc_angle_trial.copy()
+                original_theta_phase_trial = theta_phase_trial.copy()
                 np.random.shuffle(dlc_angle_trial)
                 np.random.shuffle(theta_phase_trial)
+                elements_same = np.all(np.isin(original_dlc_angle_trial, dlc_angle_trial)) and np.all(
+                    np.isin(theta_phase_trial, original_theta_phase_trial))
+                if elements_same:
+                    print("The elements are the same (order-independent).")
+                else:
+                    print("The elements are different.")
             if direction == 'theta_after':
                 granger_test = grangercausalitytests(np.column_stack((theta_phase_trial, dlc_angle_trial)), maxlag=40)
             elif direction == 'theta_before':
@@ -453,10 +461,10 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
         #plot the dlc_angle and theta phase
         if no_phase == True:
             plt.figure(figsize=(40, 10))
-            plt.plot(dlc_angle_trial, label = '[DLC] head angle')
             plt.plot(theta_phase_trial, label = 'Theta phase')
-            plt.ylabel('Phase')
-            plt.xlabel('Time since start of trial (s)')
+            plt.plot(dlc_angle_trial, label = '[DLC] head angle')
+            plt.ylabel('Phase', fontsize = 18)
+            plt.xlabel('Time since start of trial (s)', fontsize = 18)
             plt.xticks(np.arange(0, len(df_trial['dlc_angle']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle'])/1000, 50))
             plt.legend()
             plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
@@ -464,10 +472,10 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
         else:
 
             plt.figure(figsize=(40, 10))
-            plt.plot(dlc_angle_trial, label = '[DLC] head angle phase')
             plt.plot(theta_phase_trial, label = 'Theta phase')
-            plt.ylabel('Phase')
-            plt.xlabel('Time since start of trial (s)')
+            plt.plot(dlc_angle_trial, label = '[DLC] head angle phase')
+            plt.ylabel('Phase', fontsize = 18)
+            plt.xlabel('Time since start of trial (s)', fontsize = 18)
             plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
             plt.legend()
             plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
