@@ -247,7 +247,10 @@ def main():
     dh = DataHandler.load_data_from_paths(data_path)
     # spks i sa numpy array of size trial* timebins*neuron
     # bhv is a pandas dataframe where each row represents a trial
-    #rearrange dh to get the spks and bhv
+    big_spk_array = []
+    #load the behavioural data from the C drive:
+
+
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[dh['unit_id'] == i]
         spk_times = dataframe_unit['spike_times_samples']
@@ -267,6 +270,10 @@ def main():
             #convert to seconds
             spk_times = spk_times/30000
 
+            #align to the start of the trial, get the start of the trial from the behavioural position ts field
+
+
+
             #histogram the data so I am getting a histogram of the spike times with a bin width of 0.5s
             #I am taking the first 200s as a guess for the time window
             hist, bin_edges = np.histogram(spk_times, bins = np.arange(0, 200+bin_width, bin_width))
@@ -280,16 +287,9 @@ def main():
             plt.ylabel('Spike Rate (spikes/s)')
             plt.show()
             hist_rate_big[j, :, 0] = hist_rate
+        big_spk_array.append(hist_rate_big)
 
-
-
-            #add the histogram to the spks array
-
-
-
-
-
-            spks[j, 0:len(trial['spike_times_samples']), 0] = trial['spike_times_samples']
+    spks = np.array(big_spk_array)
 
 
 
