@@ -11,6 +11,7 @@ from statsmodels.tsa.stattools import grangercausalitytests
 from statsmodels.tsa.stattools import adfuller  # Augmented Dickey-Fuller Test
 from scipy.interpolate import interp1d
 import pingouin as pg
+matplotlib.rcParams['agg.path.chunksize'] = 10000
 
 
 
@@ -407,8 +408,8 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
         is_stationary_theta = adf_result_theta[1] <= 0.05
 
         if not is_stationary_angle or not is_stationary_theta:
-            print(f"Trial {trial}: Not stationary. Skipping...")
-            continue
+            print(f"Trial {trial}: Not stationary. Applying differencing...")
+            # continue
             # Apply differencing to make the time series stationary
             dlc_angle_trial = np.diff(df_trial['dlc_angle_phase'])
             theta_phase_trial = np.diff(df_trial['theta_phase'])
@@ -461,8 +462,8 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
         #plot the dlc_angle and theta phase
         if no_phase == True:
             plt.figure(figsize=(40, 10))
-            plt.plot(theta_phase_trial, label = 'Theta phase')
-            plt.plot(dlc_angle_trial, label = '[DLC] head angle')
+            plt.plot(theta_phase_trial, label = 'Theta phase', color ='orange')
+            plt.plot(dlc_angle_trial, label = '[DLC] head angle', color = 'blue')
             plt.ylabel('Phase', fontsize = 18)
             plt.xlabel('Time since start of trial (s)', fontsize = 18)
             plt.xticks(np.arange(0, len(df_trial['dlc_angle']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle'])/1000, 50))
@@ -470,10 +471,9 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
             plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
             plt.savefig(f'figures_2/trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
         else:
-
             plt.figure(figsize=(40, 10))
-            plt.plot(theta_phase_trial, label = 'Theta phase')
-            plt.plot(dlc_angle_trial, label = '[DLC] head angle phase')
+            plt.plot(theta_phase_trial, label = 'Theta phase', color = 'orange')
+            plt.plot(dlc_angle_trial, label = '[DLC] head angle phase', color = 'blue')
             plt.ylabel('Phase', fontsize = 18)
             plt.xlabel('Time since start of trial (s)', fontsize = 18)
             plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
@@ -612,7 +612,7 @@ def compare_simulated_data_to_granger_test(n_samples):
 
 def main():
     # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
-    for rat in [ 'rat_3', 'rat_8', 'rat_9','rat_10', 'rat_7']:  #rat_3, 'rat_8', 'rat_9',
+    for rat in ['rat_7', 'rat_8', 'rat_9','rat_10', 'rat_7', 'rat_3']:  #rat_3, 'rat_8', 'rat_9',
         print('Running granger causality test for rat: ' + rat)
         path_to_load = Path('C:/neural_data/') / rat
         phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(path_to_load, spike_data = [])
