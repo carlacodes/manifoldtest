@@ -74,13 +74,26 @@ def load_theta_data(path, fs=1000, spike_data = [], plot_figures = False):
         dlc_angle_trial = dlc_angle_trial.ravel()
 
         interpolated_dlc_angle = np.interp(timestamp_array_theta, ts_angle_trial, dlc_angle_trial)
-        if len(interpolated_dlc_angle) != len(signal):
-            # Adjust the length if necessary
-            interpolated_dlc_angle = np.resize(interpolated_dlc_angle, len(signal))
+        #plot the interpolated dlc angle
+        if plot_figures == True:
+            plt.figure()
+            plt.plot(timestamp_array_theta, interpolated_dlc_angle)
+            plt.title('Interpolated dlc angle')
+            plt.show()
+            #plot the original dlc angle
+            plt.figure()
+            plt.plot(ts_angle_trial, dlc_angle_trial)
+            plt.title('Original dlc angle')
+            plt.show()
+
+        # if len(interpolated_dlc_angle) != len(signal):
+        #     # Adjust the length if necessary
+        #     interpolated_dlc_angle = np.resize(interpolated_dlc_angle, len(signal))
         instantaneous_phase = np.angle(hilbert_transform)
 
         hilbert_transform_angle = hilbert(interpolated_dlc_angle)
         instantaneous_phase_angle = np.angle(hilbert_transform_angle)
+
 
 
         # Calculate the instantaneous frequency
@@ -451,8 +464,8 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
             plt.savefig(f'figures_2/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
         else:
             plt.figure(figsize=(40, 10))
-            plt.plot(df_trial['dlc_angle_phase'], label = '[DLC] head angle phase')
-            plt.plot(df_trial['theta_phase'], label = 'Theta phase')
+            plt.plot(dlc_angle_trial, label = '[DLC] head angle phase')
+            plt.plot(theta_phase_trial, label = 'Theta phase')
             plt.ylabel('Phase')
             plt.xlabel('Time since start of trial (s)')
             plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
@@ -596,7 +609,7 @@ def main():
         path_to_load = Path('C:/neural_data/') / rat
         phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(path_to_load, spike_data = [])
         # circ_corr_df = run_circular_correlation_test(df_theta_and_angle)
-        granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=False, direction='theta_before', rat=rat, no_phase=False)
+        # granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=False, direction='theta_before', rat=rat, no_phase=False)
         granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=True, direction='theta_before', rat=rat, no_phase=False)
 
 
