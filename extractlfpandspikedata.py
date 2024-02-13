@@ -544,7 +544,7 @@ def generate_plots_check(df_theta_and_angle, export_to_csv = True, shuffle_data 
 
         if not is_stationary_angle or not is_stationary_theta:
             print(f"Trial {trial}: Not stationary. Applying differencing...")
-            # continue
+            continue
             # Apply differencing to make the time series stationary
             dlc_angle_trial = np.diff(df_trial['dlc_angle_phase'])
             theta_phase_trial = np.diff(df_trial['theta_phase'])
@@ -580,6 +580,19 @@ def generate_plots_check(df_theta_and_angle, export_to_csv = True, shuffle_data 
                     print("The elements are the same (order-independent).")
                 else:
                     print("The elements are different.")
+
+                plt.figure(figsize=(40, 10))
+                plt.plot(original_theta_phase_trial, label='Theta phase', color='orange', alpha=0.2)
+                plt.plot(original_dlc_angle_trial, label='[DLC] head angle phase', color='blue', alpha=0.2)
+                plt.ylabel('Phase', fontsize=18)
+                plt.xlabel('Time since start of trial (s)', fontsize=18)
+                plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000 * 50),
+                           labels=np.arange(0, len(df_trial['dlc_angle_phase']) / 1000, 50))
+                plt.legend()
+                plt.title(f'DLC angle and theta phase for trial number {trial}, original', fontsize=20)
+                plt.savefig(
+                    f'figures_3/dlc_angle_theta_phase_trial_{trial}_noshuffle_direction_{direction}_{rat}_nophase_{no_phase}.png',
+                    dpi=300, bbox_inches='tight')
         #plot the dlc_angle and theta phase
         if no_phase == True:
             plt.figure(figsize=(40, 10))
@@ -590,17 +603,17 @@ def generate_plots_check(df_theta_and_angle, export_to_csv = True, shuffle_data 
             plt.xticks(np.arange(0, len(df_trial['dlc_angle']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle'])/1000, 50))
             plt.legend()
             plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
-            plt.savefig(f'figures_2/trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(f'figures_3/trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
         else:
             plt.figure(figsize=(40, 10))
-            plt.plot(theta_phase_trial, label = 'Theta phase', color = 'orange')
-            plt.plot(dlc_angle_trial, label = '[DLC] head angle phase', color = 'blue')
+            plt.plot(theta_phase_trial, label = 'Theta phase', color = 'orange', alpha = 0.2)
+            plt.plot(dlc_angle_trial, label = '[DLC] head angle phase', color = 'blue', alpha = 0.2)
             plt.ylabel('Phase', fontsize = 18)
             plt.xlabel('Time since start of trial (s)', fontsize = 18)
             plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
             plt.legend()
             plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
-            plt.savefig(f'figures_2/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(f'figures_3/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophase_{no_phase}.png', dpi=300, bbox_inches='tight')
     return
 
 # # Function to create simulated time series data
@@ -709,14 +722,14 @@ def compare_simulated_data_to_granger_test(n_samples):
 
 
 def main():
-    result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
+    # result_correlated, result_uncorrelated = compare_simulated_data_to_granger_test(400*1000)
     for rat in ['rat_7', 'rat_9','rat_10', 'rat_3', 'rat_8']:  #rat_3, 'rat_8', 'rat_9',
         print('Running granger causality test for rat: ' + rat)
         path_to_load = Path('C:/neural_data/') / rat
         phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(path_to_load, spike_data = [])
         # circ_corr_df = run_circular_correlation_test(df_theta_and_angle)
         generate_plots_check(df_theta_and_angle, shuffle_data=True, direction='theta_before', rat=rat, no_phase=False)
-        generate_plots_check(df_theta_and_angle, shuffle_data=False, direction='theta_before', rat=rat, no_phase=False)
+        # generate_plots_check(df_theta_and_angle, shuffle_data=False, direction='theta_before', rat=rat, no_phase=False)
 
         # granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=False, direction='theta_before', rat=rat, no_phase=False)
         # granger_results = run_granger_cauality_test(df_theta_and_angle, shuffle_data=True, direction='theta_before', rat=rat, no_phase=False)
