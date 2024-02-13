@@ -3,11 +3,8 @@
 
 from pathlib import Path
 from datetime import datetime
-
 import json
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from helpers import datahandling
@@ -19,7 +16,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, permutation_test_score, GridSearchCV, \
     RandomizedSearchCV, cross_val_score
-
 from sklearn.svm import SVC
 from sklearn.metrics import balanced_accuracy_score, f1_score
 
@@ -243,13 +239,57 @@ def train_within(
 def main():
     # Load and preprocess data here
     # df_all = load_data_from_paths(Path('C:/neural_data/'))
-    data_path = Path('C:/neural_data/')
+    data_path = Path('C:/neural_data/rat_7/')
     save_path = Path('C:/neural_data/results')
     if not save_path.exists():
         save_path.mkdir()
     #import the datahandler class
     dh = DataHandler.load_data_from_paths(data_path)
+    # spks i sa numpy array of size trial* timebins*neuron
+    # bhv is a pandas dataframe where each row represents a trial
+    #rearrange dh to get the spks and bhv
+    for i in dh['unit_id'].unique():
+        dataframe_unit = dh.loc[dh['unit_id'] == i]
+        spk_times = dataframe_unit['spike_times_samples']
+        spk_times = spk_times.values
+        spk_times = np.array(spk_times.tolist())
+        spk_times = spk_times.flatten()
+        spk_times = spk_times[~np.isnan(spk_times)]
+        #rearrange spks to a numpy array of trial*timebins*neuron
+        dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
+        #round trial number to integer
+        bin_width = 0.5
 
+        hist_rate_big = np.zeros((len(dataframe_unit['trial_number'].unique()), 400, 1))
+        for j in dataframe_unit['trial_number'].unique():
+            trial = dataframe_unit.loc[dataframe_unit['trial_number'] == j]
+            spk_times = trial['spike_times_samples']
+            #convert to seconds
+            spk_times = spk_times/30000
+
+            #histogram the data so I am getting a histogram of the spike times with a bin width of 0.5s
+            #I am taking the first 200s as a guess for the time window
+            hist, bin_edges = np.histogram(spk_times, bins = np.arange(0, 200+bin_width, bin_width))
+            #convert to rate
+            hist_rate = hist/bin_width
+            #plot the psth
+            import matplotlib.pyplot as plt
+            figure = plt.figure()
+            plt.plot(bin_edges[0:-1], hist_rate)
+            plt.xlabel('Time (s) for trial: ' + str(j) + ' and neuron: ' + str(i) + ' and unit: ' + str(dataframe_unit['unit_id'].unique()))
+            plt.ylabel('Spike Rate (spikes/s)')
+            plt.show()
+            hist_rate_big[j, :, 0] = hist_rate
+
+
+
+            #add the histogram to the spks array
+
+
+
+
+
+            spks[j, 0:len(trial['spike_times_samples']), 0] = trial['spike_times_samples']
 
 
 
