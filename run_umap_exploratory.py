@@ -92,7 +92,6 @@ def train_ref_classify_rest(
     Parameters:
     - spks: The spike data.
     - bhv: Behavioral data containing masks and labels.
-    - space_ref: Reference space identifier.
     - regress: Column name in bhv to use for regression labels.
     - regressor: Regressor to use.
     - regressor_kwargs: Keyword arguments for the regressor.
@@ -103,47 +102,40 @@ def train_ref_classify_rest(
     Returns:
     - Dictionary containing the mean squared error and R2 scores.
     """
-    ref_spks = spks[bhv.mask == space_ref, :, :]
-    nref_spks = spks[bhv.mask != space_ref, :, :]
-
     # Z-score with respect to reference space
-    spks_mean = np.nanmean(ref_spks, axis=0)
-    spks_std = np.nanstd(ref_spks, axis=0)
+    spks_mean = np.nanmean(spks, axis=0)
+    spks_std = np.nanstd(spks, axis=0)
     spks_std[spks_std == 0] = np.finfo(float).eps
-    ref_spks = (ref_spks - spks_mean) / spks_std
-    nref_spks = (nref_spks - spks_mean) / spks_std
+    spks = (spks - spks_mean) / spks_std
 
     reducer_pipeline = Pipeline([
         ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
 
-    y_ref = bhv[bhv.mask == space_ref][regress].values
-    y_nref = bhv[bhv.mask != space_ref][regress].values
+    y = bhv[regress].values
     results_cv = Parallel(n_jobs=n_jobs, verbose=1)(
-        delayed(process_window)(w, ref_spks, nref_spks, window_size, y_ref, y_nref, reducer_pipeline, regressor,
-                                regressor_kwargs) for w in tqdm(range(ref_spks.shape[1] - window_size)))
+        delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
+                                regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
 
     results_perm = []
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
-            y_ref = np.random.permutation(y_ref)
-            y_nref = np.random.permutation(y_nref)
+            y_perm = np.random.permutation(y)
             reg = DummyRegressor(strategy='mean')
             results_perm_n = []
-            for w in tqdm(range(ref_spks.shape[1] - window_size)):
-                window_ref = ref_spks[:, w:w + window_size, :].reshape(ref_spks.shape[0], -1)
-                window_nref = nref_spks[:, w:w + window_size, :].reshape(nref_spks.shape[0], -1)
+            for w in tqdm(range(spks.shape[1] - window_size)):
+                window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
                 # Fit the regressor on the reference space
-                reg.fit(window_ref, y_ref)
+                reg.fit(window, y_perm)
 
                 # Predict on the non-reference space
-                y_pred = reg.predict(window_nref)
+                y_pred = reg.predict(window)
 
                 # Compute the mean squared error and R2 score
-                mse_score = mean_squared_error(y_nref, y_pred)
-                r2_score_val = r2_score(y_nref, y_pred)
+                mse_score = mean_squared_error(y_perm, y_pred)
+                r2_score_val = r2_score(y_perm, y_pred)
 
                 results = {
                     'mse_score': mse_score,
