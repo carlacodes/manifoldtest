@@ -280,8 +280,9 @@ def main():
             trial = dataframe_unit.loc[dataframe_unit['trial_number'] == j]
             spk_times = trial['spike_times_samples']
             #convert to seconds
+            spk_times = spk_times.values
             spk_times = spk_times/30000
-            #get the corresponding start of the trial from the behavioural data -- needs to be in seconds
+            #get the corresponding start of the trial from the behavioural data -- needs to be in seconds and ts is in ms
             start_time = ts[j][0] / 10000
 
             spk_times = spk_times - start_time
@@ -304,8 +305,8 @@ def main():
 
     spks = np.array(big_spk_array)
     #reshape into trial*timebins*neuron
-    spks = np.swapaxes(spks, 0, 1)
-    spks = np.swapaxes(spks, 1, 2)
+    # spks = np.swapaxes(spks, 0, 1)
+    # spks = np.swapaxes(spks, 1, 2)
     #remove the last dimension
     spks = spks[:, :, 0]
     #only use the columns of dlc_angle and dlc_xy

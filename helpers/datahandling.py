@@ -68,7 +68,8 @@ class DataHandler():
         df_all = pd.DataFrame()
 
         for j in range(len(units)):
-            unit = units[j]
+            unit = units[j][0]
+            #filter based on
             spike_times = unit['spikeSamples'][0].astype(float) / fs
 
             head_angle_times = np.array([])
