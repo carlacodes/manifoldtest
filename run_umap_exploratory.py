@@ -308,9 +308,10 @@ def main():
     spks = np.array(big_spk_array)
     #reshape into trial*timebins*neuron
     # spks = np.swapaxes(spks, 0, 1)
-    # spks = np.swapaxes(spks, 1, 2)
+    spks = np.swapaxes(spks, 1, 2)
     #remove the last dimension
-    spks = spks[:, :, 0]
+    spks = spks[:, :,:, 0]
+    spks = np.swapaxes(spks, 0, 2)
     #only use the columns of dlc_angle and dlc_xy
     bhv = pd.DataFrame({'dlc_angle': dlc_angle, 'dlc_xy': dlc_xy})
 

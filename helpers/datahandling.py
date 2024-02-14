@@ -60,7 +60,7 @@ class DataHandler():
         sample = hcomb_data['sample']
 
         # Calculate sample rate
-        fs = ((sample[0][0] / ts[0][0]) * 10000)[0]
+        fs = ((sample[0][0] / ts[0][0]) * 1000)[0]
 
         dlc_angle = hcomb_data['dlc_angle']
         dlc_xy = hcomb_data['dlc_XYsmooth']
@@ -142,7 +142,7 @@ class DataHandler():
                 'unit_id': unit_id,
                 'phy_cluster': phy_cluster,
                 'neuron_type': neuron_type,
-                'trial_number': trial_number_full
+                # 'trial_number': trial_number_full
 
             })
 
