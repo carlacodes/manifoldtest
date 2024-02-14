@@ -4,6 +4,7 @@
 from pathlib import Path
 from datetime import datetime
 import json
+import scipy
 import numpy as np
 from tqdm import tqdm
 from joblib import Parallel, delayed
@@ -250,6 +251,14 @@ def main():
     big_spk_array = []
     #load the behavioural data from the C drive:
 
+    positional_data = scipy.io.loadmat(data_path / 'positionalDataByTrialType.mat')
+    pos_cell = positional_data['pos']
+    hcomb_data_pos = pos_cell[0][0][0][0]
+    time = hcomb_data_pos['videoTime']
+    ts = hcomb_data_pos['ts']
+    dlc_angle = hcomb_data_pos['dlc_angle']
+    sample = hcomb_data_pos['sample']
+
 
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[dh['unit_id'] == i]
@@ -269,6 +278,9 @@ def main():
             spk_times = trial['spike_times_samples']
             #convert to seconds
             spk_times = spk_times/30000
+            #get the corresponding start of the trial from the behavioural data
+            start_time = ts[j]
+            spk_times = spk_times - start_time
 
             #align to the start of the trial, get the start of the trial from the behavioural position ts field
 
