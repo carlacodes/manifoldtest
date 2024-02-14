@@ -303,6 +303,8 @@ def main():
         big_spk_array.append(hist_rate_big)
 
     spks = np.array(big_spk_array)
+    #reshape into trial*timebins*neuron
+    spks = np.swapaxes(spks, 0, 1)
     #only use the columns of dlc_angle and dlc_xy
     bhv = pd.DataFrame({'dlc_angle': dlc_angle, 'dlc_xy': dlc_xy})
 
