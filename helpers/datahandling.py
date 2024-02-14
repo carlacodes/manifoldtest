@@ -112,13 +112,13 @@ class DataHandler():
             # trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
             xy_pos_new = MathHelper.multiInterp2(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_xy_array)
             #plot the trial_number_full
-            import matplotlib.pyplot as plt
-            fig, ax = plt.subplots()
-            ax.plot(flattened_spike_times_seconds, trial_number_full)
-            ax.set(xlabel='time (s)', ylabel='trial number',
-                   title='trial number')
-            ax.grid()
-            plt.show()
+            # import matplotlib.pyplot as plt
+            # fig, ax = plt.subplots()
+            # ax.plot(flattened_spike_times_seconds, trial_number_full)
+            # ax.set(xlabel='time (s)', ylabel='trial number',
+            #        title='trial number')
+            # ax.grid()
+            # plt.show()
 
             # xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, dlc_xy_array, method='linear')
 
@@ -139,10 +139,12 @@ class DataHandler():
                 'unit_id': unit_id,
                 'phy_cluster': phy_cluster,
                 'neuron_type': neuron_type,
-                'trial_number': trial_new
+                'trial_number': trial_number_full
 
             })
 
             # Append to the larger dataframe
             df_all = pd.concat([df_all, df], ignore_index=True)
+        #remove all rows where the trial number is -1, as this indicates the recording was not during a trial
+        df_all = df_all[df_all['trial_number'] != -1]
         return df_all
