@@ -101,8 +101,8 @@ def train_ref_classify_rest(
     Returns:
     - Tuple of arrays (results_bl, results_f1) containing the balanced accuracy and F1 scores.
     """
-    ref_spks = spks[bhv.Mask == space_ref, :, :]
-    nref_spks = spks[bhv.Mask != space_ref, :, :]
+    ref_spks = spks[bhv.mask == space_ref, :, :]
+    nref_spks = spks[bhv.mask != space_ref, :, :]
 
     # Z-score with respect to reference space
     spks_mean = np.nanmean(ref_spks, axis=0)
