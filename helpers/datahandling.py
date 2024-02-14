@@ -84,7 +84,7 @@ class DataHandler():
 
             for i2 in range(len(dlc_angle)):
                 trial_dlc, trial_ts, trial_sample = dlc_angle[i2], ts[i2], sample[i2]
-                time_in_seconds = trial_sample / fs
+                time_in_seconds = trial_ts / 1000
 
                 # trial_number_full = np.full(len(trial_ts), i2)
                 # trial_number_array = np.append(trial_number_array, trial_number_full)
