@@ -79,13 +79,19 @@ class DataHandler():
             xy_pos_array = np.array([])
             dlc_xy_array = np.empty((1, 2), dtype=float)
 
+            #initial a trial identity array that is the same length as the spike times
+            trial_number_full = np.full(len(spike_times), -1)
 
             for i2 in range(len(dlc_angle)):
                 trial_dlc, trial_ts, trial_sample = dlc_angle[i2], ts[i2], sample[i2]
                 time_in_seconds = trial_sample / fs
 
-                trial_number_full = np.full(len(trial_ts), i2)
-                trial_number_array = np.append(trial_number_array, trial_number_full)
+                # trial_number_full = np.full(len(trial_ts), i2)
+                # trial_number_array = np.append(trial_number_array, trial_number_full)
+                #figure out which trials the spike times belong to
+                mask = (spike_times > time_in_seconds[0]) & (spike_times < time_in_seconds[-1])
+                mask = mask.ravel()
+                trial_number_full[mask] = i2
 
                 head_angle_times = np.append(head_angle_times, time_in_seconds)
                 head_angle_times_ms = np.append(head_angle_times_ms, trial_ts)
@@ -93,9 +99,9 @@ class DataHandler():
                 dlc_xy_array = np.vstack((dlc_xy_array, dlc_xy[i2]))
 
 
-                if np.max(time_in_seconds) > np.max(spike_times):
-                    print('Trial time is greater than spike time, aborting...')
-                    break
+                # if np.max(time_in_seconds) > np.max(spike_times):
+                #     print('Trial time is greater than spike time, aborting...')
+                #     break
 
             # Interpolate spike times and dlc_angle to a common sample rate
             #remove the first null row from the dlc_xy_array
