@@ -12,7 +12,8 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from helpers import datahandling
 from helpers.datahandling import DataHandler
-
+from sklearn.svm import SVR
+from sklearn.model_selection import KFold
 from scipy.ndimage import gaussian_filter1d
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -326,13 +327,12 @@ def main():
     t = np.round(t, 3)
     n_runs = 5
 
-    classifier = SVC
-    classifier_kwargs = {'kernel': 'poly', 'C': 1}
+    regressor = SVR
+    regressor_kwargs = {'kernel': 'poly', 'C': 1}
 
     reducer = UMAP
     reducer_kwargs = {
         'n_components': 2,
-        # 'random_state': 42,
         'n_neighbors': 10,
         'min_dist': 0.001,
         'metric': 'cosine',
@@ -340,9 +340,10 @@ def main():
     }
 
     space_ref = ['No Noise', 'Noise']
-    classify = 'F1'
+    regress = 'head_angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
 
-    skf = StratifiedKFold(n_splits=5, shuffle=True)
+    # Use KFold for regression
+    kf = KFold(n_splits=5, shuffle=True)
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f'results_{now}.npy'
@@ -351,12 +352,6 @@ def main():
     n_permutations = 0
     n_permutations = 0
     for run in range(n_runs):
-        # bhv, spks = vowel_pop.process_and_load_pseudo_pop(
-        #     data_path,
-        #     time_window=time_window,
-        #     bin_width=bin_width,
-        #     smooth_spikes=smooth_spikes,
-        # )
         results_between[run] = {}
         results_within[run] = {}
         for space in space_ref:
@@ -364,9 +359,9 @@ def main():
                 spks,
                 bhv,
                 space,
-                classify,
-                classifier,
-                classifier_kwargs,
+                regress,
+                regressor,
+                regressor_kwargs,
                 reducer,
                 reducer_kwargs,
                 window_size,
@@ -376,21 +371,21 @@ def main():
             results_within[run][space] = train_within(
                 spks,
                 bhv,
-                skf,
+                kf,
                 space,
-                classify,
-                classifier,
-                classifier_kwargs,
+                regress,
+                regressor,
+                regressor_kwargs,
                 reducer,
                 reducer_kwargs,
                 window_size,
                 n_permutations=n_permutations,
             )
 
-            # Save results
-            results = {'between': results_between, 'within': results_within}
-            save_path.mkdir(exist_ok=True)
-            np.save(save_path / filename, results)
+        # Save results
+        results = {'between': results_between, 'within': results_within}
+        save_path.mkdir(exist_ok=True)
+        np.save(save_path / filename, results)
 
 
 if __name__ == '__main__':
