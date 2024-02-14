@@ -116,8 +116,8 @@ def train_ref_classify_rest(
         ('reducer', reducer(**reducer_kwargs)),
     ])
 
-    y_ref = bhv[bhv.Mask == space_ref][classify].values
-    y_nref = bhv[bhv.Mask != space_ref][classify].values
+    y_ref = bhv[bhv.mask == space_ref][classify].values
+    y_nref = bhv[bhv.mask != space_ref][classify].values
     results_cv = Parallel(n_jobs=n_jobs, verbose=1)(
         delayed(process_window)(w, ref_spks, nref_spks, window_size, y_ref, y_nref, reducer_pipeline, classifier,
                                 classifier_kwargs) for w in tqdm(range(ref_spks.shape[1] - window_size)))
@@ -183,8 +183,8 @@ def train_within(
         ('reducer', reducer(**reducer_kwargs)),
     ])
 
-    ref_spks = spks[bhv.Mask == space_ref, :, :]
-    ref_labels = bhv[bhv.Mask == space_ref][classify].values
+    ref_spks = spks[bhv.mask == space_ref, :, :]
+    ref_labels = bhv[bhv.mask == space_ref][classify].values
     cv_results = []
     for i, (train_idx, test_idx) in enumerate(skf.split(ref_spks, ref_labels)):
         print(f'Fold {i} / {skf.get_n_splits()}')
