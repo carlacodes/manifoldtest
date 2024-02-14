@@ -114,10 +114,12 @@ def train_ref_classify_rest(
     ])
 
     y = bhv[regress].values
-    results_cv = Parallel(n_jobs=n_jobs, verbose=1)(
+    # results_cv = Parallel(n_jobs=n_jobs, verbose=1)(
+    #     delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
+    #                             regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
+    results_cv = Parallel(n_jobs=n_jobs, verbose=1, prefer="threads")(
         delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
                                 regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
-
     results_perm = []
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
