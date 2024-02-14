@@ -4,6 +4,7 @@
 from pathlib import Path
 from datetime import datetime
 import json
+import matplotlib.pyplot as plt
 import pandas as pd
 import scipy
 import numpy as np
@@ -260,7 +261,8 @@ def main():
     dlc_angle = hcomb_data_pos['dlc_angle']
     sample = hcomb_data_pos['sample']
     dlc_xy = hcomb_data_pos['dlc_XYsmooth']
-
+    #need to fix why is the trial number max 4
+    trial_number_max = np.max(dh['trial_number'])
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[dh['unit_id'] == i]
         spk_times = dataframe_unit['spike_times_samples']
@@ -273,7 +275,7 @@ def main():
         #round trial number to integer
         bin_width = 0.5
 
-        hist_rate_big = np.zeros((len(dataframe_unit['trial_number'].unique()), 400, 1))
+        hist_rate_big = np.zeros((np.max(dataframe_unit['trial_number'].unique())+1, 400, 1))
         for j in dataframe_unit['trial_number'].unique():
             trial = dataframe_unit.loc[dataframe_unit['trial_number'] == j]
             spk_times = trial['spike_times_samples']
@@ -291,12 +293,12 @@ def main():
             #convert to rate
             hist_rate = hist/bin_width
             #plot the psth
-            import matplotlib.pyplot as plt
             figure = plt.figure()
             plt.plot(bin_edges[0:-1], hist_rate)
             plt.xlabel('Time (s) for trial: ' + str(j) + ' and neuron: ' + str(i) + ' and unit: ' + str(dataframe_unit['unit_id'].unique()))
             plt.ylabel('Spike Rate (spikes/s)')
-            plt.show()
+            plt.savefig('figures/psths_raw/' + 'trial_' + str(j) + '_neuron_' + str(i) + '_unit'+ '.png')
+            # plt.show()
             hist_rate_big[j, :, 0] = hist_rate
         big_spk_array.append(hist_rate_big)
 
