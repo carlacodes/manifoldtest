@@ -259,7 +259,7 @@ def main():
     ts = hcomb_data_pos['ts']
     dlc_angle = hcomb_data_pos['dlc_angle']
     sample = hcomb_data_pos['sample']
-
+    dlc_xy = hcomb_data_pos['dlc_XYsmooth']
 
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[dh['unit_id'] == i]
