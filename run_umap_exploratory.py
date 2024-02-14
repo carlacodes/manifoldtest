@@ -260,6 +260,7 @@ def main():
     ts = hcomb_data_pos['ts']
     dlc_angle = hcomb_data_pos['dlc_angle']
     sample = hcomb_data_pos['sample']
+
     dlc_xy = hcomb_data_pos['dlc_XYsmooth']
     #TODO: need to fix why is the trial number max 4
     trial_number_max = np.max(dh['trial_number'])
@@ -278,12 +279,13 @@ def main():
         hist_rate_big = np.zeros((np.max(dataframe_unit['trial_number'].unique())+1, 400, 1))
         for j in dataframe_unit['trial_number'].unique():
             trial = dataframe_unit.loc[dataframe_unit['trial_number'] == j]
-            spk_times = trial['spike_times_samples']
+            spk_times = trial['spike_times_seconds']
+            # spk_times_sample = trial['spike_times_samples'] / 30000
             #convert to seconds
             spk_times = spk_times.values
-            spk_times = spk_times/30000
+
             #get the corresponding start of the trial from the behavioural data -- needs to be in seconds and ts is in ms
-            start_time = ts[j][0] / 10000
+            start_time = sample[j][0] / 30000
 
             spk_times = spk_times - start_time
 

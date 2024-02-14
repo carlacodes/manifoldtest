@@ -68,8 +68,10 @@ class DataHandler():
         df_all = pd.DataFrame()
 
         for j in range(len(units)):
-            unit = units[j][0]
+            unit = units[j]
             #filter based on
+            spike_times = unit['spikeSamples'][0].astype(float)
+
             spike_times = unit['spikeSamples'][0].astype(float) / fs
 
             head_angle_times = np.array([])
@@ -85,7 +87,7 @@ class DataHandler():
 
             for i2 in range(len(dlc_angle)):
                 trial_dlc, trial_ts, trial_sample = dlc_angle[i2], ts[i2], sample[i2]
-                time_in_seconds = trial_ts / 1000
+                time_in_seconds = trial_sample / 30000
 
                 # trial_number_full = np.full(len(trial_ts), i2)
                 # trial_number_array = np.append(trial_number_array, trial_number_full)
