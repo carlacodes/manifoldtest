@@ -142,7 +142,7 @@ class DataHandler():
                 'unit_id': unit_id,
                 'phy_cluster': phy_cluster,
                 'neuron_type': neuron_type,
-                # 'trial_number': trial_number_full
+                'trial_number': trial_number_full
 
             })
 
