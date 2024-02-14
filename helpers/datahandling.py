@@ -150,4 +150,6 @@ class DataHandler():
             df_all = pd.concat([df_all, df], ignore_index=True)
         #remove all rows where the trial number is -1, as this indicates the recording was not during a trial
         df_all = df_all[df_all['trial_number'] != -1]
+        #get the max unqiue trial number
+        max_trial_number = np.max(df_all['trial_number'])
         return df_all

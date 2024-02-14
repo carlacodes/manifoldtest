@@ -276,7 +276,7 @@ def main():
         #round trial number to integer
         bin_width = 0.5
 
-        hist_rate_big = np.zeros((np.max(dataframe_unit['trial_number'].unique())+1, 400, 1))
+        hist_rate_big = np.zeros((trial_number_max+1, 400, 1))
         for j in dataframe_unit['trial_number'].unique():
             trial = dataframe_unit.loc[dataframe_unit['trial_number'] == j]
             spk_times = trial['spike_times_seconds']
