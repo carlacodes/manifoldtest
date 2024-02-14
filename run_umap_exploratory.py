@@ -4,6 +4,7 @@
 from pathlib import Path
 from datetime import datetime
 import json
+import pandas as pd
 import scipy
 import numpy as np
 from tqdm import tqdm
@@ -25,7 +26,7 @@ from sklearn.dummy import DummyClassifier
 from umap import UMAP
 # import vowel_in_noise.electrophysiology.population_analysis as vowel_pop
 # from vowel_in_noise import plot_utils
-
+''' Modified from Jules Lebert's code'''
 
 def process_window(
         w,
@@ -278,14 +279,12 @@ def main():
             spk_times = trial['spike_times_samples']
             #convert to seconds
             spk_times = spk_times/30000
-            #get the corresponding start of the trial from the behavioural data
-            start_time = ts[j]
+            #get the corresponding start of the trial from the behavioural data -- needs to be in seconds
+            start_time = ts[j][0] / 10000
+
             spk_times = spk_times - start_time
 
             #align to the start of the trial, get the start of the trial from the behavioural position ts field
-
-
-
             #histogram the data so I am getting a histogram of the spike times with a bin width of 0.5s
             #I am taking the first 200s as a guess for the time window
             hist, bin_edges = np.histogram(spk_times, bins = np.arange(0, 200+bin_width, bin_width))
@@ -302,17 +301,18 @@ def main():
         big_spk_array.append(hist_rate_big)
 
     spks = np.array(big_spk_array)
+    #only use the columns of dlc_angle and dlc_xy
+    bhv = pd.DataFrame({'dlc_angle': dlc_angle, 'dlc_xy': dlc_xy})
 
 
 
     time_window = [-0.2, 0.9]
-    bin_width = 0.02
-    window_for_decoding = 0.1  # in s
+
+    window_for_decoding = 0.25  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
     smooth_spikes = True
     t = np.arange(time_window[0], time_window[1], bin_width)
     t = np.round(t, 3)
-
     n_runs = 5
 
     classifier = SVC
@@ -340,12 +340,12 @@ def main():
     n_permutations = 0
     n_permutations = 0
     for run in range(n_runs):
-        bhv, spks = vowel_pop.process_and_load_pseudo_pop(
-            data_path,
-            time_window=time_window,
-            bin_width=bin_width,
-            smooth_spikes=smooth_spikes,
-        )
+        # bhv, spks = vowel_pop.process_and_load_pseudo_pop(
+        #     data_path,
+        #     time_window=time_window,
+        #     bin_width=bin_width,
+        #     smooth_spikes=smooth_spikes,
+        # )
         results_between[run] = {}
         results_within[run] = {}
         for space in space_ref:
