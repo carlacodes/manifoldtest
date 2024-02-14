@@ -261,7 +261,7 @@ def main():
     dlc_angle = hcomb_data_pos['dlc_angle']
     sample = hcomb_data_pos['sample']
     dlc_xy = hcomb_data_pos['dlc_XYsmooth']
-    #need to fix why is the trial number max 4
+    #TODO: need to fix why is the trial number max 4
     trial_number_max = np.max(dh['trial_number'])
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[dh['unit_id'] == i]
