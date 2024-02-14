@@ -109,8 +109,17 @@ class DataHandler():
             flattened_spike_times_seconds = np.concatenate(spike_times).ravel()
             flattened_spike_times = np.concatenate(unit['spikeSamples']).ravel()
             dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_array)
-            trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
+            # trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
             xy_pos_new = MathHelper.multiInterp2(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_xy_array)
+            #plot the trial_number_full
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots()
+            ax.plot(flattened_spike_times_seconds, trial_number_full)
+            ax.set(xlabel='time (s)', ylabel='trial number',
+                   title='trial number')
+            ax.grid()
+            plt.show()
+
             # xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, dlc_xy_array, method='linear')
 
 
