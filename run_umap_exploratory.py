@@ -37,17 +37,31 @@ def process_window(
         y,
         reducer_pipeline,
         regressor,
-        regressor_kwargs,
+        regressor_kwargs, scaler
 ):
     reg = regressor(**regressor_kwargs)
 
-    window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
+    # window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
+    window = spks[:, w:w + window_size].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
+    if np.isnan(window_train).any():
+        # Handle NaN values here. You might want to fill NaN values or drop the rows/columns containing NaNs
+        window_train = np.nan_to_num(window_train)  # This is just an example
+
+    # Check for constant features
+    constant_features = np.where(np.std(window_train, axis=0) == 0)[0]
+    if constant_features.size > 0:
+        # Handle constant features here. You might want to drop these features.
+        window_train = np.delete(window_train, constant_features, axis=1)  # This is just an example
 
     # Fit the reducer on the training data
+    # window_train = scaler.transform(window_train)
+    # window_test = scaler.transform(window_test)
+    print("Before any transformation:", window_train.shape)
     reducer_pipeline.fit(window_train, y=y_train)
+    print("After pipeline transformation:", window_train.shape)
 
     # Transform the training and testing data
     window_train_reduced = reducer_pipeline.transform(window_train)
@@ -107,6 +121,8 @@ def train_ref_classify_rest(
     spks_std = np.nanstd(spks, axis=0)
     spks_std[spks_std == 0] = np.finfo(float).eps
     spks = (spks - spks_mean) / spks_std
+    scaler = StandardScaler()
+    spks_scaled = scaler.fit_transform(spks.reshape(spks.shape[0], -1))
 
     reducer_pipeline = Pipeline([
         ('scaler', StandardScaler()),
@@ -118,8 +134,8 @@ def train_ref_classify_rest(
     #     delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
     #                             regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_cv = Parallel(n_jobs=n_jobs, verbose=1, prefer="threads")(
-        delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
-                                regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
+        delayed(process_window)(w, spks_scaled, window_size, y, reducer_pipeline, regressor,
+                                regressor_kwargs, scaler) for w in tqdm(range(spks.shape[1] - window_size)))
     results_perm = []
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
