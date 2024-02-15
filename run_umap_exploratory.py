@@ -188,7 +188,6 @@ def main():
     sample = hcomb_data_pos['sample']
 
     dlc_xy = hcomb_data_pos['dlc_XYsmooth']
-    #TODO: need to fix why is the trial number max 4
     trial_number_max = np.max(dh['trial_number'])
     time_max = np.max(sample[-1])/30000
     for i in dh['unit_id'].unique():
@@ -207,13 +206,16 @@ def main():
 
         #I want to bin the data into 0.5s bins
         length = int(time_max/bin_interval)
-        bin_width = 0.5
+        bin_width = 0.1
 
         #create a 3d array of zeros
         hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
         spk_times = spk_times / 30000
         for j in range(0, length):
-            hist, bin_edges = np.histogram(spk_times, bins = np.arange(j, j+bin_interval, bin_width))
+            #get the corresponding time stamps
+            time_start = j*bin_interval
+            time_end = (j+1)*bin_interval
+            hist, bin_edges = np.histogram(spk_times, bins = np.arange(time_start, time_end, bin_width))
             hist_rate = hist / bin_width
             hist_rate_big[j, :] = hist_rate
         big_spk_array.append(hist_rate_big)
@@ -221,10 +223,10 @@ def main():
 
     spks = np.array(big_spk_array)
     #reshape into trial*timebins*neuron
-    # spks = np.swapaxes(spks, 0, 1)
+    spks = np.swapaxes(spks, 0, 1)
     spks = np.swapaxes(spks, 1, 2)
     #remove the last dimension
-    spks = spks[:, :,:, 0]
+    # spks = spks[:, :,:, 0]
     spks = np.swapaxes(spks, 0, 2)
     #only use the columns of dlc_angle and dlc_xy
     bhv = pd.DataFrame({'dlc_angle': dlc_angle, 'dlc_xy': dlc_xy})
