@@ -51,12 +51,12 @@ def process_window(
     #     window_train = np.nan_to_num(window_train)  # This is just an example
 
     # Check for constant features
-    constant_features = np.where(np.std(window_train, axis=0) == 0)[0]
-    if constant_features.size > 0:
-        # Handle constant features here. You might want to drop these features.
-        window_train = np.delete(window_train, constant_features, axis=1)  #
-        #apply to the test set
-        window_test = np.delete(window_test, constant_features, axis=1)
+    # constant_features = np.where(np.std(window_train, axis=0) == 0)[0]
+    # if constant_features.size > 0:
+    #     # Handle constant features here. You might want to drop these features.
+    #     window_train = np.delete(window_train, constant_features, axis=1)  #
+    #     #apply to the test set
+    #     window_test = np.delete(window_test, constant_features, axis=1)
 
     # Fit the reducer on the training data
     # window_train = scaler.transform(window_train)
