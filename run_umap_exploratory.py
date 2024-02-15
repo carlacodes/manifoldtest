@@ -46,15 +46,17 @@ def process_window(
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
-    if np.isnan(window_train).any():
-        # Handle NaN values here. You might want to fill NaN values or drop the rows/columns containing NaNs
-        window_train = np.nan_to_num(window_train)  # This is just an example
+    # if np.isnan(window_train).any():
+    #     # Handle NaN values here. You might want to fill NaN values or drop the rows/columns containing NaNs
+    #     window_train = np.nan_to_num(window_train)  # This is just an example
 
     # Check for constant features
     constant_features = np.where(np.std(window_train, axis=0) == 0)[0]
     if constant_features.size > 0:
         # Handle constant features here. You might want to drop these features.
-        window_train = np.delete(window_train, constant_features, axis=1)  # This is just an example
+        window_train = np.delete(window_train, constant_features, axis=1)  #
+        #apply to the test set
+        window_test = np.delete(window_test, constant_features, axis=1)
 
     # Fit the reducer on the training data
     # window_train = scaler.transform(window_train)
