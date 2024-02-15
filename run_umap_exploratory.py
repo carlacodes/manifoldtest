@@ -46,18 +46,8 @@ def process_window(
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
-    # if np.isnan(window_train).any():
-    #     # Handle NaN values here. You might want to fill NaN values or drop the rows/columns containing NaNs
-    #     window_train = np.nan_to_num(window_train)  # This is just an example
-
-    # Check for constant features
-    # constant_features = np.where(np.std(window_train, axis=0) == 0)[0]
-    # if constant_features.size > 0:
-    #     # Handle constant features here. You might want to drop these features.
-    #     window_train = np.delete(window_train, constant_features, axis=1)  #
-    #     #apply to the test set
-    #     window_test = np.delete(window_test, constant_features, axis=1)
-
+    # y_train = np.ravel(y_train)
+    # y_test = np.ravel(y_test)
     # Fit the reducer on the training data
     scaler = StandardScaler()
     scaler.fit(window_train)
@@ -200,6 +190,7 @@ def main():
     dlc_xy = hcomb_data_pos['dlc_XYsmooth']
     #TODO: need to fix why is the trial number max 4
     trial_number_max = np.max(dh['trial_number'])
+    time_max = np.max(sample[-1])/30000
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[dh['unit_id'] == i]
         spk_times = dataframe_unit['spike_times_samples']
@@ -211,35 +202,19 @@ def main():
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
         #round trial number to integer
         bin_width = 0.5
+        #reorganize the data into a numpy array of time stamp arrays
+        #get the maximum trial number in seconds
 
-        hist_rate_big = np.zeros((trial_number_max+1, 400, 1))
-        for j in dataframe_unit['trial_number'].unique():
-            trial = dataframe_unit.loc[dataframe_unit['trial_number'] == j]
-            spk_times = trial['spike_times_seconds']
-            # spk_times_sample = trial['spike_times_samples'] / 30000
-            #convert to seconds
-            spk_times = spk_times.values
+        #I want to bin the data into 0.5s bins
+        length = int(time_max/bin_width)
+        width = 100
 
-            #get the corresponding start of the trial from the behavioural data -- needs to be in seconds and ts is in ms
-            start_time = sample[j][0] / 30000
-
-            spk_times = spk_times - start_time
-
-            #align to the start of the trial, get the start of the trial from the behavioural position ts field
-            #histogram the data so I am getting a histogram of the spike times with a bin width of 0.5s
-            #I am taking the first 200s as a guess for the time window
-            hist, bin_edges = np.histogram(spk_times, bins = np.arange(0, 200+bin_width, bin_width))
-            #convert to rate
-            hist_rate = hist/bin_width
-            #plot the psth
-            figure = plt.figure()
-            plt.plot(bin_edges[0:-1], hist_rate)
-            plt.xlabel('Time (s) for trial: ' + str(j) + ' and neuron: ' + str(i) + ' and unit: ' + str(dataframe_unit['unit_id'].unique()))
-            plt.ylabel('Spike Rate (spikes/s)')
-            plt.savefig('figures/psths_raw/' + 'trial_' + str(j) + '_neuron_' + str(i) + '_unit'+ '.png')
-            # plt.show()
-            hist_rate_big[j, :, 0] = hist_rate
+        hist_rate_big = np.zeros(length, 100, 1)
+        spk_times = spk_times / 30000
+        for i in range(0, length):
+            hist_rate_big[i] = np.histogram(spk_times, bins = np.arange(i, i+0.5, bin_width))
         big_spk_array.append(hist_rate_big)
+
 
     spks = np.array(big_spk_array)
     #reshape into trial*timebins*neuron
