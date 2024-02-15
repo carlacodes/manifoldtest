@@ -227,9 +227,32 @@ def main():
     spks = np.swapaxes(spks, 1, 2)
     #remove the last dimension
     # spks = spks[:, :,:, 0]
-    spks = np.swapaxes(spks, 0, 2)
     #only use the columns of dlc_angle and dlc_xy
-    bhv = pd.DataFrame({'dlc_angle': dlc_angle, 'dlc_xy': dlc_xy})
+    bhv = pd.DataFrame({'dlc_angle': dlc_angle, 'dlc_xy': dlc_xy, 'sample': sample})
+    #do the same for the positional data
+
+    dlc_angle_big = []
+    dlc_xy_big = []
+    sample_big = []
+    for i in range(0, len(dlc_angle)):
+        dlc_angle_trial = dlc_angle[i]
+        dlc_xy_trial = dlc_xy[i]
+        sample_trial = sample[i]
+        dlc_angle_big = np.append(dlc_angle_big, dlc_angle_trial)
+        dlc_xy_big = np.append(dlc_xy_big, dlc_xy_trial)
+        sample_big = np.append(sample_big, sample_trial)
+
+    #interpolate dlc_angle_big to match the length of spks
+    #interpolate the dlc_angle_big to match the length of sp
+    dlc_angle_big = np.array(dlc_angle_big)
+    #interpolate the dlc_angle_big to match the length of
+    dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
+
+
+
+
+
+
 
 
 
