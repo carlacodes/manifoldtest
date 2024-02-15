@@ -235,7 +235,7 @@ def main():
 
     time_window = [-0.2, 0.9]
 
-    window_for_decoding = 0.25  # in s
+    window_for_decoding = 100  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
     smooth_spikes = True
     t = np.arange(time_window[0], time_window[1], bin_width)
