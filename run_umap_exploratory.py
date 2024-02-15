@@ -201,18 +201,21 @@ def main():
         #rearrange spks to a numpy array of trial*timebins*neuron
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
         #round trial number to integer
-        bin_width = 0.5
+        bin_interval = 5
         #reorganize the data into a numpy array of time stamp arrays
         #get the maximum trial number in seconds
 
         #I want to bin the data into 0.5s bins
-        length = int(time_max/bin_width)
-        width = 100
+        length = int(time_max/bin_interval)
+        bin_width = 0.5
 
-        hist_rate_big = np.zeros(length, 100, 1)
+        #create a 3d array of zeros
+        hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
         spk_times = spk_times / 30000
-        for i in range(0, length):
-            hist_rate_big[i] = np.histogram(spk_times, bins = np.arange(i, i+0.5, bin_width))
+        for j in range(0, length):
+            hist, bin_edges = np.histogram(spk_times, bins = np.arange(j, j+bin_interval, bin_width))
+            hist_rate = hist / bin_width
+            hist_rate_big[j, :] = hist_rate
         big_spk_array.append(hist_rate_big)
 
 
