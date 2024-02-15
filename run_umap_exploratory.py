@@ -59,8 +59,8 @@ def process_window(
     #     window_test = np.delete(window_test, constant_features, axis=1)
 
     # Fit the reducer on the training data
-    # window_train = scaler.transform(window_train)
-    # window_test = scaler.transform(window_test)
+    window_train = scaler.transform(window_train)
+    window_test = scaler.transform(window_test)
     print("Before any transformation:", window_train.shape)
     reducer_pipeline.fit(window_train, y=y_train)
     print("After pipeline transformation:", window_train.shape)
