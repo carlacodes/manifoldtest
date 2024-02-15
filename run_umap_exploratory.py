@@ -37,12 +37,12 @@ def process_window(
         y,
         reducer_pipeline,
         regressor,
-        regressor_kwargs, scaler
+        regressor_kwargs
 ):
     reg = regressor(**regressor_kwargs)
 
-    # window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
-    window = spks[:, w:w + window_size].reshape(spks.shape[0], -1)
+    window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
+    # window = spks[:, w:w + window_size].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
@@ -59,6 +59,8 @@ def process_window(
     #     window_test = np.delete(window_test, constant_features, axis=1)
 
     # Fit the reducer on the training data
+    scaler = StandardScaler()
+    scaler.fit(window_train)
     window_train = scaler.transform(window_train)
     window_test = scaler.transform(window_test)
     print("Before any transformation:", window_train.shape)
@@ -127,7 +129,7 @@ def train_ref_classify_rest(
     spks_scaled = scaler.fit_transform(spks.reshape(spks.shape[0], -1))
 
     reducer_pipeline = Pipeline([
-        ('scaler', StandardScaler()),
+        # ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
 
@@ -137,7 +139,7 @@ def train_ref_classify_rest(
     #                             regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_cv = Parallel(n_jobs=n_jobs, verbose=1, prefer="threads")(
         delayed(process_window)(w, spks_scaled, window_size, y, reducer_pipeline, regressor,
-                                regressor_kwargs, scaler) for w in tqdm(range(spks.shape[1] - window_size)))
+                                regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_perm = []
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
