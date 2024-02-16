@@ -247,7 +247,7 @@ def main():
     dlc_angle_big = np.array(dlc_angle_big)
     #interpolate the dlc_angle_big to match the length of
     dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
-
+    bhv = pd.DataFrame({'dlc_angle': dlc_angle_new})
 
 
 
@@ -258,7 +258,7 @@ def main():
 
     time_window = [-0.2, 0.9]
 
-    window_for_decoding = 100  # in s
+    window_for_decoding = 0.1  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
     smooth_spikes = True
     t = np.arange(time_window[0], time_window[1], bin_width)
@@ -288,8 +288,7 @@ def main():
     filename = f'results_{now}.npy'
     results_between = {}
     results_within = {}
-    n_permutations = 0
-    n_permutations = 0
+    n_permutations = 100
     for run in range(n_runs):
         results_between[run] = {}
         results_within[run] = {}
