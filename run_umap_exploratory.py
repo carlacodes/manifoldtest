@@ -42,7 +42,9 @@ def process_window(
     reg = regressor(**regressor_kwargs)
 
     # window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
-    window = spks[:, w:w + window_size].reshape(spks.shape[0], -1)
+    window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
+
+    # window = spks[:, w:w + window_size].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
@@ -127,7 +129,7 @@ def train_ref_classify_rest(
     #     delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
     #                             regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_cv = Parallel(n_jobs=n_jobs, verbose=1, prefer="threads")(
-        delayed(process_window)(w, spks_scaled, window_size, y, reducer_pipeline, regressor,
+        delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
                                 regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_perm = []
     if n_permutations > 0:
@@ -306,18 +308,18 @@ def main():
             n_permutations=n_permutations,
         )
 
-        results_within[run] = train_within(
-            spks,
-            bhv,
-            kf,
-            regress,
-            regressor,
-            regressor_kwargs,
-            reducer,
-            reducer_kwargs,
-            window_size,
-            n_permutations=n_permutations,
-        )
+        # results_within[run] = train_within(
+        #     spks,
+        #     bhv,
+        #     kf,
+        #     regress,
+        #     regressor,
+        #     regressor_kwargs,
+        #     reducer,
+        #     reducer_kwargs,
+        #     window_size,
+        #     n_permutations=n_permutations,
+        # )
 
         # Save results
         results = {'between': results_between, 'within': results_within}
