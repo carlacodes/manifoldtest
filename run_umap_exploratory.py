@@ -46,13 +46,12 @@ def process_window(
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
-    # y_train = np.ravel(y_train)
-    # y_test = np.ravel(y_test)
-    # Fit the reducer on the training data
-    scaler = StandardScaler()
-    scaler.fit(window_train)
-    window_train = scaler.transform(window_train)
-    window_test = scaler.transform(window_test)
+
+    # # Fit the reducer on the training data
+    # scaler = StandardScaler()
+    # scaler.fit(window_train)
+    # window_train = scaler.transform(window_train)
+    # window_test = scaler.transform(window_test)
     print("Before any transformation:", window_train.shape)
     reducer_pipeline.fit(window_train, y=y_train)
     print("After pipeline transformation:", window_train.shape)
@@ -119,7 +118,7 @@ def train_ref_classify_rest(
     spks_scaled = scaler.fit_transform(spks.reshape(spks.shape[0], -1))
 
     reducer_pipeline = Pipeline([
-        # ('scaler', StandardScaler()),
+        ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
 
