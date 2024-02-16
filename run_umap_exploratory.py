@@ -41,19 +41,18 @@ def process_window(
 ):
     reg = regressor(**regressor_kwargs)
 
-    # window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
-
     # window = spks[:, w:w + window_size].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
-
-    # # Fit the reducer on the training data
-    # scaler = StandardScaler()
-    # scaler.fit(window_train)
-    # window_train = scaler.transform(window_train)
-    # window_test = scaler.transform(window_test)
+    # y_train = np.ravel(y_train)
+    # y_test = np.ravel(y_test)
+    # Fit the reducer on the training data
+    scaler = StandardScaler()
+    scaler.fit(window_train)
+    window_train = scaler.transform(window_train)
+    window_test = scaler.transform(window_test)
     print("Before any transformation:", window_train.shape)
     reducer_pipeline.fit(window_train, y=y_train)
     print("After pipeline transformation:", window_train.shape)
@@ -116,10 +115,11 @@ def train_ref_classify_rest(
     spks_std = np.nanstd(spks, axis=0)
     spks_std[spks_std == 0] = np.finfo(float).eps
     spks = (spks - spks_mean) / spks_std
-    # scaler = StandardScaler()
+    scaler = StandardScaler()
+    spks_scaled = scaler.fit_transform(spks.reshape(spks.shape[0], -1))
 
     reducer_pipeline = Pipeline([
-        ('scaler', StandardScaler()),
+        # ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
 
@@ -134,13 +134,10 @@ def train_ref_classify_rest(
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
             y_perm = np.random.permutation(y)
-            spks_perm = spks.copy()
-            for i in range(spks_perm.shape[2]):
-                spks_perm[:, :, i] = np.random.permutation(spks_perm[:, :, i].flatten()).reshape(spks_perm.shape[0], spks_perm.shape[1])
             reg = DummyRegressor(strategy='mean')
             results_perm_n = []
             for w in tqdm(range(spks.shape[1] - window_size)):
-                window = spks_perm[:, w:w + window_size, :].reshape(spks.shape[0], -1)
+                window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
                 # Fit the regressor on the reference space
                 reg.fit(window, y_perm)
