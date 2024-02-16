@@ -247,6 +247,8 @@ def main():
     dlc_angle_big = np.array(dlc_angle_big)
     #interpolate the dlc_angle_big to match the length of
     dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
+    #convert dlc_angle_new to radians
+    dlc_angle_new = np.radians(dlc_angle_new)
     bhv = pd.DataFrame({'dlc_angle': dlc_angle_new})
 
 
