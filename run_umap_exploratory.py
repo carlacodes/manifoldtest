@@ -158,7 +158,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     # spks_high_variance = spks_normalized[high_variance_neurons]
     # # Now bin the data
     # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-    reducer = umap.UMAP(n_components=3)
+    reducer = umap.UMAP(n_components=3, n_neighbors=100, min_dist=0.1, metric='euclidean')
 
     # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
 
@@ -200,7 +200,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight', dpi=300)
     plt.show()
 
-    list_of_vars = ['dlc_angle', 'dlc_xy', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle']
+    list_of_vars = ['dlc_angle', 'dlc_xy', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal']
 
     for var in list_of_vars:
         fig = plt.figure()
