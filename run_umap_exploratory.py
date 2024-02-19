@@ -60,6 +60,18 @@ def unsupervised_umap(spks, bhv):
     plt.colorbar()
     plt.savefig('figures/latent_projections/umap_angle.png', bbox_inches='tight')
     plt.show()
+    #do a 3D plot of the umap
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.scatter(bhv['UMAP4'], bhv['UMAP5'], bhv['UMAP3'], c=bhv['dlc_angle'])
+    ax.set_xlabel('UMAP1')
+    ax.set_ylabel('UMAP2')
+    ax.set_zlabel('UMAP3')
+    plt.title('UMAP projection of the dataset', fontsize=24)
+    # plt.colorbar()
+    plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight')
+    plt.show()
     return
 
 
@@ -285,10 +297,7 @@ def main():
     #run the unsupervised umap
     unsupervised_umap(spks, bhv)
 
-
-
     # time_window = [-0.2, 0.9]
-
     window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
     smooth_spikes = True
