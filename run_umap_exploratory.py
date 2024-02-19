@@ -264,8 +264,11 @@ def main():
     # t = np.round(t, 3)
     n_runs = 5
 
-    regressor = SVR
-    regressor_kwargs = {'kernel': 'poly', 'C': 1}
+    # regressor = SVR
+    # regressor_kwargs = {'kernel': 'poly', 'C': 1}
+
+    regressor = GradientBoostingRegressor
+    regressor_kwargs = {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 3}
 
     reducer = UMAP
     reducer_kwargs = {
