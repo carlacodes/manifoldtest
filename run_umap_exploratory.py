@@ -37,10 +37,27 @@ spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas data
 
 def unsupervised_umap(spks, bhv):
     # Assuming `spks` is your data
-    spks_reshaped = spks.reshape(spks.shape[0], -1)
+    # spks_reshaped = spks.reshape(spks.shape[0], -1)
+    # Increase bin size
+    bin_size = 20  # Increase as needed
+
+    # Use overlapping bins
+    overlap = 10  # Adjust as needed
+    bins = range(0, spks.shape[1] - bin_size, bin_size - overlap)
+
+    # Normalize the data
+    spks_normalized = (spks - np.mean(spks, axis=1, keepdims=True)) / np.std(spks, axis=1, keepdims=True)
+
+    # Remove low-variance neurons
+    variances = np.var(spks_normalized, axis=1)
+    high_variance_neurons = variances > np.percentile(variances, 25)  # Adjust percentile as needed
+    spks_high_variance = spks_normalized[high_variance_neurons]
+
+    # Now bin the data
+    spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
 
     reducer = umap.UMAP(n_components=5)
-    embedding = reducer.fit_transform(spks_reshaped)
+    embedding = reducer.fit_transform(spks_binned)
 
 
     # Plot the UMAP decomposition
@@ -236,39 +253,6 @@ def main():
     dlc_xy = hcomb_data_pos['dlc_XYsmooth']
     trial_number_max = np.max(dh['trial_number'])
     time_max = np.max(sample[-1])/30000
-    # for i in dh['unit_id'].unique():
-    #     dataframe_unit = dh.loc[dh['unit_id'] == i]
-    #     spk_times = dataframe_unit['spike_times_samples']
-    #     spk_times = spk_times.values
-    #     spk_times = np.array(spk_times.tolist())
-    #     spk_times = spk_times.flatten()
-    #     spk_times = spk_times[~np.isnan(spk_times)]
-    #     #rearrange spks to a numpy array of trial*timebins*neuron
-    #     dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
-    #     #round trial number to integer
-    #     bin_interval = 10
-    #     #reorganize the data into a numpy array of time stamp arrays
-    #     #get the maximum trial number in seconds
-    #
-    #     #I want to bin the data into 0.5s bins
-    #     length = int(time_max/bin_interval)
-    #     bin_width = 0.5
-    #
-    #     #create a 3d array of zeros
-    #     hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
-    #     spk_times = spk_times / 30000
-    #     for j in range(0, length):
-    #         #get the corresponding time stamps
-    #         time_start = j*bin_interval
-    #         time_end = (j+1)*bin_interval
-    #         hist, bin_edges = np.histogram(spk_times, bins = np.arange(time_start, time_end, bin_width))
-    #         hist_rate = hist / bin_width
-    #         hist_rate_big[j, :] = hist_rate
-    #     big_spk_array.append(hist_rate_big)
-    #
-    #
-    # spks = np.array(big_spk_array)
-    bin_width = 0.5
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[dh['unit_id'] == i]
         spk_times = dataframe_unit['spike_times_samples']
@@ -276,26 +260,60 @@ def main():
         spk_times = np.array(spk_times.tolist())
         spk_times = spk_times.flatten()
         spk_times = spk_times[~np.isnan(spk_times)]
+        #rearrange spks to a numpy array of trial*timebins*neuron
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
+        #round trial number to integer
+        bin_interval = 10
+        #reorganize the data into a numpy array of time stamp arrays
+        #get the maximum trial number in seconds
 
-        # Increase bin size
-        bin_interval = 20  # Increase as needed
+        #I want to bin the data into 0.5s bins
+        length = int(time_max/bin_interval)
+        bin_width = 0.5
 
-        # Use overlapping bins
-        overlap = 10  # Adjust as needed
-        bins = range(0, spk_times.shape[0] - bin_interval, bin_interval - overlap)
-
-        hist_rate_big = np.zeros((len(bins), int(bin_interval / bin_width) - 1))
+        #create a 3d array of zeros
+        hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
         spk_times = spk_times / 30000
-        for j, bin in enumerate(bins):
-            time_start = bin
-            time_end = bin + bin_interval
-            hist, bin_edges = np.histogram(spk_times, bins=np.arange(time_start, time_end, bin_width))
+        for j in range(0, length):
+            #get the corresponding time stamps
+            time_start = j*bin_interval
+            time_end = (j+1)*bin_interval
+            hist, bin_edges = np.histogram(spk_times, bins = np.arange(time_start, time_end, bin_width))
             hist_rate = hist / bin_width
             hist_rate_big[j, :] = hist_rate
         big_spk_array.append(hist_rate_big)
 
+
     spks = np.array(big_spk_array)
+    # bin_width = 0.5
+    # for i in dh['unit_id'].unique():
+    #     dataframe_unit = dh.loc[dh['unit_id'] == i]
+    #     spk_times = dataframe_unit['spike_times_samples']
+    #     spk_times = spk_times.values
+    #     spk_times = np.array(spk_times.tolist())
+    #     spk_times = spk_times.flatten()
+    #     spk_times = spk_times[~np.isnan(spk_times)]
+    #     dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
+    #
+    #     # Increase bin size
+    #     bin_interval = 20  # Increase as needed
+    #
+    #     # Use overlapping bins
+    #     overlap = 10  # Adjust as needed
+    #     bins = range(0, spk_times.shape[0] - bin_interval, bin_interval - overlap)
+    #
+    #     hist_rate_big = np.zeros((len(bins), int(bin_interval / bin_width) - 1))
+    #     spk_times = spk_times / 30000
+    #     for j, bin in enumerate(bins):
+    #         time_start = bin
+    #         time_end = bin + bin_interval
+    #         hist, bin_edges = np.histogram(spk_times, bins=np.arange(time_start, time_end, bin_width))
+    #         hist_rate = hist / bin_width
+    #         hist_rate_big[j, :] = hist_rate
+    #     if hist_rate_big.size > 0:
+    #         big_spk_array.append(hist_rate_big)
+
+    # spks = np.array(big_spk_array)
     #reshape into trial*timebins*neuron
     spks = np.swapaxes(spks, 0, 1)
     spks = np.swapaxes(spks, 1, 2)
