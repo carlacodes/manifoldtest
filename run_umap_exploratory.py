@@ -108,7 +108,7 @@ def unsupervised_pca(spks, bhv):
     plt.show()
 
     return
-def unsupervised_umap(spks, bhv):
+def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     # Assuming `spks` is your data
     print(spks[0])
     test_spks = spks[0]
@@ -121,24 +121,25 @@ def unsupervised_umap(spks, bhv):
     # spks_normalized = scaler.fit_transform(spks_smoothed)
     spks_normalized = spks_smoothed
     #get the high variance neurons
-    variance = np.var(spks, axis=1)
-    #only keep the neurons with high variance
-    high_variance_neuron_grid = variance > np.percentile(variance, 25)
-    #check which columns have no variance, more than 0.0
-    cols_to_remove = []
-    #get the dimensions of the high variance neuron grid
-    for i in range(0, high_variance_neuron_grid.shape[1]):
-        selected_col = high_variance_neuron_grid[:, i]
-        #convert true to 1 and false to 0
-        selected_col = selected_col.astype(int)
-        print(np.sum(selected_col))
-        if np.sum(selected_col) < high_variance_neuron_grid.shape[1]/2:
-            print("No variance in column", i)
-            cols_to_remove.append(i)
+    if remove_low_variance_neurons:
+        variance = np.var(spks, axis=1)
+        #only keep the neurons with high variance
+        high_variance_neuron_grid = variance > np.percentile(variance, 25)
+        #check which columns have no variance, more than 0.0
+        cols_to_remove = []
+        #get the dimensions of the high variance neuron grid
+        for i in range(0, high_variance_neuron_grid.shape[1]):
+            selected_col = high_variance_neuron_grid[:, i]
+            #convert true to 1 and false to 0
+            selected_col = selected_col.astype(int)
+            print(np.sum(selected_col))
+            if np.sum(selected_col) < high_variance_neuron_grid.shape[1]/2:
+                print("No variance in column", i)
+                cols_to_remove.append(i)
 
-    #only keep the high variance neurons
-    #remove the neurons with no variance
-    spks_normalized = np.delete(spks_normalized, cols_to_remove, axis=2)
+        #only keep the high variance neurons
+        #remove the neurons with no variance
+        spks_normalized = np.delete(spks_normalized, cols_to_remove, axis=2)
 
 
 
@@ -190,7 +191,7 @@ def unsupervised_umap(spks, bhv):
     #do a 3D plot of the umap
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_xy'])
+    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle'])
     plt.colorbar(scatter)
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
