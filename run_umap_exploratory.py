@@ -99,7 +99,7 @@ def unsupervised_umap(spks, bhv):
     # Concatenate the UMAP DataFrame with the behavioral data
     bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
     #plot the bhv angle against the umap
-    plt.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP3'], c=bhv_with_umap['dlc_angle'])
+    plt.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP3'], c=bhv_with_umap['dlc_xy'])
     plt.title('UMAP projection of the dataset', fontsize=24)
     plt.xticks(fontsize=16)
     plt.xlabel('UMAP1', fontsize=20)
@@ -112,7 +112,7 @@ def unsupervised_umap(spks, bhv):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'], c=bhv['dlc_angle'])
+    ax.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'], c=bhv['dlc_xy'])
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
     ax.set_zlabel('UMAP3')
@@ -368,16 +368,19 @@ def main():
     #interpolate dlc_angle_big to match the length of spks
     #interpolate the dlc_angle_big to match the length of sp
     dlc_angle_big = np.array(dlc_angle_big)
+    dlc_xy_big = np.array(dlc_xy_big)
     #interpolate the dlc_angle_big to match the length of
     dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
+    dlc_xy_new = np.interp(np.arange(0, len(dlc_xy_big), len(dlc_xy_big)/len(spks)), np.arange(0, len(dlc_xy_big)), dlc_xy_big)
     #convert dlc_angle_new to radians
     dlc_angle_new = np.radians(dlc_angle_new)
     hilbert_transform = scipy.signal.hilbert(dlc_angle_new)
     instantaneous_phase = np.angle(hilbert_transform)
 
+    bhv_umap = pd.DataFrame({'dlc_angle': instantaneous_phase, 'dlc_xy': dlc_xy_new})
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
-    unsupervised_umap(spks, bhv)
+    unsupervised_umap(spks, bhv_umap)
 
     # time_window = [-0.2, 0.9]
     window_for_decoding = 6  # in s
