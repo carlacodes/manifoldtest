@@ -2,6 +2,7 @@ from pathlib import Path
 from datetime import datetime
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.dummy import DummyRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 import json
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -27,8 +28,29 @@ from umap import UMAP
 # import vowel_in_noise.electrophysiology.population_analysis as vowel_pop
 # from vowel_in_noise import plot_utils
 from sklearn.model_selection import train_test_split
+import umap
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 ''' Modified from Jules Lebert's code
 spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
+
+def unsupervised_umap(spks, bhv):
+    # Assuming `spks` is your data
+    reducer = umap.UMAP()
+    embedding = reducer.fit_transform(spks)
+
+    # Plot the UMAP decomposition
+    plt.scatter(embedding[:, 0], embedding[:, 1])
+    plt.gca().set_aspect('equal', 'datalim')
+    plt.title('UMAP projection of the dataset', fontsize=24)
+
+    # Assuming `bhv` is your behavioral data
+    # Create a DataFrame for the UMAP components
+    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2'])
+
+    # Concatenate the UMAP DataFrame with the behavioral data
+    bhv = pd.concat([bhv, umap_df], axis=1)
 
 def process_window(
         w,
@@ -132,7 +154,9 @@ def train_ref_classify_rest(
     results_perm = []
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
-            y_perm = np.random.permutation(y)
+            # y_perm = np.random.permutation(y)
+            offset = 2 * np.pi * np.random.random()
+            y_perm = np.random.permutation((y + offset) % (2 * np.pi))
             reg = DummyRegressor(strategy='mean')
             results_perm_n = []
             for w in tqdm(range(spks.shape[1] - window_size)):
@@ -257,7 +281,7 @@ def main():
 
     # time_window = [-0.2, 0.9]
 
-    window_for_decoding = 5  # in s
+    window_for_decoding = 1  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
     smooth_spikes = True
     # t = np.arange(time_window[0], time_window[1], bin_width)
