@@ -118,7 +118,8 @@ def unsupervised_umap(spks, bhv):
     # Small constant to prevent division by zero
     # spks_normalized = (spks_smoothed - np.mean(spks_smoothed, axis=1, keepdims=True)) / (np.std(spks_smoothed, axis=1, keepdims=True) + epsilon)
     scaler = StandardScaler()
-    spks_normalized = scaler.fit_transform(spks_smoothed)
+    # spks_normalized = scaler.fit_transform(spks_smoothed)
+    spks_normalized = spks_smoothed
     #get the high variance neurons
     variance = np.var(spks, axis=1)
     #only keep the neurons with high variance
@@ -141,7 +142,8 @@ def unsupervised_umap(spks, bhv):
 
 
 
-    spks_reshaped = spks_smoothed.reshape(spks_normalized.shape[0], -1)
+    # spks_reshaped = spks_smoothed.reshape(spks_normalized.shape[0], -1)
+    spks_reshaped = scaler.fit_transform(spks_normalized.reshape(spks_normalized.shape[0], -1))
     #apply
     test_spks_reshaped = spks_reshaped[0]
     print(spks_reshaped[0])
@@ -186,7 +188,7 @@ def unsupervised_umap(spks, bhv):
     #do a 3D plot of the umap
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_xy'])
+    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle'])
     plt.colorbar(scatter)
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
@@ -451,7 +453,7 @@ def main():
     hilbert_transform = scipy.signal.hilbert(dlc_angle_new)
     instantaneous_phase = np.angle(hilbert_transform)
 
-    bhv_umap = pd.DataFrame({'dlc_angle': instantaneous_phase, 'dlc_xy': dlc_xy_new})
+    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_xy': dlc_xy_new})
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
