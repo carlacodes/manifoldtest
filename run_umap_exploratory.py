@@ -37,18 +37,40 @@ spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas data
 
 def unsupervised_umap(spks, bhv):
     # Assuming `spks` is your data
-    print(spks)
+    print(spks[0])
+    test_spks = spks[0]
     #apply smoothing to spks
     spks_smoothed = gaussian_filter1d(spks, 3, axis=1)
-
-    spks_reshaped = spks_smoothed.reshape(spks_smoothed.shape[0], -1)
-    #apply
-    print(spks_reshaped)
-    bin_size = 1
-    bins = range(0, spks.shape[1], 1)  # Adjust as needed
     epsilon = 1e-10
     # Small constant to prevent division by zero
-    spks_normalized = (spks - np.mean(spks, axis=1, keepdims=True)) / (np.std(spks, axis=1, keepdims=True) + epsilon)
+    spks_normalized = (spks_smoothed - np.mean(spks_smoothed, axis=1, keepdims=True)) / (np.std(spks_smoothed, axis=1, keepdims=True) + epsilon)
+    #get the high variance neurons
+    variance = np.var(spks, axis=1)
+    #only keep the neurons with high variance
+    high_variance_neuron_grid = variance > np.percentile(variance, 25)
+    #check which columns have no variance, more than 0.0
+    cols_to_remove = []
+    for i in range(0, len(variance)):
+        selected_col = high_variance_neuron_grid[:, i]
+        #convert true to 1 and false to 0
+        selected_col = selected_col.astype(int)
+        print(np.sum(selected_col))
+        if np.sum(selected_col) <= len(variance)/3:
+            print("No variance in column", i)
+            cols_to_remove.append(i)
+
+    #only keep the high variance neurons
+    #remove the neurons with no variance
+    spks_normalized = np.delete(spks_normalized, cols_to_remove, axis=2)
+
+
+
+    spks_reshaped = spks_smoothed.reshape(spks_normalized.shape[0], -1)
+    #apply
+    test_spks_reshaped = spks_reshaped[0]
+    print(spks_reshaped[0])
+
+
 
     # # Remove low-variance neurons
     # variances = np.var(spks_normalized, axis=2)
@@ -57,7 +79,7 @@ def unsupervised_umap(spks, bhv):
     # spks_high_variance = spks_normalized[high_variance_neurons]
     # # Now bin the data
     # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-    reducer = umap.UMAP(n_components=5)
+    reducer = umap.UMAP(n_components=3)
 
     # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
 
@@ -71,12 +93,12 @@ def unsupervised_umap(spks, bhv):
 
     # Assuming `bhv` is your behavioral data
     # Create a DataFrame for the UMAP components
-    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3', 'UMAP4', 'UMAP5'])
+    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3'])
 
     # Concatenate the UMAP DataFrame with the behavioral data
-    bhv = pd.concat([bhv, umap_df], axis=1)
+    bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
     #plot the bhv angle against the umap
-    plt.scatter(bhv['UMAP1'], bhv['UMAP3'], c=bhv['dlc_angle'])
+    plt.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP3'], c=bhv_with_umap['dlc_angle'])
     plt.title('UMAP projection of the dataset', fontsize=24)
     plt.xticks(fontsize=16)
     plt.xlabel('UMAP1', fontsize=20)
@@ -89,7 +111,7 @@ def unsupervised_umap(spks, bhv):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.scatter(bhv['UMAP1'], bhv['UMAP2'], bhv['UMAP3'], c=bhv['dlc_angle'])
+    ax.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'], c=bhv['dlc_angle'])
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
     ax.set_zlabel('UMAP3')
