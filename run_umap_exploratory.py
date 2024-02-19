@@ -40,7 +40,7 @@ def unsupervised_umap(spks, bhv):
     print(spks[0])
     test_spks = spks[0]
     #apply smoothing to spks
-    spks_smoothed = gaussian_filter1d(spks, 3, axis=1)
+    spks_smoothed = gaussian_filter1d(spks, 4, axis=1)
     epsilon = 1e-10
     # Small constant to prevent division by zero
     spks_normalized = (spks_smoothed - np.mean(spks_smoothed, axis=1, keepdims=True)) / (np.std(spks_smoothed, axis=1, keepdims=True) + epsilon)
@@ -372,7 +372,10 @@ def main():
     dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
     #convert dlc_angle_new to radians
     dlc_angle_new = np.radians(dlc_angle_new)
-    bhv = pd.DataFrame({'dlc_angle': dlc_angle_new})
+    hilbert_transform = scipy.signal.hilbert(dlc_angle_new)
+    instantaneous_phase = np.angle(hilbert_transform)
+
+    bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     unsupervised_umap(spks, bhv)
 
