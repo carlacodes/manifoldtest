@@ -37,8 +37,11 @@ spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas data
 
 def unsupervised_umap(spks, bhv):
     # Assuming `spks` is your data
+    spks_reshaped = spks.reshape(spks.shape[0], -1)
+
     reducer = umap.UMAP()
-    embedding = reducer.fit_transform(spks)
+    embedding = reducer.fit_transform(spks_reshaped)
+
 
     # Plot the UMAP decomposition
     plt.scatter(embedding[:, 0], embedding[:, 1])
