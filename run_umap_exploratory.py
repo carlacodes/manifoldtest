@@ -176,25 +176,27 @@ def unsupervised_umap(spks, bhv):
     # Concatenate the UMAP DataFrame with the behavioral data
     bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
     #plot the bhv angle against the umap
-    plt.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP3'], c=bhv_with_umap['dlc_xy'])
-    plt.title('UMAP projection of the dataset', fontsize=24)
+    scatter = plt.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP3'], c=bhv_with_umap['dlc_angle'])
+    plt.colorbar(scatter)
+    plt.title("UMAP projection of the dataset", fontsize=24)
     plt.xticks(fontsize=16)
     plt.xlabel('UMAP1', fontsize=20)
     plt.yticks(fontsize=16)
     plt.ylabel('UMAP3', fontsize=20)
+
     # plt.colorbar()
     plt.savefig('figures/latent_projections/umap_angle.png', bbox_inches='tight')
     plt.show()
     #do a 3D plot of the umap
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle'])
+    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_xy'])
     plt.colorbar(scatter)
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
     ax.set_zlabel('UMAP3')
     plt.title('UMAP projection of the dataset', fontsize=24)
-    plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight')
+    plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight', dpi=300)
     plt.show()
 
 
