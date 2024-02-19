@@ -34,7 +34,80 @@ import numpy as np
 import pandas as pd
 ''' Modified from Jules Lebert's code
 spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
+from sklearn.decomposition import PCA
 
+def unsupervised_pca(spks, bhv):
+    # Assuming `spks` is your data
+    print(spks[0])
+    test_spks = spks[0]
+    #apply smoothing to spks
+    spks_smoothed = gaussian_filter1d(spks, 4, axis=1)
+    epsilon = 1e-10
+    # Small constant to prevent division by zero
+    spks_normalized = (spks_smoothed - np.mean(spks_smoothed, axis=1, keepdims=True)) / (np.std(spks_smoothed, axis=1, keepdims=True) + epsilon)
+    #get the high variance neurons
+    variance = np.var(spks, axis=1)
+    #only keep the neurons with high variance
+    high_variance_neuron_grid = variance > np.percentile(variance, 25)
+    #check which columns have no variance, more than 0.0
+    cols_to_remove = []
+    #get the dimensions of the high variance neuron grid
+    for i in range(0, high_variance_neuron_grid.shape[1]):
+        selected_col = high_variance_neuron_grid[:, i]
+        #convert true to 1 and false to 0
+        selected_col = selected_col.astype(int)
+        print(np.sum(selected_col))
+        if np.sum(selected_col) < high_variance_neuron_grid.shape[1]/2:
+            print("No variance in column", i)
+            cols_to_remove.append(i)
+
+    #only keep the high variance neurons
+    #remove the neurons with no variance
+    spks_normalized = np.delete(spks_normalized, cols_to_remove, axis=2)
+
+    spks_reshaped = spks_smoothed.reshape(spks_normalized.shape[0], -1)
+    #apply
+    test_spks_reshaped = spks_reshaped[0]
+    print(spks_reshaped[0])
+
+    # Use PCA as the reducer
+    reducer = PCA(n_components=3)
+
+    embedding = reducer.fit_transform(spks_reshaped)
+
+    # Plot the PCA decomposition
+    plt.scatter(embedding[:, 0], embedding[:, 1])
+    plt.gca().set_aspect('equal', 'datalim')
+    plt.title('PCA projection of the dataset', fontsize=24)
+
+    # Assuming `bhv` is your behavioral data
+    # Create a DataFrame for the PCA components
+    pca_df = pd.DataFrame(embedding, columns=['PCA1', 'PCA2', 'PCA3'])
+
+    # Concatenate the PCA DataFrame with the behavioral data
+    bhv_with_pca = pd.concat([bhv, pca_df], axis=1)
+    #plot the bhv angle against the pca
+    plt.scatter(bhv_with_pca['PCA1'], bhv_with_pca['PCA3'], c=bhv_with_pca['dlc_xy'])
+    plt.title('PCA projection of the dataset', fontsize=24)
+    plt.xticks(fontsize=16)
+    plt.xlabel('PCA1', fontsize=20)
+    plt.yticks(fontsize=16)
+    plt.ylabel('PCA3', fontsize=20)
+    plt.savefig('figures/latent_projections/pca_angle.png', bbox_inches='tight')
+    plt.show()
+    #do a 3D plot of the pca
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    scatter = ax.scatter( bhv_with_pca['PCA1'], bhv_with_pca['PCA2'], bhv_with_pca['PCA3'],  c=bhv['dlc_xy'])
+    plt.colorbar(scatter)
+    ax.set_xlabel('PCA1')
+    ax.set_ylabel('PCA2')
+    ax.set_zlabel('PCA3')
+    plt.title('PCA projection of the dataset', fontsize=24)
+    plt.savefig('figures/latent_projections/pca_angle_3d.png', bbox_inches='tight')
+    plt.show()
+
+    return
 def unsupervised_umap(spks, bhv):
     # Assuming `spks` is your data
     print(spks[0])
@@ -111,13 +184,12 @@ def unsupervised_umap(spks, bhv):
     #do a 3D plot of the umap
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-
-    ax.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'], c=bhv['dlc_xy'])
+    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_xy'])
+    plt.colorbar(scatter)
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
     ax.set_zlabel('UMAP3')
     plt.title('UMAP projection of the dataset', fontsize=24)
-    # plt.colorbar()
     plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight')
     plt.show()
 
@@ -380,6 +452,7 @@ def main():
     bhv_umap = pd.DataFrame({'dlc_angle': instantaneous_phase, 'dlc_xy': dlc_xy_new})
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
+    unsupervised_pca(spks, bhv_umap)
     unsupervised_umap(spks, bhv_umap)
 
     # time_window = [-0.2, 0.9]
