@@ -42,7 +42,6 @@ def process_window(
     reg = regressor(**regressor_kwargs)
 
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
-    # window = spks[:, w:w + window_size].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
@@ -226,9 +225,7 @@ def main():
     spks = np.swapaxes(spks, 0, 1)
     spks = np.swapaxes(spks, 1, 2)
     #remove the last dimension
-    # spks = spks[:, :,:, 0]
     #only use the columns of dlc_angle and dlc_xy
-    bhv = pd.DataFrame({'dlc_angle': dlc_angle, 'dlc_xy': dlc_xy, 'sample': sample})
     #do the same for the positional data
 
     dlc_angle_big = []
