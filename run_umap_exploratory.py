@@ -98,7 +98,7 @@ def unsupervised_pca(spks, bhv):
     #do a 3D plot of the pca
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter( bhv_with_pca['PCA1'], bhv_with_pca['PCA2'], bhv_with_pca['PCA3'],  c=bhv['dlc_xy'])
+    scatter = ax.scatter( bhv_with_pca['PCA1'], bhv_with_pca['PCA2'], bhv_with_pca['PCA3'],  c=bhv['dlc_angle'])
     plt.colorbar(scatter)
     ax.set_xlabel('PCA1')
     ax.set_ylabel('PCA2')
@@ -116,7 +116,9 @@ def unsupervised_umap(spks, bhv):
     spks_smoothed = gaussian_filter1d(spks, 4, axis=1)
     epsilon = 1e-10
     # Small constant to prevent division by zero
-    spks_normalized = (spks_smoothed - np.mean(spks_smoothed, axis=1, keepdims=True)) / (np.std(spks_smoothed, axis=1, keepdims=True) + epsilon)
+    # spks_normalized = (spks_smoothed - np.mean(spks_smoothed, axis=1, keepdims=True)) / (np.std(spks_smoothed, axis=1, keepdims=True) + epsilon)
+    scaler = StandardScaler()
+    spks_normalized = scaler.fit_transform(spks_smoothed)
     #get the high variance neurons
     variance = np.var(spks, axis=1)
     #only keep the neurons with high variance
@@ -452,7 +454,7 @@ def main():
     bhv_umap = pd.DataFrame({'dlc_angle': instantaneous_phase, 'dlc_xy': dlc_xy_new})
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
-    unsupervised_pca(spks, bhv_umap)
+    # unsupervised_pca(spks, bhv_umap)
     unsupervised_umap(spks, bhv_umap)
 
     # time_window = [-0.2, 0.9]
