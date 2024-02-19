@@ -51,6 +51,14 @@ def unsupervised_umap(spks, bhv):
 
     # Concatenate the UMAP DataFrame with the behavioral data
     bhv = pd.concat([bhv, umap_df], axis=1)
+    #plot the bhv angle against the umap
+    plt.scatter(bhv['UMAP1'], bhv['UMAP2'], c=bhv['dlc_angle'])
+    plt.title('UMAP projection of the dataset', fontsize=24)
+    plt.colorbar()
+    plt.savefig('/figures/latent_projections/umap_angle.png', bbox_inches='tight')
+    plt.show()
+    return
+
 
 def process_window(
         w,
@@ -271,6 +279,8 @@ def main():
     #convert dlc_angle_new to radians
     dlc_angle_new = np.radians(dlc_angle_new)
     bhv = pd.DataFrame({'dlc_angle': dlc_angle_new})
+    #run the unsupervised umap
+    unsupervised_umap(spks, bhv)
 
 
 
