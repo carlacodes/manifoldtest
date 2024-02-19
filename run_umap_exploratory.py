@@ -191,7 +191,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     #do a 3D plot of the umap
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle'])
+    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle_phase'])
     plt.colorbar(scatter)
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
@@ -456,11 +456,11 @@ def main():
     hilbert_transform = scipy.signal.hilbert(dlc_angle_new)
     instantaneous_phase = np.angle(hilbert_transform)
 
-    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_xy': dlc_xy_new})
+    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_xy': dlc_xy_new, 'dlc_angle_phase': instantaneous_phase})
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
-    unsupervised_umap(spks, bhv_umap)
+    unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False)
 
     # time_window = [-0.2, 0.9]
     window_for_decoding = 6  # in s
