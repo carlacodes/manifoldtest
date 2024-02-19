@@ -37,27 +37,31 @@ spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas data
 
 def unsupervised_umap(spks, bhv):
     # Assuming `spks` is your data
-    # spks_reshaped = spks.reshape(spks.shape[0], -1)
-    # Increase bin size
-    bin_size = 20  # Increase as needed
+    print(spks)
+    #apply smoothing to spks
+    spks_smoothed = gaussian_filter1d(spks, 3, axis=1)
 
-    # Use overlapping bins
-    overlap = 10  # Adjust as needed
-    bins = range(0, spks.shape[1] - bin_size, bin_size - overlap)
+    spks_reshaped = spks_smoothed.reshape(spks_smoothed.shape[0], -1)
+    #apply
+    print(spks_reshaped)
+    bin_size = 1
+    bins = range(0, spks.shape[1], 1)  # Adjust as needed
+    epsilon = 1e-10
+    # Small constant to prevent division by zero
+    spks_normalized = (spks - np.mean(spks, axis=1, keepdims=True)) / (np.std(spks, axis=1, keepdims=True) + epsilon)
 
-    # Normalize the data
-    spks_normalized = (spks - np.mean(spks, axis=1, keepdims=True)) / np.std(spks, axis=1, keepdims=True)
-
-    # Remove low-variance neurons
-    variances = np.var(spks_normalized, axis=1)
-    high_variance_neurons = variances > np.percentile(variances, 25)  # Adjust percentile as needed
-    spks_high_variance = spks_normalized[high_variance_neurons]
-
-    # Now bin the data
-    spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-
+    # # Remove low-variance neurons
+    # variances = np.var(spks_normalized, axis=2)
+    # high_variance_neurons = variances > np.percentile(variances, 25)
+    # # Adjust percentile as needed
+    # spks_high_variance = spks_normalized[high_variance_neurons]
+    # # Now bin the data
+    # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
     reducer = umap.UMAP(n_components=5)
-    embedding = reducer.fit_transform(spks_binned)
+
+    # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
+
+    embedding = reducer.fit_transform(spks_reshaped)
 
 
     # Plot the UMAP decomposition
@@ -72,16 +76,20 @@ def unsupervised_umap(spks, bhv):
     # Concatenate the UMAP DataFrame with the behavioral data
     bhv = pd.concat([bhv, umap_df], axis=1)
     #plot the bhv angle against the umap
-    plt.scatter(bhv['UMAP1'], bhv['UMAP2'], c=bhv['dlc_angle'])
+    plt.scatter(bhv['UMAP1'], bhv['UMAP3'], c=bhv['dlc_angle'])
     plt.title('UMAP projection of the dataset', fontsize=24)
-    plt.colorbar()
+    plt.xticks(fontsize=16)
+    plt.xlabel('UMAP1', fontsize=20)
+    plt.yticks(fontsize=16)
+    plt.ylabel('UMAP3', fontsize=20)
+    # plt.colorbar()
     plt.savefig('figures/latent_projections/umap_angle.png', bbox_inches='tight')
     plt.show()
     #do a 3D plot of the umap
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.scatter(bhv['UMAP4'], bhv['UMAP5'], bhv['UMAP3'], c=bhv['dlc_angle'])
+    ax.scatter(bhv['UMAP1'], bhv['UMAP2'], bhv['UMAP3'], c=bhv['dlc_angle'])
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
     ax.set_zlabel('UMAP3')
@@ -89,6 +97,8 @@ def unsupervised_umap(spks, bhv):
     # plt.colorbar()
     plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight')
     plt.show()
+
+
     return
 
 
