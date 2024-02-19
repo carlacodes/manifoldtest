@@ -50,12 +50,13 @@ def unsupervised_umap(spks, bhv):
     high_variance_neuron_grid = variance > np.percentile(variance, 25)
     #check which columns have no variance, more than 0.0
     cols_to_remove = []
-    for i in range(0, len(variance)):
+    #get the dimensions of the high variance neuron grid
+    for i in range(0, high_variance_neuron_grid.shape[1]):
         selected_col = high_variance_neuron_grid[:, i]
         #convert true to 1 and false to 0
         selected_col = selected_col.astype(int)
         print(np.sum(selected_col))
-        if np.sum(selected_col) <= len(variance)/3:
+        if np.sum(selected_col) < high_variance_neuron_grid.shape[1]/2:
             print("No variance in column", i)
             cols_to_remove.append(i)
 
