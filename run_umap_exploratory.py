@@ -491,9 +491,15 @@ def main():
     dlc_angle_new = np.radians(dlc_angle_new)
     dir_to_goal_new = np.radians(dir_to_goal_new)
     hilbert_transform = scipy.signal.hilbert(dlc_angle_new)
+
+    hilbert_transform_body = scipy.signal.hilbert(dlc_body_angle_new)
+    instantaneous_phase_body = np.angle(hilbert_transform_body)
+    hilbert_transform_dir = scipy.signal.hilbert(dir_to_goal_new)
+    instantaneous_phase_dir = np.angle(hilbert_transform_dir)
+
     instantaneous_phase = np.angle(hilbert_transform)
 
-    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_xy': dlc_xy_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new, 'dir_to_goal': dir_to_goal_new})
+    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_xy': dlc_xy_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new, 'dir_to_goal': dir_to_goal_new, 'dlc_angle_phase_body': instantaneous_phase_body, 'dlc_phase_dir_to_goal': instantaneous_phase_dir})
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
