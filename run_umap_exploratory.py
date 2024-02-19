@@ -200,13 +200,13 @@ def main():
         #rearrange spks to a numpy array of trial*timebins*neuron
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
         #round trial number to integer
-        bin_interval = 5
+        bin_interval = 10
         #reorganize the data into a numpy array of time stamp arrays
         #get the maximum trial number in seconds
 
         #I want to bin the data into 0.5s bins
         length = int(time_max/bin_interval)
-        bin_width = 0.1
+        bin_width = 0.5
 
         #create a 3d array of zeros
         hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
@@ -321,9 +321,9 @@ def main():
         # )
 
         # Save results
-        results = {'between': results_between, 'within': results_within}
-        save_path.mkdir(exist_ok=True)
-        np.save(save_path / filename, results)
+    results = {'between': results_between, 'within': results_within}
+    save_path.mkdir(exist_ok=True)
+    np.save(save_path / filename, results)
 
 
 if __name__ == '__main__':
