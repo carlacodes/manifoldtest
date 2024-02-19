@@ -191,7 +191,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     #do a 3D plot of the umap
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle_phase'])
+    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle'])
     plt.colorbar(scatter)
     ax.set_xlabel('UMAP1')
     ax.set_ylabel('UMAP2')
@@ -361,8 +361,11 @@ def main():
     ts = hcomb_data_pos['ts']
     dlc_angle = hcomb_data_pos['dlc_angle']
     sample = hcomb_data_pos['sample']
-
+    dist_to_goal = hcomb_data_pos['dist2goal']
+    velocity = hcomb_data_pos['velocity']
     dlc_xy = hcomb_data_pos['dlc_XYsmooth']
+    dlc_body_angle = hcomb_data_pos['dlc_bodyAngle']
+
     trial_number_max = np.max(dh['trial_number'])
     time_max = np.max(sample[-1])/30000
     for i in dh['unit_id'].unique():
@@ -436,6 +439,9 @@ def main():
     dlc_angle_big = []
     dlc_xy_big = []
     sample_big = []
+    dist_to_goal_big = []
+    velocity_big = []
+    dlc_body_angle_big = []
     for i in range(0, len(dlc_angle)):
         dlc_angle_trial = dlc_angle[i]
         dlc_xy_trial = dlc_xy[i]
@@ -443,20 +449,32 @@ def main():
         dlc_angle_big = np.append(dlc_angle_big, dlc_angle_trial)
         dlc_xy_big = np.append(dlc_xy_big, dlc_xy_trial)
         sample_big = np.append(sample_big, sample_trial)
+        dist_to_goal_big = np.append(dist_to_goal_big, dist_to_goal[i])
+        velocity_big = np.append(velocity_big, velocity[i])
+        dlc_body_angle_big = np.append(dlc_body_angle_big, dlc_body_angle[i])
 
     #interpolate dlc_angle_big to match the length of spks
     #interpolate the dlc_angle_big to match the length of sp
     dlc_angle_big = np.array(dlc_angle_big)
     dlc_xy_big = np.array(dlc_xy_big)
+    dist_to_goal_big = np.array(dist_to_goal_big)
+    velocity_big = np.array(velocity_big)
+    dlc_body_angle_big = np.array(dlc_body_angle_big)
+
     #interpolate the dlc_angle_big to match the length of
     dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
     dlc_xy_new = np.interp(np.arange(0, len(dlc_xy_big), len(dlc_xy_big)/len(spks)), np.arange(0, len(dlc_xy_big)), dlc_xy_big)
+    dist_to_goal_new = np.interp(np.arange(0, len(dist_to_goal_big), len(dist_to_goal_big)/len(spks)), np.arange(0, len(dist_to_goal_big)), dist_to_goal_big)
+    velocity_new = np.interp(np.arange(0, len(velocity_big), len(velocity_big)/len(spks)), np.arange(0, len(velocity_big)), velocity_big)
+    dlc_body_angle_new = np.interp(np.arange(0, len(dlc_body_angle_big), len(dlc_body_angle_big)/len(spks)), np.arange(0, len(dlc_body_angle_big)), dlc_body_angle_big)
+
+
     #convert dlc_angle_new to radians
     dlc_angle_new = np.radians(dlc_angle_new)
     hilbert_transform = scipy.signal.hilbert(dlc_angle_new)
     instantaneous_phase = np.angle(hilbert_transform)
 
-    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_xy': dlc_xy_new, 'dlc_angle_phase': instantaneous_phase})
+    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_xy': dlc_xy_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new})
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
