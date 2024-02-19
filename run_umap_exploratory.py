@@ -39,7 +39,7 @@ def unsupervised_umap(spks, bhv):
     # Assuming `spks` is your data
     spks_reshaped = spks.reshape(spks.shape[0], -1)
 
-    reducer = umap.UMAP()
+    reducer = umap.UMAP(n_components=5)
     embedding = reducer.fit_transform(spks_reshaped)
 
 
@@ -50,7 +50,7 @@ def unsupervised_umap(spks, bhv):
 
     # Assuming `bhv` is your behavioral data
     # Create a DataFrame for the UMAP components
-    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2'])
+    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3', 'UMAP4', 'UMAP5'])
 
     # Concatenate the UMAP DataFrame with the behavioral data
     bhv = pd.concat([bhv, umap_df], axis=1)
@@ -58,7 +58,7 @@ def unsupervised_umap(spks, bhv):
     plt.scatter(bhv['UMAP1'], bhv['UMAP2'], c=bhv['dlc_angle'])
     plt.title('UMAP projection of the dataset', fontsize=24)
     plt.colorbar()
-    plt.savefig('/figures/latent_projections/umap_angle.png', bbox_inches='tight')
+    plt.savefig('figures/latent_projections/umap_angle.png', bbox_inches='tight')
     plt.show()
     return
 
