@@ -274,25 +274,20 @@ def main():
 
 
 
-
-
-
-
-
     # time_window = [-0.2, 0.9]
 
-    window_for_decoding = 1  # in s
+    window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
     smooth_spikes = True
     # t = np.arange(time_window[0], time_window[1], bin_width)
     # t = np.round(t, 3)
     n_runs = 5
 
-    # regressor = SVR
-    # regressor_kwargs = {'kernel': 'poly', 'C': 1}
+    regressor = SVR
+    regressor_kwargs = {'kernel': 'poly', 'C': 1}
 
-    regressor = GradientBoostingRegressor
-    regressor_kwargs = {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 3}
+    # regressor = GradientBoostingRegressor
+    # regressor_kwargs = {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 3}
 
     reducer = UMAP
     reducer_kwargs = {
