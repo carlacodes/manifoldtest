@@ -399,7 +399,7 @@ def main():
         #rearrange spks to a numpy array of trial*timebins*neuron
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
         #round trial number to integer
-        bin_interval = 10
+        bin_interval = 20
         #reorganize the data into a numpy array of time stamp arrays
         #get the maximum trial number in seconds
 
