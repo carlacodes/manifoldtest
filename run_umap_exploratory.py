@@ -381,7 +381,7 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
     time_min = time_ms[0]/1000
     time_max = time_ms[-1]/1000
 
-    length = int(time_max / bin_interval)
+    length = int((time_max - time_min) / bin_interval)
     bin_width = 0.05
 
     # create a 3d array of zeros
