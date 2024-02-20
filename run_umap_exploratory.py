@@ -435,6 +435,40 @@ def main():
     time_min = np.min(sample[0])/30000
     neuron_types = dh['neuron_type'].unique()
     neuron_type = 'interneuron'
+    # for i in dh['unit_id'].unique():
+    #     dataframe_unit = dh.loc[(dh['unit_id'] == i) & (dh['neuron_type'] == neuron_type)]
+    #     spk_times = dataframe_unit['spike_times_samples']
+    #     spk_times = spk_times.values
+    #     spk_times = np.array(spk_times.tolist())
+    #     spk_times = spk_times.flatten()
+    #     spk_times = spk_times[~np.isnan(spk_times)]
+    #     #rearrange spks to a numpy array of trial*timebins*neuron
+    #     dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
+    #     #round trial number to integer
+    #     bin_interval = 5
+    #     #reorganize the data into a numpy array of time stamp arrays
+    #     #get the maximum trial number in seconds
+    #
+    #     #I want to bin the data into 0.5s bins
+    #     length = int((time_max-time_min)/bin_interval)
+    #     bin_width = 0.05
+    #
+    #     #create a 3d array of zeros
+    #     hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
+    #     spk_times = spk_times / 30000
+    #     for j in range(0, length):
+    #         #get the corresponding time stamps
+    #         time_start = (j*bin_interval)+time_min
+    #         time_end = ((j+1)*bin_interval)+time_min
+    #         hist, bin_edges = np.histogram(spk_times, bins = np.arange(time_start, time_end, bin_width))
+    #         hist_rate = hist / bin_width
+    #         hist_rate_big[j, :] = hist_rate
+    #     big_spk_array.append(hist_rate_big)
+    #
+    #
+    # spks = np.array(big_spk_array)
+
+
     for i in dh['unit_id'].unique():
         dataframe_unit = dh.loc[(dh['unit_id'] == i) & (dh['neuron_type'] == neuron_type)]
         spk_times = dataframe_unit['spike_times_samples']
@@ -442,29 +476,21 @@ def main():
         spk_times = np.array(spk_times.tolist())
         spk_times = spk_times.flatten()
         spk_times = spk_times[~np.isnan(spk_times)]
-        #rearrange spks to a numpy array of trial*timebins*neuron
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
-        #round trial number to integer
         bin_interval = 5
-        #reorganize the data into a numpy array of time stamp arrays
-        #get the maximum trial number in seconds
-
-        #I want to bin the data into 0.5s bins
-        length = int((time_max-time_min)/bin_interval)
         bin_width = 0.05
+        step_size = bin_interval / 2  # 50% overlap
 
-        #create a 3d array of zeros
-        hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
+        length = int((time_max - time_min) / step_size)
+        hist_rate_big = np.zeros((length, int(bin_interval / bin_width) - 1))
         spk_times = spk_times / 30000
         for j in range(0, length):
-            #get the corresponding time stamps
-            time_start = (j*bin_interval)+time_min
-            time_end = ((j+1)*bin_interval)+time_min
-            hist, bin_edges = np.histogram(spk_times, bins = np.arange(time_start, time_end, bin_width))
+            time_start = (j * step_size) + time_min
+            time_end = time_start + bin_interval
+            hist, bin_edges = np.histogram(spk_times, bins=np.arange(time_start, time_end, bin_width))
             hist_rate = hist / bin_width
             hist_rate_big[j, :] = hist_rate
         big_spk_array.append(hist_rate_big)
-
 
     spks = np.array(big_spk_array)
     # bin_width = 0.5
