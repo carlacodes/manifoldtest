@@ -163,7 +163,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     # spks_high_variance = spks_normalized[high_variance_neurons]
     # # Now bin the data
     # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-    reducer = umap.UMAP(n_components=5, n_neighbors=70, min_dist=0.3, metric='cosine')
+    reducer = umap.UMAP(n_components=3, n_neighbors=70, min_dist=0.3, metric='cosine')
 
     # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
 
@@ -177,7 +177,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
 
     # Assuming `bhv` is your behavioral data
     # Create a DataFrame for the UMAP components
-    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3', 'UMAP4', 'UMAP5'])
+    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3'])
 
     # Concatenate the UMAP DataFrame with the behavioral data
     bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
@@ -382,7 +382,7 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
     time_max = time_ms[-1]/1000
 
     length = int((time_max - time_min) / bin_interval)
-    bin_width = 0.05
+    bin_width = 0.1
 
     # create a 3d array of zeros
     lfp_big = np.zeros((length, int(bin_interval / bin_width) - 1))
