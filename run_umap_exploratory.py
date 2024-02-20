@@ -13,6 +13,7 @@ import scipy
 import numpy as np
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from extractlfpandspikedata import load_theta_data
 from helpers import datahandling
 from helpers.datahandling import DataHandler
 from sklearn.svm import SVR
@@ -358,6 +359,48 @@ def train_ref_classify_rest(
 
     return results
 
+def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
+    path_to_load = Path('C:/neural_data/rat_7')
+    phase_array, trial_array, theta_array, df_theta_and_angle = load_theta_data(path_to_load, spike_data=[])
+    theta_phase = df_theta_and_angle['theta_phase']
+    theta_phase = theta_phase.values
+
+    time_ms = df_theta_and_angle['time_ms']
+    time_ms = time_ms.values
+    #reshape into a 2d array of trial*theta_phase
+
+    #reshape theta phase to a 2d array of trial*theta_phase
+    theta_phase_reshaped = theta_phase.reshape(-1, 1)
+    theta_phase = theta_phase[0:df_theta_and_angle.shape[0]:int(bin_interval/bin_width)]
+    bin_interval = 5
+    # reorganize the data into a numpy array of time stamp arrays
+    # get the maximum trial number in seconds
+
+    # I want to bin the data into 0.5s bins
+    time_max = time_ms[-1]/1000
+
+    length = int(time_max / bin_interval)
+    bin_width = 0.05
+
+    # create a 3d array of zeros
+    lfp_big = np.zeros((length, int(bin_interval / bin_width) - 1))
+    for i in range(0, length):
+        # get the corresponding time stamps
+        time_start = i * bin_interval
+        time_end = (i + 1) * bin_interval
+        #find the stop and start indices
+        start_index = np.where(time_ms > time_start*1000)[0][0]
+        end_index = np.where(time_ms < time_end*1000)[0][-1]
+        theta_phase = theta_phase_reshaped[start_index:end_index]
+        lfp_big[i, :] = theta_phase
+
+    #reshape df_theta_and_angle to match the length of the spks
+    #interpolate the dlc_angle_big to match the length of
+    return
+
+
+
+
 def main():
     # Load and preprocess data here
     # df_all = load_data_from_paths(Path('C:/neural_data/'))
@@ -399,13 +442,13 @@ def main():
         #rearrange spks to a numpy array of trial*timebins*neuron
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
         #round trial number to integer
-        bin_interval = 20
+        bin_interval = 5
         #reorganize the data into a numpy array of time stamp arrays
         #get the maximum trial number in seconds
 
         #I want to bin the data into 0.5s bins
         length = int(time_max/bin_interval)
-        bin_width = 0.5
+        bin_width = 0.05
 
         #create a 3d array of zeros
         hist_rate_big = np.zeros((length, int(bin_interval/bin_width)-1))
@@ -509,6 +552,7 @@ def main():
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
+    decompose_lfp_data(bhv_umap, bin_interval, bin_width)
     unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False, neuron_type=neuron_type)
 
     # time_window = [-0.2, 0.9]
