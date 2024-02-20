@@ -378,6 +378,7 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
     # get the maximum trial number in seconds
 
     # I want to bin the data into 0.5s bins
+    time_min = time_ms[0]/1000
     time_max = time_ms[-1]/1000
 
     length = int(time_max / bin_interval)
@@ -387,13 +388,13 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
     lfp_big = np.zeros((length, int(bin_interval / bin_width) - 1))
     for i in range(0, length):
         # get the corresponding time stamps
-        time_start = i * bin_interval
-        time_end = (i + 1) * bin_interval
+        time_start = (i * bin_interval) + time_min
+        time_end = ((i + 1) * bin_interval) + time_min
         #find the stop and start indices
         start_index = np.where(time_seconds > time_start)[0][0]
         end_index = np.where(time_seconds < time_end)[0][-1]
         theta_phase = theta_phase_reshaped[start_index:end_index]
-        lfp_big[i, :] = theta_phase
+        # lfp_big[i, :] = theta_phase
 
     #reshape df_theta_and_angle to match the length of the spks
     #interpolate the dlc_angle_big to match the length of
