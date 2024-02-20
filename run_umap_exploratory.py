@@ -576,6 +576,9 @@ def main():
     dist_to_goal_new = np.interp(np.arange(0, len(dist_to_goal_big), step_size), np.arange(0, len(dist_to_goal_big)),
                                  dist_to_goal_big)
     velocity_new = np.interp(np.arange(0, len(velocity_big), step_size), np.arange(0, len(velocity_big)), velocity_big)
+
+    velocity_new = np.interp(np.arange(0, len(velocity_new), len(velocity_new) / len(dlc_angle_new)),
+                             np.arange(0, len(velocity_new)), velocity_new)
     dlc_body_angle_new = np.interp(np.arange(0, len(dlc_body_angle_big), step_size),
                                    np.arange(0, len(dlc_body_angle_big)), dlc_body_angle_big)
     dir_to_goal_new = np.interp(np.arange(0, len(dir_to_goal_big), step_size), np.arange(0, len(dir_to_goal_big)),
@@ -594,6 +597,10 @@ def main():
     instantaneous_phase = np.angle(hilbert_transform)
     #TODO: fix interpolation of the xy data
     bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new, 'dir_to_goal': dir_to_goal_new, 'dlc_angle_phase_body': instantaneous_phase_body, 'dlc_phase_dir_to_goal': instantaneous_phase_dir})
+
+    # bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new, 'dir_to_goal': dir_to_goal_new, 'dlc_angle_phase_body': instantaneous_phase_body})
+    # bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new})
+
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
