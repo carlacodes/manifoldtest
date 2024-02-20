@@ -108,7 +108,7 @@ def unsupervised_pca(spks, bhv):
     plt.show()
 
     return
-def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
+def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type = 'unknown'):
     # Assuming `spks` is your data
     print(spks[0])
     test_spks = spks[0]
@@ -158,7 +158,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     # spks_high_variance = spks_normalized[high_variance_neurons]
     # # Now bin the data
     # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-    reducer = umap.UMAP(n_components=5, n_neighbors=70, min_dist=0.1, metric='cosine')
+    reducer = umap.UMAP(n_components=5, n_neighbors=70, min_dist=0.3, metric='cosine')
 
     # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
 
@@ -172,21 +172,21 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
 
     # Assuming `bhv` is your behavioral data
     # Create a DataFrame for the UMAP components
-    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3'])
+    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3', 'UMAP4', 'UMAP5'])
 
     # Concatenate the UMAP DataFrame with the behavioral data
     bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
     #plot the bhv angle against the umap
     scatter = plt.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP3'], c=bhv_with_umap['dlc_angle'])
     plt.colorbar(scatter)
-    plt.title("UMAP projection of the dataset", fontsize=24)
+    plt.title(f"UMAP projection of the dataset, neuron: {neuron_type}", fontsize=24)
     plt.xticks(fontsize=16)
     plt.xlabel('UMAP1', fontsize=20)
     plt.yticks(fontsize=16)
     plt.ylabel('UMAP3', fontsize=20)
 
     # plt.colorbar()
-    plt.savefig('figures/latent_projections/umap_angle.png', bbox_inches='tight')
+    plt.savefig(f'figures/latent_projections/umap_angle_{neuron_type}.png', bbox_inches='tight')
     plt.show()
     #do a 3D plot of the umap
     fig = plt.figure()
@@ -197,7 +197,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     ax.set_ylabel('UMAP2')
     ax.set_zlabel('UMAP3')
     plt.title('UMAP projection of the dataset', fontsize=24)
-    plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight', dpi=300)
+    plt.savefig(f'figures/latent_projections/umap_angle_3d_{neuron_type}.png', bbox_inches='tight', dpi=300)
     plt.show()
 
     list_of_vars = ['dlc_angle', 'dlc_xy', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal']
@@ -211,7 +211,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
         ax.set_ylabel('UMAP2')
         ax.set_zlabel('UMAP3')
         plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
-        plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}.png', bbox_inches='tight', dpi=300)
+        plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png', bbox_inches='tight', dpi=300)
         plt.show()
 
 
@@ -383,8 +383,10 @@ def main():
 
     trial_number_max = np.max(dh['trial_number'])
     time_max = np.max(sample[-1])/30000
+    neuron_types = dh['neuron_type'].unique()
+    neuron_type = 'interneuron'
     for i in dh['unit_id'].unique():
-        dataframe_unit = dh.loc[dh['unit_id'] == i]
+        dataframe_unit = dh.loc[(dh['unit_id'] == i) & (dh['neuron_type'] == neuron_type)]
         spk_times = dataframe_unit['spike_times_samples']
         spk_times = spk_times.values
         spk_times = np.array(spk_times.tolist())
@@ -503,7 +505,7 @@ def main():
     bhv = pd.DataFrame({'dlc_angle': instantaneous_phase})
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
-    unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False)
+    unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False, neuron_type=neuron_type)
 
     # time_window = [-0.2, 0.9]
     window_for_decoding = 6  # in s
