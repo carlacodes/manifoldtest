@@ -395,29 +395,29 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
 
         if not is_stationary_angle or not is_stationary_theta:
             print(f"Trial {trial}: Not stationary. Skipping...")
+            continue
 
-
-            # Apply differencing to make the time series stationary
-            dlc_angle_trial = np.diff(df_trial['dlc_angle_phase'])
-            theta_phase_trial = np.diff(df_trial['theta_phase'])
-            # Check the p-values again
-            adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
-            adf_result_theta = adfuller(df_trial['theta_phase'])
-            is_stationary_angle = adf_result_angle[1] <= 0.05
-            is_stationary_theta = adf_result_theta[1] <= 0.05
-            if not is_stationary_angle or not is_stationary_theta:
-                print(f"Trial {trial}: Still not stationary. Skipping...")
-                continue
-            if shuffle_data == True:
-                np.random.shuffle(dlc_angle_trial)
-                np.random.shuffle(theta_phase_trial)
-            if direction == 'theta_after':
-                granger_test = grangercausalitytests(np.column_stack((theta_phase_trial, dlc_angle_trial)), maxlag=40)
-            elif direction == 'theta_before':
-                granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=40)
+            # # Apply differencing to make the time series stationary
+            # dlc_angle_trial = np.diff(df_trial['dlc_angle_phase'])
+            # theta_phase_trial = np.diff(df_trial['theta_phase'])
+            # # Check the p-values again
+            # adf_result_angle = adfuller(df_trial['dlc_angle_phase'])
+            # adf_result_theta = adfuller(df_trial['theta_phase'])
+            # is_stationary_angle = adf_result_angle[1] <= 0.05
+            # is_stationary_theta = adf_result_theta[1] <= 0.05
+            # if not is_stationary_angle or not is_stationary_theta:
+            #     print(f"Trial {trial}: Still not stationary. Skipping...")
+            #     continue
+            # if shuffle_data == True:
+            #     np.random.shuffle(dlc_angle_trial)
+            #     np.random.shuffle(theta_phase_trial)
+            # if direction == 'theta_after':
+            #     granger_test = grangercausalitytests(np.column_stack((theta_phase_trial, dlc_angle_trial)), maxlag=40)
+            # elif direction == 'theta_before':
+            #     granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=40)
         else:
             #copy df_trial to dlc_angle_trial and theta_phase_trial
-            dlc_angle_trial = df_trial['dlc_angle_phase'].copy()
+            dlc_angle_trial = df_trial['dlc_angle'].copy()
             #convery to numpy
             dlc_angle_trial = dlc_angle_trial.to_numpy()
             theta_phase_trial = df_trial['theta_phase'].copy()
@@ -428,19 +428,24 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
             if direction == 'theta_after':
                 granger_test = grangercausalitytests(np.column_stack((theta_phase_trial, dlc_angle_trial)), maxlag=40)
             elif direction == 'theta_before':
-                granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=40)
+                try:
+                    granger_test = grangercausalitytests(np.column_stack((dlc_angle_trial, theta_phase_trial)), maxlag=40)
+                except Exception as e:
+                    print(f'Error in granger causality test, skipping...{e}')
+                    continue
 
-        # print(granger_test)
+
+        print(granger_test)
         #plot the dlc_angle and theta phase
         plt.figure(figsize=(40, 10))
-        plt.plot(theta_phase_trial, label = 'Theta phase')
-        plt.plot(dlc_angle_trial, label = '[DLC] head angle phase')
-        plt.ylabel('Phase', fontsize = 18)
-        plt.xlabel('Time since start of trial (s)', fontsize = 18)
+        plt.plot(df_trial['dlc_angle'], label = '[DLC] head angle')
+        plt.plot(df_trial['theta_phase'], label = 'Theta phase')
+        plt.ylabel('Phase or angle')
+        plt.xlabel('Time since start of trial (s)')
         plt.xticks(np.arange(0, len(df_trial['dlc_angle_phase']), 1000*50), labels=np.arange(0, len(df_trial['dlc_angle_phase'])/1000, 50))
         plt.legend()
         plt.title(f'DLC angle and theta phase for trial number {trial}, shuffled = {shuffle_data}', fontsize = 20)
-        plt.savefig(f'//ceph/scratch/carlag/honeycomb_neural_data/{rat}/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(f'/ceph/scratch/carlag/honeycomb_neural_data/{rat}/dlc_angle_theta_phase_trial_{trial}_shuffle_{shuffle_data}_direction_{direction}_{rat}_nophaseheadangle.png', dpi=300, bbox_inches='tight')
 
         for count, key in enumerate(granger_test.keys()):
             print('Granger test results: ' + str(granger_test[key][0]['ssr_ftest']))
@@ -468,9 +473,13 @@ def run_granger_cauality_test(df_theta_and_angle, export_to_csv = True, shuffle_
             except:
                 granger_dataframe_all_trial = granger_dataframe_all_lag
     #get the mean for each lag
-    granger_dataframe_all_trial['mean_p_value_for_lag'] = granger_dataframe_all_trial.groupby('lag')['p-value'].transform('mean')
+    try:
+        granger_dataframe_all_trial['mean_p_value_for_lag'] = granger_dataframe_all_trial.groupby('lag')['p-value'].transform('mean')
+    except:
+        print('dataframe empty')
+        return
     if export_to_csv:
-        granger_dataframe_all_trial.to_csv(f'//ceph/scratch/carlag/honeycomb_neural_data/csvs/granger_trial_cumulative_shuffle_{shuffle_data}_direction_{direction}_{rat}.csv')
+        granger_dataframe_all_trial.to_csv(f'//ceph/scratch/carlag/honeycomb_neural_data/csvs/granger_trial_cumulative_shuffle_{shuffle_data}_direction_{direction}_{rat}_regheadangle.csv')
     return granger_dataframe_all_trial
 
 
