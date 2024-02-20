@@ -163,7 +163,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     # spks_high_variance = spks_normalized[high_variance_neurons]
     # # Now bin the data
     # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-    reducer = umap.UMAP(n_components=3, n_neighbors=70, min_dist=0.3, metric='cosine')
+    reducer = umap.UMAP(n_components=3, n_neighbors=70, min_dist=0.3, metric='euclidean')
 
     # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
 
