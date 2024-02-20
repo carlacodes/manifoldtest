@@ -2,8 +2,11 @@ from pathlib import Path
 from datetime import datetime
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.dummy import DummyRegressor
+from mpl_toolkits import mplot3d
+
 from sklearn.ensemble import GradientBoostingRegressor
 import json
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy
@@ -32,6 +35,8 @@ import umap
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
+
 ''' Modified from Jules Lebert's code
 spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 from sklearn.decomposition import PCA
