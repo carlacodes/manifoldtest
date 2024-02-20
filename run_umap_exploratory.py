@@ -557,13 +557,29 @@ def main():
     dlc_body_angle_big = np.array(dlc_body_angle_big)
     dir_to_goal_big = np.array(dir_to_goal_big)
 
-    #interpolate the dlc_angle_big to match the length of
-    dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
-    dlc_xy_new = np.interp(np.arange(0, len(dlc_xy_big), len(dlc_xy_big)/len(spks)), np.arange(0, len(dlc_xy_big)), dlc_xy_big)
-    dist_to_goal_new = np.interp(np.arange(0, len(dist_to_goal_big), len(dist_to_goal_big)/len(spks)), np.arange(0, len(dist_to_goal_big)), dist_to_goal_big)
-    velocity_new = np.interp(np.arange(0, len(velocity_big), len(velocity_big)/len(spks)), np.arange(0, len(velocity_big)), velocity_big)
-    dlc_body_angle_new = np.interp(np.arange(0, len(dlc_body_angle_big), len(dlc_body_angle_big)/len(spks)), np.arange(0, len(dlc_body_angle_big)), dlc_body_angle_big)
-    dir_to_goal_new = np.interp(np.arange(0, len(dir_to_goal_big), len(dir_to_goal_big)/len(spks)), np.arange(0, len(dir_to_goal_big)), dir_to_goal_big)
+    # #interpolate the dlc_angle_big to match the length of
+    # dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), len(dlc_angle_big)/len(spks)), np.arange(0, len(dlc_angle_big)), dlc_angle_big)
+    # dlc_xy_new = np.interp(np.arange(0, len(dlc_xy_big), len(dlc_xy_big)/len(spks)), np.arange(0, len(dlc_xy_big)), dlc_xy_big)
+    # dist_to_goal_new = np.interp(np.arange(0, len(dist_to_goal_big), len(dist_to_goal_big)/len(spks)), np.arange(0, len(dist_to_goal_big)), dist_to_goal_big)
+    # velocity_new = np.interp(np.arange(0, len(velocity_big), len(velocity_big)/len(spks)), np.arange(0, len(velocity_big)), velocity_big)
+    # dlc_body_angle_new = np.interp(np.arange(0, len(dlc_body_angle_big), len(dlc_body_angle_big)/len(spks)), np.arange(0, len(dlc_body_angle_big)), dlc_body_angle_big)
+    # dir_to_goal_new = np.interp(np.arange(0, len(dir_to_goal_big), len(dir_to_goal_big)/len(spks)), np.arange(0, len(dir_to_goal_big)), dir_to_goal_big)
+
+    # Define the window size and step size for the overlapping window
+    window_size = len(dlc_angle_big) / len(spks)
+    step_size = window_size / 2  # 50% overlap
+
+    # Interpolate the behavioral data using the overlapping window
+    dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), step_size), np.arange(0, len(dlc_angle_big)),
+                              dlc_angle_big)
+    dlc_xy_new = np.interp(np.arange(0, len(dlc_xy_big), step_size), np.arange(0, len(dlc_xy_big)), dlc_xy_big)
+    dist_to_goal_new = np.interp(np.arange(0, len(dist_to_goal_big), step_size), np.arange(0, len(dist_to_goal_big)),
+                                 dist_to_goal_big)
+    velocity_new = np.interp(np.arange(0, len(velocity_big), step_size), np.arange(0, len(velocity_big)), velocity_big)
+    dlc_body_angle_new = np.interp(np.arange(0, len(dlc_body_angle_big), step_size),
+                                   np.arange(0, len(dlc_body_angle_big)), dlc_body_angle_big)
+    dir_to_goal_new = np.interp(np.arange(0, len(dir_to_goal_big), step_size), np.arange(0, len(dir_to_goal_big)),
+                                dir_to_goal_big)
 
     #convert dlc_angle_new to radians
     dlc_angle_new = np.radians(dlc_angle_new)
