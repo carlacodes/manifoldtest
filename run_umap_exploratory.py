@@ -367,6 +367,7 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
 
     time_ms = df_theta_and_angle['time_ms']
     time_ms = time_ms.values
+    time_seconds = time_ms / 1000
     #reshape into a 2d array of trial*theta_phase
 
     #reshape theta phase to a 2d array of trial*theta_phase
@@ -389,8 +390,8 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
         time_start = i * bin_interval
         time_end = (i + 1) * bin_interval
         #find the stop and start indices
-        start_index = np.where(time_ms > time_start*1000)[0][0]
-        end_index = np.where(time_ms < time_end*1000)[0][-1]
+        start_index = np.where(time_seconds > time_start)[0][0]
+        end_index = np.where(time_seconds < time_end)[0][-1]
         theta_phase = theta_phase_reshaped[start_index:end_index]
         lfp_big[i, :] = theta_phase
 
@@ -430,6 +431,7 @@ def main():
 
     trial_number_max = np.max(dh['trial_number'])
     time_max = np.max(sample[-1])/30000
+    time_min = np.min(sample[0])/30000
     neuron_types = dh['neuron_type'].unique()
     neuron_type = 'interneuron'
     for i in dh['unit_id'].unique():
@@ -447,7 +449,7 @@ def main():
         #get the maximum trial number in seconds
 
         #I want to bin the data into 0.5s bins
-        length = int(time_max/bin_interval)
+        length = int((time_max-time_min)/bin_interval)
         bin_width = 0.05
 
         #create a 3d array of zeros
@@ -455,8 +457,8 @@ def main():
         spk_times = spk_times / 30000
         for j in range(0, length):
             #get the corresponding time stamps
-            time_start = j*bin_interval
-            time_end = (j+1)*bin_interval
+            time_start = (j*bin_interval)+time_min
+            time_end = ((j+1)*bin_interval)+time_min
             hist, bin_edges = np.histogram(spk_times, bins = np.arange(time_start, time_end, bin_width))
             hist_rate = hist / bin_width
             hist_rate_big[j, :] = hist_rate
