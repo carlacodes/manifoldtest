@@ -112,7 +112,7 @@ def unsupervised_pca(spks, bhv):
     plt.show()
 
     return
-def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type = 'unknown', filter_neurons = False):
+def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type = 'unknown', filter_neurons = False, n_components = 3):
     # Assuming `spks` is your data
     print(spks[0])
     test_spks = spks[0]
@@ -122,13 +122,13 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     spks_std[spks_std == 0] = np.finfo(float).eps
     spks = (spks - spks_mean) / spks_std
 
-    spks_smoothed = gaussian_filter1d(spks, 4, axis=1)
+    # spks_smoothed = gaussian_filter1d(spks, 4, axis=1)
     epsilon = 1e-10
     # Small constant to prevent division by zero
     # spks_normalized = (spks_smoothed - np.mean(spks_smoothed, axis=1, keepdims=True)) / (np.std(spks_smoothed, axis=1, keepdims=True) + epsilon)
     scaler = StandardScaler()
     # spks_normalized = scaler.fit_transform(spks_smoothed)
-    spks_normalized = spks_smoothed
+    spks_normalized = spks
     #get the high variance neurons
     if remove_low_variance_neurons:
         variance = np.var(spks, axis=1)
@@ -167,7 +167,9 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     # spks_high_variance = spks_normalized[high_variance_neurons]
     # # Now bin the data
     # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-    reducer = umap.UMAP(n_components=3, n_neighbors=70, min_dist=0.3, metric='euclidean')
+
+
+    reducer = umap.UMAP(n_components=n_components, n_neighbors=70, min_dist=0.3, metric='euclidean')
 
     # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
 
@@ -175,56 +177,64 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
 
 
     # Plot the UMAP decomposition
-    plt.scatter(embedding[:, 0], embedding[:, 1])
-    plt.gca().set_aspect('equal', 'datalim')
-    plt.title('UMAP projection of the dataset', fontsize=24)
 
-    # Assuming `bhv` is your behavioral data
-    # Create a DataFrame for the UMAP components
-    umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3'])
+    if n_components == 2:
+        plt.scatter(embedding[:, 0], embedding[:, 1])
+        plt.gca().set_aspect('equal', 'datalim')
+        plt.title('UMAP projection of the dataset', fontsize=24)
 
-    # Concatenate the UMAP DataFrame with the behavioral data
-    bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
-    #plot the bhv angle against the umap
-    scatter = plt.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP3'], c=bhv_with_umap['dlc_angle'])
-    plt.colorbar(scatter)
-    plt.title(f"UMAP projection of the dataset, neuron: {neuron_type}", fontsize=24)
-    plt.xticks(fontsize=16)
-    plt.xlabel('UMAP1', fontsize=20)
-    plt.yticks(fontsize=16)
-    plt.ylabel('UMAP3', fontsize=20)
+        # Assuming `bhv` is your behavioral data
+        # Create a DataFrame for the UMAP components
+        umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2'])
 
-    # plt.colorbar()
-    plt.savefig(f'figures/latent_projections/umap_angle_{neuron_type}.png', bbox_inches='tight')
-    plt.show()
-    #do a 3D plot of the umap
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv['dlc_angle'])
-    plt.colorbar(scatter)
-    ax.set_xlabel('UMAP1')
-    ax.set_ylabel('UMAP2')
-    ax.set_zlabel('UMAP3')
-    plt.title('UMAP projection of the dataset', fontsize=24)
-    plt.savefig(f'figures/latent_projections/umap_angle_3d_{neuron_type}.png', bbox_inches='tight', dpi=300)
-    plt.show()
+        # Concatenate the UMAP DataFrame with the behavioral data
+        bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
 
-    list_of_vars = ['dlc_angle', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal', 'dlc_xy_norm']
+        list_of_vars = ['x', 'y', 'angle']
 
-    for var in list_of_vars:
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv[var])
-        plt.colorbar(scatter)
-        ax.set_xlabel('UMAP1')
-        ax.set_ylabel('UMAP2')
-        ax.set_zlabel('UMAP3')
-        plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
-        if filter_neurons:
-            plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png', bbox_inches='tight', dpi=300)
-        else:
-            plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_all_neurons.png', bbox_inches='tight', dpi=300)
-        plt.show()
+        for var in list_of_vars:
+            fig, ax = plt.subplots()
+            scatter = ax.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], c=bhv[var])
+            plt.colorbar(scatter)
+            ax.set_xlabel('UMAP1')
+            ax.set_ylabel('UMAP2')
+            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
+            if filter_neurons:
+                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png',
+                            bbox_inches='tight', dpi=300)
+            else:
+                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_num_components_{n_components}_all_neurons.png',
+                            bbox_inches='tight', dpi=300)
+            plt.show()
+
+    elif n_components == 3:
+        plt.scatter(embedding[:, 0], embedding[:, 1])
+        plt.gca().set_aspect('equal', 'datalim')
+        plt.title('UMAP projection of the dataset', fontsize=24)
+
+        # Assuming `bhv` is your behavioral data
+        # Create a DataFrame for the UMAP components
+        umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3'])
+
+        # Concatenate the UMAP DataFrame with the behavioral data
+        bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
+
+        list_of_vars = ['x', 'y', 'angle']
+
+        for var in list_of_vars:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv[var])
+            plt.colorbar(scatter)
+            ax.set_xlabel('UMAP1')
+            ax.set_ylabel('UMAP2')
+            ax.set_zlabel('UMAP3')
+            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
+            if filter_neurons:
+                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png', bbox_inches='tight', dpi=300)
+            else:
+                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_all_neurons_num_components_{n_components}.png', bbox_inches='tight', dpi=300)
+            plt.show()
 
 
     return
@@ -434,8 +444,12 @@ def main():
     bins_current = 1  # Whether to use concurrent time bin of neural data
     bins_after = 6  # How many bins of neural data after the output are used for decoding
     X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
-
-    unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False, neuron_type=neuron_type, filter_neurons = filter_neurons)
+    #remove the first six and last six bins
+    X_for_umap = X[6:-6]
+    labels_for_umap = labels[6:-6]
+    labels_for_umap = labels_for_umap[:, 0:3]
+    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
+    unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
 
     window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
