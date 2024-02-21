@@ -381,7 +381,7 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
     #reshape theta phase to a 2d array of trial*theta_phase
     theta_phase_reshaped = theta_phase.reshape(-1, 1)
     theta_phase = theta_phase[0:df_theta_and_angle.shape[0]:int(bin_interval/bin_width)]
-
+    bin_interval = 5
     # reorganize the data into a numpy array of time stamp arrays
     # get the maximum trial number in seconds
 
@@ -489,7 +489,7 @@ def main():
         spk_times = spk_times.flatten()
         spk_times = spk_times[~np.isnan(spk_times)]
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
-        bin_interval = 10
+        bin_interval = 5
         bin_width = 0.1
         step_size = bin_interval / 2  # 50% overlap
 
@@ -625,7 +625,7 @@ def main():
     unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False, neuron_type=neuron_type, filter_neurons = filter_neurons)
 
     # time_window = [-0.2, 0.9]
-    window_for_decoding = 2  # in s
+    window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
     smooth_spikes = True
     # t = np.arange(time_window[0], time_window[1], bin_width)

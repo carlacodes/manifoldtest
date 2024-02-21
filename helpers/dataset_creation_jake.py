@@ -203,6 +203,21 @@ def cat_spike_trains(spike_trains):
     return spike_array, unit_list
 
 
+def reshape_model_inputs_and_labels(model_inputs, labels):
+    labels = labels[:, 0:3]
+    #reshape the the model input to be time interval x time bin x neuron
+    labels = labels[:, 0:3]
+    time_interval = 10  # Define your time interval
+    time_bin = 1  # Define your time bin
+    time_bins_per_interval = time_interval // time_bin
+    total_time = model_inputs.shape[0]
+    total_intervals = total_time // time_interval
+
+    # Reshape model_inputs to be (time interval, time bin, 112)
+    model_inputs_new = model_inputs[:total_intervals * time_interval].reshape(total_intervals, time_bins_per_interval, -1)
+    return
+
+
 if __name__ == "__main__":
     # animal = 'Rat65'
     # session = '10-11-2023'
@@ -258,4 +273,6 @@ if __name__ == "__main__":
     model_inputs = model_inputs.astype(np.float32)
     np.save(f'{spike_dir}/inputs.npy', model_inputs)
     save_pickle(unit_list, 'unit_list', spike_dir)
+
+    reshape_model_inputs_and_labels(model_inputs, labels)
     pass
