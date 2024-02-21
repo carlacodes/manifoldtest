@@ -489,8 +489,8 @@ def main():
         spk_times = spk_times.flatten()
         spk_times = spk_times[~np.isnan(spk_times)]
         dataframe_unit['trial_number'] = dataframe_unit['trial_number'].astype(int)
-        bin_interval = 5
-        bin_width = 0.05
+        bin_interval = 6
+        bin_width = 0.1
         step_size = bin_interval / 2  # 50% overlap
 
         length = int((time_max - time_min) / step_size)
