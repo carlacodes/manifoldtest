@@ -73,7 +73,6 @@ def create_spike_trains(units, window_edges, window_size):
     # create a dictionary to hold the spike trains
     spike_trains = {}
     #remove the sample_rate from the units dictionary
-    units.pop('sample_rate')
 
     for i, k in enumerate(window_edges.keys()):
 
@@ -218,7 +217,7 @@ if __name__ == "__main__":
     # units = load_pickle('units_w_behav_correlates', spike_dir)
 
     spike_dir = os.path.join(data_dir, 'physiology_data')
-    units = load_pickle('unit_spike_times', spike_dir)
+    units = load_pickle('restricted_units', spike_dir)
 
     # load positional data
     # dlc_dir = os.path.join(data_dir, 'deeplabcut')
@@ -253,6 +252,8 @@ if __name__ == "__main__":
 
     # concatenate spike trains into np.arrays for training
     model_inputs, unit_list = cat_spike_trains(spike_trains)
+    #
+
     # convert model_inputs to float32
     model_inputs = model_inputs.astype(np.float32)
     np.save(f'{spike_dir}/inputs.npy', model_inputs)
