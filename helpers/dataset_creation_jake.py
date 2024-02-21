@@ -72,6 +72,8 @@ def create_spike_trains(units, window_edges, window_size):
 
     # create a dictionary to hold the spike trains
     spike_trains = {}
+    #remove the sample_rate from the units dictionary
+    units.pop('sample_rate')
 
     for i, k in enumerate(window_edges.keys()):
 
@@ -207,7 +209,7 @@ if __name__ == "__main__":
     # session = '10-11-2023'
     # data_dir = get_data_dir(animal, session)
 
-    data_dir = 'D:/analysis/og_honeycomb/rat7/6-12-2019'
+    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
 
     # data_dir = '/media/jake/DataStorage_6TB/DATA/neural_network/og_honeycomb/rat7/6-12-2019'
 
@@ -216,7 +218,7 @@ if __name__ == "__main__":
     # units = load_pickle('units_w_behav_correlates', spike_dir)
 
     spike_dir = os.path.join(data_dir, 'physiology_data')
-    units = load_pickle('restricted_units', spike_dir)
+    units = load_pickle('unit_spike_times', spike_dir)
 
     # load positional data
     # dlc_dir = os.path.join(data_dir, 'deeplabcut')
