@@ -1,4 +1,4 @@
-from get_directories import get_data_dir
+# from get_directories import get_data_dir
 import pickle
 import os
 
