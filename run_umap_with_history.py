@@ -190,7 +190,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         # Concatenate the UMAP DataFrame with the behavioral data
         bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
 
-        list_of_vars = ['x', 'y', 'angle']
+        list_of_vars = ['x', 'y', 'angle', 'time_index']
 
         for var in list_of_vars:
             fig, ax = plt.subplots( figsize = (20, 20))
@@ -219,10 +219,10 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         # Concatenate the UMAP DataFrame with the behavioral data
         bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
 
-        list_of_vars = ['x', 'y', 'angle']
+        list_of_vars = ['x', 'y', 'angle', 'time_index']
 
         for var in list_of_vars:
-            fig = plt.figure(figsize=(40, 40))
+            fig = plt.figure(figsize=(20, 20))
             ax = fig.add_subplot(111, projection='3d')
             scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv[var])
             plt.colorbar(scatter)
@@ -448,9 +448,11 @@ def main():
     X_for_umap = X[6:-6]
     labels_for_umap = labels[6:-6]
     labels_for_umap = labels_for_umap[:, 0:3]
+    # labels_for_umap = labels[:, 0:3]
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
+    label_df['time_index'] = np.arange(0, label_df.shape[0])
     unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
-
+    bin_width = 1
     window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
 
@@ -486,8 +488,8 @@ def main():
         results_within[run] = {}
         # for space in space_ref:
         results_between[run] = train_ref_classify_rest(
-            spks,
-            bhv,
+            X_for_umap,
+            label_df,
             regress,
             regressor,
             regressor_kwargs,
@@ -499,6 +501,7 @@ def main():
 
         # Save results
     results = {'between': results_between, 'within': results_within}
+    save_path = Path('C:/neural_data/rat_7/6-12-2019')
     save_path.mkdir(exist_ok=True)
     np.save(save_path / filename, results)
 
