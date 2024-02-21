@@ -205,7 +205,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     plt.savefig(f'figures/latent_projections/umap_angle_3d_{neuron_type}.png', bbox_inches='tight', dpi=300)
     plt.show()
 
-    list_of_vars = ['dlc_angle', 'dlc_xy', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal']
+    list_of_vars = ['dlc_angle', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal']
 
     for var in list_of_vars:
         fig = plt.figure()
@@ -435,6 +435,7 @@ def main():
     time_min = np.min(sample[0])/30000
     neuron_types = dh['neuron_type'].unique()
     neuron_type = 'interneuron'
+    filter_neurons = False
     # for i in dh['unit_id'].unique():
     #     dataframe_unit = dh.loc[(dh['unit_id'] == i) & (dh['neuron_type'] == neuron_type)]
     #     spk_times = dataframe_unit['spike_times_samples']
@@ -470,7 +471,10 @@ def main():
 
 
     for i in dh['unit_id'].unique():
-        dataframe_unit = dh.loc[(dh['unit_id'] == i) & (dh['neuron_type'] == neuron_type)]
+        if filter_neurons:
+            dataframe_unit = dh.loc[(dh['unit_id'] == i) & (dh['neuron_type'] == neuron_type)]
+        else:
+            dataframe_unit = dh.loc[dh['unit_id'] == i]
         spk_times = dataframe_unit['spike_times_samples']
         spk_times = spk_times.values
         spk_times = np.array(spk_times.tolist())
