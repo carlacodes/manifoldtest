@@ -118,6 +118,11 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     print(spks[0])
     test_spks = spks[0]
     #apply smoothing to spks
+    spks_mean = np.nanmean(spks, axis=0)
+    spks_std = np.nanstd(spks, axis=0)
+    spks_std[spks_std == 0] = np.finfo(float).eps
+    spks = (spks - spks_mean) / spks_std
+
     spks_smoothed = gaussian_filter1d(spks, 4, axis=1)
     epsilon = 1e-10
     # Small constant to prevent division by zero
