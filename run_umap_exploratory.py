@@ -205,7 +205,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     plt.savefig(f'figures/latent_projections/umap_angle_3d_{neuron_type}.png', bbox_inches='tight', dpi=300)
     plt.show()
 
-    list_of_vars = ['dlc_angle', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal']
+    list_of_vars = ['dlc_angle', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal', 'dlc_xy_norm']
 
     for var in list_of_vars:
         fig = plt.figure()
@@ -596,7 +596,7 @@ def main():
                                    np.arange(0, len(dlc_body_angle_big)), dlc_body_angle_big)
     dir_to_goal_new = np.interp(np.arange(0, len(dir_to_goal_big), step_size), np.arange(0, len(dir_to_goal_big)),
                                 dir_to_goal_big)
-
+    dlc_xy_new_norm = np.sqrt(np.sum(np.square(dlc_xy_new), axis=1))
     #convert dlc_angle_new to radians
     dlc_angle_new = np.radians(dlc_angle_new)
     dir_to_goal_new = np.radians(dir_to_goal_new)
@@ -609,7 +609,7 @@ def main():
 
     instantaneous_phase = np.angle(hilbert_transform)
     #TODO: fix interpolation of the xy data
-    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new, 'dir_to_goal': dir_to_goal_new, 'dlc_angle_phase_body': instantaneous_phase_body, 'dlc_phase_dir_to_goal': instantaneous_phase_dir})
+    bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_angle_phase': instantaneous_phase, 'dlc_xy_norm': dlc_xy_new_norm, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new, 'dir_to_goal': dir_to_goal_new, 'dlc_angle_phase_body': instantaneous_phase_body, 'dlc_phase_dir_to_goal': instantaneous_phase_dir})
 
     # bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new, 'dir_to_goal': dir_to_goal_new, 'dlc_angle_phase_body': instantaneous_phase_body})
     # bhv_umap = pd.DataFrame({'dlc_angle': dlc_angle_new, 'dlc_angle_phase': instantaneous_phase, 'dist_to_goal': dist_to_goal_new, 'velocity': velocity_new, 'dlc_body_angle': dlc_body_angle_new})
