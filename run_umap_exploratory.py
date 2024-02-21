@@ -113,7 +113,7 @@ def unsupervised_pca(spks, bhv):
     plt.show()
 
     return
-def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type = 'unknown'):
+def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type = 'unknown', filter_neurons = False):
     # Assuming `spks` is your data
     print(spks[0])
     test_spks = spks[0]
@@ -216,7 +216,10 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         ax.set_ylabel('UMAP2')
         ax.set_zlabel('UMAP3')
         plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
-        plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png', bbox_inches='tight', dpi=300)
+        if filter_neurons:
+            plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png', bbox_inches='tight', dpi=300)
+        else:
+            plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_all_neurons.png', bbox_inches='tight', dpi=300)
         plt.show()
 
 
@@ -534,7 +537,7 @@ def main():
     #do the same for the positional data
 
     dlc_angle_big = []
-    dlc_xy_big = []
+    dlc_xy_big = np.empty((1, 2), dtype=float)
     sample_big = []
     dist_to_goal_big = []
     velocity_big = []
@@ -545,7 +548,7 @@ def main():
         dlc_xy_trial = dlc_xy[i]
         sample_trial = sample[i]
         dlc_angle_big = np.append(dlc_angle_big, dlc_angle_trial)
-        dlc_xy_big = np.append(dlc_xy_big, dlc_xy_trial)
+        dlc_xy_big = np.vstack((dlc_xy_big, dlc_xy_trial))
         sample_big = np.append(sample_big, sample_trial)
         dist_to_goal_big = np.append(dist_to_goal_big, dist_to_goal[i])
         velocity_big = np.append(velocity_big, velocity[i])
@@ -555,7 +558,9 @@ def main():
     #interpolate dlc_angle_big to match the length of spks
     #interpolate the dlc_angle_big to match the length of sp
     dlc_angle_big = np.array(dlc_angle_big)
-    dlc_xy_big = np.array(dlc_xy_big)
+    #remove the first row of dlc_xy_big
+    dlc_xy_big = dlc_xy_big[1:]
+    # dlc_xy_big = np.array(dlc_xy_big)
     dist_to_goal_big = np.array(dist_to_goal_big)
     velocity_big = np.array(velocity_big)
     dlc_body_angle_big = np.array(dlc_body_angle_big)
@@ -576,7 +581,11 @@ def main():
     # Interpolate the behavioral data using the overlapping window
     dlc_angle_new = np.interp(np.arange(0, len(dlc_angle_big), step_size), np.arange(0, len(dlc_angle_big)),
                               dlc_angle_big)
-    dlc_xy_new = np.interp(np.arange(0, len(dlc_xy_big), step_size), np.arange(0, len(dlc_xy_big)), dlc_xy_big)
+
+    dlc_xy_new = np.zeros((len(np.arange(0, len(dlc_xy_big), step_size)), 2))  # Initialize the new array
+    for i in range(dlc_xy_big.shape[1]):
+        dlc_xy_new[:, i] = np.interp(np.arange(0, len(dlc_xy_big), step_size), np.arange(0, len(dlc_xy_big)),
+                                     dlc_xy_big[:, i])
     dist_to_goal_new = np.interp(np.arange(0, len(dist_to_goal_big), step_size), np.arange(0, len(dist_to_goal_big)),
                                  dist_to_goal_big)
     velocity_new = np.interp(np.arange(0, len(velocity_big), step_size), np.arange(0, len(velocity_big)), velocity_big)
@@ -609,7 +618,7 @@ def main():
     #run the unsupervised umap
     # unsupervised_pca(spks, bhv_umap)
     decompose_lfp_data(bhv_umap, bin_interval, bin_width)
-    unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False, neuron_type=neuron_type)
+    unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False, neuron_type=neuron_type, filter_neurons = filter_neurons)
 
     # time_window = [-0.2, 0.9]
     window_for_decoding = 6  # in s
