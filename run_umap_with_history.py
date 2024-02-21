@@ -193,7 +193,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         list_of_vars = ['x', 'y', 'angle']
 
         for var in list_of_vars:
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots( figsize = (20, 20))
             scatter = ax.scatter(bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], c=bhv[var])
             plt.colorbar(scatter)
             ax.set_xlabel('UMAP1')
@@ -222,7 +222,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         list_of_vars = ['x', 'y', 'angle']
 
         for var in list_of_vars:
-            fig = plt.figure()
+            fig = plt.figure(figsize=(40, 40))
             ax = fig.add_subplot(111, projection='3d')
             scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv[var])
             plt.colorbar(scatter)
