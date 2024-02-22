@@ -190,5 +190,5 @@ class DataHandler():
             end_idx = start_idx + surrounding_bins;  # The bins of neural data we will be including are between start_idx and end_idx (which will have length "surrounding_bins")
             X[i + bins_before, :, :] = neural_data[start_idx:end_idx,
                                        :]  # Put neural data from surrounding bins in X, starting at row "bins_before"
-            start_idx = start_idx + 1;
+            start_idx = start_idx + 1
         return X

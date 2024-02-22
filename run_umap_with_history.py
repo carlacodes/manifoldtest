@@ -246,7 +246,7 @@ def process_window(
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
-    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2)
+    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, shuffle = False)
     # y_train = np.ravel(y_train)
     # y_test = np.ravel(y_test)
     # Fit the reducer on the training data
@@ -293,7 +293,7 @@ def train_ref_classify_rest(
         reducer_kwargs,
         window_size,
         n_permutations=100,
-        n_jobs=-1,
+        n_jobs=1,
 ):
     """
     Analyzes spike data using dimensionality reduction and regression.

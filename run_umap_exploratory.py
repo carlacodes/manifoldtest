@@ -244,6 +244,7 @@ def process_window(
 
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
+
     # Split the data into training and testing sets
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
     # y_train = np.ravel(y_train)
