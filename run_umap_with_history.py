@@ -35,7 +35,7 @@ import umap
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
+# mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
 ''' Modified from Jules Lebert's code
 spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 from sklearn.decomposition import PCA
@@ -262,9 +262,9 @@ def process_window(
     scaler.fit(window_train)
     window_train = scaler.transform(window_train)
     window_test = scaler.transform(window_test)
-    print("Before any transformation:", window_train.shape)
+    # print("Before any transformation:", window_train.shape)
     reducer_pipeline.fit(window_train, y=y_train)
-    print("After pipeline transformation:", window_train.shape)
+    # print("After pipeline transformation:", window_train.shape)
 
     # Transform the training and testing data
     window_train_reduced = reducer_pipeline.transform(window_train)
@@ -333,18 +333,15 @@ def train_ref_classify_rest(
     ])
 
     y = bhv[regress].values
-    # results_cv = Parallel(n_jobs=n_jobs, verbose=1)(
-    #     delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
-    #                             regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_cv = Parallel(n_jobs=n_jobs, verbose=1, prefer="threads")(
         delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
                                 regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_perm = []
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
-            # y_perm = np.random.permutation(y)
-            offset = 2 * np.pi * np.random.random()
-            y_perm = np.random.permutation((y + offset) % (2 * np.pi))
+            y_perm = np.random.permutation(y)
+            # offset = 2 * np.pi * np.random.random()
+            # y_perm = np.random.permutation((y + offset) % (2 * np.pi))
             reg = DummyRegressor(strategy='mean')
             results_perm_n = []
             for w in tqdm(range(spks.shape[1] - window_size)):
@@ -465,15 +462,15 @@ def main():
     reducer = UMAP
     reducer_kwargs = {
         'n_components': 2,
-        'n_neighbors': 10,
+        'n_neighbors': 70,
         'min_dist': 0.001,
-        'metric': 'cosine',
+        'metric': 'euclidean',
         'n_jobs': 1,
     }
 
     # space_ref = ['No Noise', 'Noise']
     #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
-    regress = 'dlc_angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
+    regress = 'angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
 
     # Use KFold for regression
     kf = KFold(n_splits=5, shuffle=True)
