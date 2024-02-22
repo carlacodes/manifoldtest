@@ -2,18 +2,12 @@ from pathlib import Path
 from datetime import datetime
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.dummy import DummyRegressor
-from mpl_toolkits import mplot3d
-
-from sklearn.ensemble import GradientBoostingRegressor
-import json
-import matplotlib as mpl
+# from mpl_toolkits import mplot3d
 import os
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from extractlfpandspikedata import load_theta_data
-from helpers import datahandling
+# from extractlfpandspikedata import load_theta_data
 from helpers.load_and_save_data import load_pickle, save_pickle
-
 from helpers.datahandling import DataHandler
 from sklearn.svm import SVR
 from sklearn.model_selection import KFold
@@ -28,8 +22,6 @@ from sklearn.metrics import balanced_accuracy_score, f1_score
 from sklearn.dummy import DummyClassifier
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
-# import vowel_in_noise.electrophysiology.population_analysis as vowel_pop
-# from vowel_in_noise import plot_utils
 from sklearn.model_selection import train_test_split
 import umap
 import matplotlib.pyplot as plt
@@ -254,7 +246,7 @@ def process_window(
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
-    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
+    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2)
     # y_train = np.ravel(y_train)
     # y_test = np.ravel(y_test)
     # Fit the reducer on the training data
