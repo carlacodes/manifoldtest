@@ -246,7 +246,7 @@ def process_window(
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
-    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, shuffle = False)
+    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, shuffle=False)
     # y_train = np.ravel(y_train)
     # y_test = np.ravel(y_test)
     # Fit the reducer on the training data
@@ -293,7 +293,7 @@ def train_ref_classify_rest(
         reducer_kwargs,
         window_size,
         n_permutations=100,
-        n_jobs=1,
+        n_jobs_parallel=1,
 ):
     """
     Analyzes spike data using dimensionality reduction and regression.
@@ -325,29 +325,43 @@ def train_ref_classify_rest(
     ])
 
     y = bhv[regress].values
-    results_cv = Parallel(n_jobs=n_jobs, verbose=1, prefer="threads")(
-        delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
-                                regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
+
+    # results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1, prefer="threads")(
+    #     delayed(process_window)(w, spks, window_size, y, reducer_pipeline, regressor,
+    #                             regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
     results_perm = []
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
             y_perm = np.random.permutation(y)
-            # offset = 2 * np.pi * np.random.random()
-            # y_perm = np.random.permutation((y + offset) % (2 * np.pi))
-            reg = DummyRegressor(strategy='mean')
+            shift = np.random.randint(spks.shape[1])
+            spks_perm = np.roll(spks, shift, axis=1)
+            # spks_perm = np.random.permutation(spks)
+            # fig, ax = plt.subplots()
+            # #plot y_perm versus y
+            # x_axis = np.arange(0, 20)
+            # plt.plot(x_axis, y_perm[:20], label='y_perm', color='red')
+            # plt.plot(x_axis, y[:20], label='y', color='blue')
+            # plt.show()
+            # # offset = 2 * np.pi * np.random.random()
+            # # y_perm = np.random.permutation((y + offset) % (2 * np.pi))
+
+
+            # Initialize the Support Vector Regressor (SVR)
+            reg = SVR(kernel='poly', C=1)
             results_perm_n = []
             for w in tqdm(range(spks.shape[1] - window_size)):
-                window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
+                window = spks_perm[:, w:w + window_size, :].reshape(spks.shape[0], -1)
+                window_train, window_test, y_train, y_test = train_test_split(window, y_perm, test_size=0.2, shuffle=False)
 
                 # Fit the regressor on the reference space
-                reg.fit(window, y_perm)
+                reg.fit(window_train, y_train)
 
                 # Predict on the non-reference space
-                y_pred = reg.predict(window)
+                y_pred = reg.predict(window_test)
 
                 # Compute the mean squared error and R2 score
-                mse_score = mean_squared_error(y_perm, y_pred)
-                r2_score_val = r2_score(y_perm, y_pred)
+                mse_score = mean_squared_error(y_test, y_pred)
+                r2_score_val = r2_score(y_test, y_pred)
 
                 results = {
                     'mse_score': mse_score,
@@ -359,7 +373,7 @@ def train_ref_classify_rest(
             results_perm.append(results_perm_n)
 
     results = {
-        'cv': results_cv,
+        # 'cv': results_cv,
         'perm': results_perm,
     }
 
@@ -411,6 +425,7 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
+    results_old = np.load(f'{data_dir}/results_2024-02-22_16-57-58.npy', allow_pickle=True).item(0)
 
     # data_dir = '/media/jake/DataStorage_6TB/DATA/neural_network/og_honeycomb/rat7/6-12-2019'
 
@@ -419,7 +434,7 @@ def main():
     # units = load_pickle('units_w_behav_correlates', spike_dir)
 
     spike_dir = os.path.join(data_dir, 'physiology_data')
-    spike_trains = load_pickle('spike_trains', spike_dir)
+    # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
 
@@ -440,7 +455,7 @@ def main():
     # labels_for_umap = labels[:, 0:3]
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
+    # unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
     bin_width = 1
     window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
@@ -453,10 +468,10 @@ def main():
 
     reducer = UMAP
     reducer_kwargs = {
-        'n_components': 2,
+        'n_components': 3,
         'n_neighbors': 70,
         'min_dist': 0.001,
-        'metric': 'euclidean',
+        'metric': 'cosine',
         'n_jobs': 1,
     }
 
@@ -465,7 +480,7 @@ def main():
     regress = 'angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
 
     # Use KFold for regression
-    kf = KFold(n_splits=5, shuffle=True)
+    # kf = KFold(n_splits=5, shuffle=True)
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f'results_{now}.npy'
@@ -476,6 +491,7 @@ def main():
         results_between[run] = {}
         results_within[run] = {}
         # for space in space_ref:
+
         results_between[run] = train_ref_classify_rest(
             X_for_umap,
             label_df,
@@ -496,4 +512,5 @@ def main():
 
 
 if __name__ == '__main__':
+    #
     main()
