@@ -486,7 +486,7 @@ def main():
     filename = f'results_{now}.npy'
     results_between = {}
     results_within = {}
-    n_permutations = 100
+    n_permutations = 20
     for run in range(n_runs):
         results_between[run] = {}
         results_within[run] = {}
