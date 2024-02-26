@@ -239,13 +239,14 @@ def process_window(
         y,
         reducer_pipeline,
         regressor,
-        regressor_kwargs
+        regressor_kwargs,
 ):
     reg = regressor(**regressor_kwargs)
 
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
+
     window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, shuffle=False)
     # y_train = np.ravel(y_train)
     # y_test = np.ravel(y_test)
@@ -281,7 +282,61 @@ def process_window(
     return results
 
 
+def process_window_within_kold(
+        w,
+        spks_train,
+        spks_test,
+        window_size,
+        y_train,
+        y_test,
+        reducer_pipeline,
+        regressor,
+        regressor_kwargs,
+):
+    reg = regressor(**regressor_kwargs)
 
+    window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
+    window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    scaler = StandardScaler()
+    scaler.fit(window_train)
+    window_train = scaler.transform(window_train)
+    window_test = scaler.transform(window_test)
+    # print("Before any transformation:", window_train.shape)
+
+
+    reducer_pipeline.fit(window_train, y=y_train)
+    # Fit the reducer on the reference space
+    reducer_pipeline.fit(window_train, y=y_train)
+
+    # Transform the reference and non-reference space
+    window_ref_reduced = reducer_pipeline.transform(window_train)
+    window_nref_reduced = reducer_pipeline.transform(window_test)
+
+    # Fit the classifier on the reference space
+    reg.fit(window_ref_reduced, y_train)
+
+    # Predict on the testing data
+    y_pred = reg.predict(window_nref_reduced)
+    y_pred_train = reg.predict(window_ref_reduced)
+
+
+    # Compute the mean squared error and R2 score
+    mse_score_train = mean_squared_error(y_train, y_pred_train)
+    r2_score_train = r2_score(y_train, y_pred_train)
+
+    mse_score = mean_squared_error(y_test, y_pred)
+    r2_score_val = r2_score(y_test, y_pred)
+
+    results = {
+        'mse_score_train': mse_score_train,
+        'r2_score_train': r2_score_train,
+        'r2_score_train': r2_score_train,
+        'mse_score': mse_score,
+        'r2_score': r2_score_val,
+        'w': w,
+    }
+
+    return results
 
 def train_ref_classify_rest(
         spks,
@@ -440,29 +495,23 @@ def train_within(
     spks_std[spks_std == 0] = np.finfo(float).eps
     spks = (spks - spks_mean) / spks_std
     scaler = StandardScaler()
-    spks_scaled = scaler.fit_transform(spks.reshape(spks.shape[0], -1))
 
     reducer_pipeline = Pipeline([
         # ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
-
     y = bhv[regress].values
 
-    # reducer_pipeline = Pipeline([
-    #     ('scaler', StandardScaler()),
-    #     ('reducer', reducer(**reducer_kwargs)),
-    # ])
 
     cv_results = []
-    skf = StratifiedKFold(n_splits=5, shuffle=True)
+    skf = StratifiedKFold(n_splits=5, shuffle=False)
 
-    for i, (train_idx, test_idx) in enumerate(skf.split(spks, bhv)):
+    for i, (train_idx, test_idx) in enumerate(skf.split(spks, y)):
         print(f'Fold {i} / {skf.get_n_splits()}')
         X_train = spks[train_idx, :, :]
         X_test = spks[test_idx, :, :]
-        y_train = bhv[train_idx]
-        y_test = bhv[test_idx]
+        y_train = y[train_idx]
+        y_test = y[test_idx]
 
         # Z-score to train data
         spks_mean = np.nanmean(X_train, axis=0)
