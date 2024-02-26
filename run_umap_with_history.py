@@ -294,13 +294,12 @@ def process_window_within_kold(
         regressor_kwargs,
 ):
     reg = regressor(**regressor_kwargs)
-
     window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
     window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
-    scaler = StandardScaler()
-    scaler.fit(window_train)
-    window_train = scaler.transform(window_train)
-    window_test = scaler.transform(window_test)
+    # scaler = StandardScaler()
+    # # scaler.fit(window_train)
+    # window_train = scaler.transform(window_train)
+    # window_test = scaler.transform(window_test)
     # print("Before any transformation:", window_train.shape)
     reducer_pipeline.fit(window_train, y=y_train)
     # Transform the reference and non-reference space
@@ -485,10 +484,10 @@ def train_within(
 ):
 
 
-    spks_mean = np.nanmean(spks, axis=0)
-    spks_std = np.nanstd(spks, axis=0)
-    spks_std[spks_std == 0] = np.finfo(float).eps
-    spks = (spks - spks_mean) / spks_std
+    # spks_mean = np.nanmean(spks, axis=0)
+    # spks_std = np.nanstd(spks, axis=0)
+    # spks_std[spks_std == 0] = np.finfo(float).eps
+    # spks = (spks - spks_mean) / spks_std
     # scaler = StandardScaler()
 
     reducer_pipeline = Pipeline([
@@ -516,7 +515,7 @@ def train_within(
         X_test = (X_test - spks_mean) / spks_std
 
         results = Parallel(n_jobs=-1, verbose=1)(
-            delayed(process_window)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
+            delayed(process_window_within_kold)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
                                     regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
 
         cv_results.append(results)
