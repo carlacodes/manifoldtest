@@ -244,6 +244,7 @@ def main():
             best_params_final = best_params
     param_results['difference'] = diff_result
     param_results['best_params'] = best_params_final
+    param_results['upper_params'] = params
     np.save(filename, param_results)
 
 
