@@ -158,7 +158,9 @@ def train_and_test_on_reduced(
 
         # Calculate the difference between the mean of results_cv and permutation_results
         # diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
-        diff = np.mean([res['mse_score'] for res in results_cv_list]) - np.mean([res['mse_score'] for res in permutation_results_list])
+        # diff = np.mean([res['mse_score'] for res in results_cv_list]) - np.mean([res['mse_score'] for res in permutation_results_list])
+        diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean([res['mse_score'] for sublist in permutation_results_list for res in sublist])
+
 
 
         # If this difference is larger than the current largest difference, update the best hyperparameters and the largest difference
@@ -167,7 +169,7 @@ def train_and_test_on_reduced(
             best_params = params
 
     # After the loop, the best hyperparameters are those that yield the largest difference
-    return best_params
+    return best_params, largest_diff
 
 
 def main():
@@ -180,51 +182,53 @@ def main():
     labels = np.load(f'{dlc_dir}/labels.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
-    bins_before = 6  # How many bins of neural data prior to the output are used for decoding
-    bins_current = 1  # Whether to use concurrent time bin of neural data
-    bins_after = 6  # How many bins of neural data after the output are used for decoding
-    X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
-    #remove the first six and last six bins
-    X_for_umap = X[6:-6]
-    labels_for_umap = labels[6:-6]
-    labels_for_umap = labels_for_umap[:, 0:3]
-    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
-    label_df['time_index'] = np.arange(0, label_df.shape[0])
-    bin_width = 1
-    window_for_decoding = 6  # in s
-    window_size = int(window_for_decoding / bin_width)  # in bins
-
-    n_runs = 1
-
-    regressor = SVR
-    regressor_kwargs = {'kernel': 'linear', 'C': 1}
-
-
-    reducer = UMAP
-
-    reducer_kwargs = {
-        'n_components': 3,
-        'n_neighbors': 70,
-        'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
+    param_grid_upper = {
+        'bins_before': [4, 5, 6, 7, 8],
+        'bin_width': [0.1, 0.5, 1, 2],
     }
-
-    # space_ref = ['No Noise', 'Noise']
-    #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
-    regress = 'angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
-
-    # Use KFold for regression
-    # kf = KFold(n_splits=5, shuffle=True)
-
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f'params_{now}.npy'
+    largest_diff = float('-inf')
     param_results = {}
-    results_within = {}
-    results_w_perm_reduced = {}
-    n_permutations = 5
-    for run in range(n_runs):
-        best_params = train_and_test_on_reduced(
+    for params in ParameterGrid(param_grid_upper):
+        bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
+        bins_current = 1  # Whether to use concurrent time bin of neural data
+        bins_after = bins_before  # How many bins of neural data after the output are used for decoding
+        X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
+        #remove the first six and last six bins
+        X_for_umap = X[6:-6]
+        labels_for_umap = labels[6:-6]
+        labels_for_umap = labels_for_umap[:, 0:3]
+        label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
+        label_df['time_index'] = np.arange(0, label_df.shape[0])
+        bin_width = params['bin_width']
+        window_for_decoding = 6  # in s
+        window_size = int(window_for_decoding / bin_width)  # in bins
+
+        regressor = SVR
+        regressor_kwargs = {'kernel': 'linear', 'C': 1}
+
+
+        reducer = UMAP
+
+        reducer_kwargs = {
+            'n_components': 3,
+            'n_neighbors': 70,
+            'min_dist': 0.3,
+            'metric': 'euclidean',
+            'n_jobs': 1,
+        }
+
+        # space_ref = ['No Noise', 'Noise']
+        #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
+        regress = 'angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
+
+        # Use KFold for regression
+        # kf = KFold(n_splits=5, shuffle=True)
+
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f'params_{now}.npy'
+
+
+        best_params, diff_result = train_and_test_on_reduced(
             X_for_umap,
             label_df,
             regress,
@@ -235,9 +239,15 @@ def main():
             window_size,
             n_jobs_parallel=5,
         )
-        param_results[run] = best_params
-    #save the results
+        if diff_result > largest_diff:
+            largest_diff = diff_result
+            best_params_final = best_params
+    param_results['difference'] = diff_result
+    param_results['best_params'] = best_params_final
     np.save(filename, param_results)
+
+
+
 
 
 
