@@ -421,7 +421,93 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
     return
 
 
+def train_within(
+        spks,
+        bhv,
+        regress,
+        regressor,
+        regressor_kwargs,
+        reducer,
+        reducer_kwargs,
+        window_size,
+        n_permutations=100,
+        n_jobs_parallel=1,
+):
 
+
+    spks_mean = np.nanmean(spks, axis=0)
+    spks_std = np.nanstd(spks, axis=0)
+    spks_std[spks_std == 0] = np.finfo(float).eps
+    spks = (spks - spks_mean) / spks_std
+    scaler = StandardScaler()
+    spks_scaled = scaler.fit_transform(spks.reshape(spks.shape[0], -1))
+
+    reducer_pipeline = Pipeline([
+        # ('scaler', StandardScaler()),
+        ('reducer', reducer(**reducer_kwargs)),
+    ])
+
+    y = bhv[regress].values
+
+    # reducer_pipeline = Pipeline([
+    #     ('scaler', StandardScaler()),
+    #     ('reducer', reducer(**reducer_kwargs)),
+    # ])
+
+    cv_results = []
+    skf = StratifiedKFold(n_splits=5, shuffle=True)
+
+    for i, (train_idx, test_idx) in enumerate(skf.split(spks, bhv)):
+        print(f'Fold {i} / {skf.get_n_splits()}')
+        X_train = spks[train_idx, :, :]
+        X_test = spks[test_idx, :, :]
+        y_train = bhv[train_idx]
+        y_test = bhv[test_idx]
+
+        # Z-score to train data
+        spks_mean = np.nanmean(X_train, axis=0)
+        spks_std = np.nanstd(X_train, axis=0)
+        spks_std[spks_std == 0] = np.finfo(float).eps
+        X_train = (X_train - spks_mean) / spks_std
+        X_test = (X_test - spks_mean) / spks_std
+
+        results = Parallel(n_jobs=-1, verbose=1)(
+            delayed(process_window)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
+                                    regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
+
+        cv_results.append(results)
+
+    results_perm = []
+    if n_permutations > 0:
+        for n in range(n_permutations):
+            print(f'Permutation {n} / {n_permutations}')
+            ref_labels = np.random.permutation(ref_labels)
+            for i, (train_idx, test_idx) in enumerate(skf.split(spks, ref_labels)):
+                print(f'Fold {i} / {skf.get_n_splits()}')
+                X_train = spks[train_idx, :, :]
+                X_test = spks[test_idx, :, :]
+                y_train = ref_labels[train_idx]
+                y_test = ref_labels[test_idx]
+
+                # Z-score to train data
+                spks_mean = np.nanmean(X_train, axis=0)
+                spks_std = np.nanstd(X_train, axis=0)
+                spks_std[spks_std == 0] = np.finfo(float).eps
+                X_train = (X_train - spks_mean) / spks_std
+                X_test = (X_test - spks_mean) / spks_std
+
+                results = Parallel(n_jobs=-1, verbose=1)(
+                    delayed(process_window)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
+                                            regressor, regressor_kwargs) for w in
+                    tqdm(range(spks.shape[1] - window_size)))
+
+                results_perm.append(results)
+
+    results = {
+        'cv': cv_results,
+        'perm': results_perm,
+    }
+    return results
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
@@ -460,7 +546,7 @@ def main():
     window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
 
-    n_runs = 5
+    n_runs = 1
 
     regressor = SVR
     regressor_kwargs = {'kernel': 'poly', 'C': 1}
@@ -486,6 +572,7 @@ def main():
     filename = f'results_{now}.npy'
     results_between = {}
     results_within = {}
+    results_w_perm_reduced = {}
     n_permutations = 5
     for run in range(n_runs):
         results_between[run] = {}
@@ -503,9 +590,20 @@ def main():
             window_size,
             n_permutations=n_permutations,
         )
+        results_w_perm_reduced[run] = train_within(
+            X_for_umap,
+            label_df,
+            regress,
+            regressor,
+            regressor_kwargs,
+            reducer,
+            reducer_kwargs,
+            window_size,
+            n_permutations=n_permutations,
+        )
 
         # Save results
-    results = {'between': results_between, 'within': results_within}
+    results = {'between': results_between, 'within': results_w_perm_reduced}
     save_path = Path('C:/neural_data/rat_7/6-12-2019')
     save_path.mkdir(exist_ok=True)
     np.save(save_path / filename, results)
