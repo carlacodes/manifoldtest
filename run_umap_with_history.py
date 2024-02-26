@@ -470,7 +470,7 @@ def decompose_lfp_data(bhv_umap, bin_interval, bin_width):
     return
 
 
-def train_within(
+def train_and_test_on_reduced(
         spks,
         bhv,
         regress,
@@ -483,12 +483,6 @@ def train_within(
         n_jobs_parallel=1,
 ):
 
-
-    # spks_mean = np.nanmean(spks, axis=0)
-    # spks_std = np.nanstd(spks, axis=0)
-    # spks_std[spks_std == 0] = np.finfo(float).eps
-    # spks = (spks - spks_mean) / spks_std
-    # scaler = StandardScaler()
 
     reducer_pipeline = Pipeline([
         ('scaler', StandardScaler()),
@@ -514,7 +508,7 @@ def train_within(
         X_train = (X_train - spks_mean) / spks_std
         X_test = (X_test - spks_mean) / spks_std
 
-        results = Parallel(n_jobs=-1, verbose=1)(
+        results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
             delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
                                                  regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
 
@@ -539,7 +533,7 @@ def train_within(
                 X_train = (X_train - spks_mean) / spks_std
                 X_test = (X_test - spks_mean) / spks_std
 
-                results = Parallel(n_jobs=-1, verbose=1)(
+                results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
                     delayed(process_window)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
                                             regressor, regressor_kwargs) for w in
                     tqdm(range(spks.shape[1] - window_size)))
@@ -633,7 +627,7 @@ def main():
             window_size,
             n_permutations=n_permutations,
         )
-        results_w_perm_reduced[run] = train_within(
+        results_w_perm_reduced[run] = train_and_test_on_reduced(
             X_for_umap,
             label_df,
             regress,
