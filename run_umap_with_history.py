@@ -333,9 +333,9 @@ def train_ref_classify_rest(
     if n_permutations > 0:
         for n in tqdm(range(n_permutations)):
             y_perm = np.random.permutation(y)
-            shift = np.random.randint(spks.shape[1])
-            spks_perm = np.roll(spks, shift, axis=1)
-            # spks_perm = np.random.permutation(spks)
+            # shift = np.random.randint(spks.shape[1])
+            # spks_perm = np.roll(spks, shift, axis=1)
+            spks_perm = np.random.permutation(spks)
             # fig, ax = plt.subplots()
             # #plot y_perm versus y
             # x_axis = np.arange(0, 20)
@@ -347,7 +347,7 @@ def train_ref_classify_rest(
 
 
             # Initialize the Support Vector Regressor (SVR)
-            reg = SVR(kernel='poly', C=1)
+            reg = SVR(kernel='rbf', C=1)
             results_perm_n = []
             for w in tqdm(range(spks.shape[1] - window_size)):
                 window = spks_perm[:, w:w + window_size, :].reshape(spks.shape[0], -1)
@@ -486,7 +486,7 @@ def main():
     filename = f'results_{now}.npy'
     results_between = {}
     results_within = {}
-    n_permutations = 20
+    n_permutations = 5
     for run in range(n_runs):
         results_between[run] = {}
         results_within[run] = {}
