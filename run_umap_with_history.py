@@ -15,7 +15,7 @@ from scipy.ndimage import gaussian_filter1d
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, permutation_test_score, GridSearchCV, \
+from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV, \
     RandomizedSearchCV, cross_val_score
 from sklearn.svm import SVC
 from sklearn.metrics import balanced_accuracy_score, f1_score
@@ -302,12 +302,7 @@ def process_window_within_kold(
     window_train = scaler.transform(window_train)
     window_test = scaler.transform(window_test)
     # print("Before any transformation:", window_train.shape)
-
-
     reducer_pipeline.fit(window_train, y=y_train)
-    # Fit the reducer on the reference space
-    reducer_pipeline.fit(window_train, y=y_train)
-
     # Transform the reference and non-reference space
     window_ref_reduced = reducer_pipeline.transform(window_train)
     window_nref_reduced = reducer_pipeline.transform(window_test)
@@ -494,17 +489,17 @@ def train_within(
     spks_std = np.nanstd(spks, axis=0)
     spks_std[spks_std == 0] = np.finfo(float).eps
     spks = (spks - spks_mean) / spks_std
-    scaler = StandardScaler()
+    # scaler = StandardScaler()
 
     reducer_pipeline = Pipeline([
-        # ('scaler', StandardScaler()),
+        ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
     y = bhv[regress].values
 
 
     cv_results = []
-    skf = StratifiedKFold(n_splits=5, shuffle=False)
+    skf = TimeSeriesSplit(n_splits=5)
 
     for i, (train_idx, test_idx) in enumerate(skf.split(spks, y)):
         print(f'Fold {i} / {skf.get_n_splits()}')
