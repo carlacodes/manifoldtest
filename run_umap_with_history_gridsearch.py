@@ -231,7 +231,7 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_jobs_parallel=1,
+            n_jobs_parallel=5,
         )
         param_results[run] = best_params
     #save the results
