@@ -157,7 +157,9 @@ def train_and_test_on_reduced(
             permutation_results_list.append(results_perm)
 
         # Calculate the difference between the mean of results_cv and permutation_results
-        diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
+        # diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
+        diff = np.mean([res['mse_score'] for res in results_cv_list]) - np.mean([res['mse_score'] for res in permutation_results_list])
+
 
         # If this difference is larger than the current largest difference, update the best hyperparameters and the largest difference
         if diff > largest_diff:
