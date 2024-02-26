@@ -101,19 +101,17 @@ def train_and_test_on_reduced(
 ):
     # Define the grid of hyperparameters
     param_grid = {
-        'bins_before': [4, 5, 6, 7, 8],
-        'bins_after': [4, 5, 6, 7, 8],
         'regressor__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
-        'window_size': [4, 5, 6, 7, 8],
+        'regressor__C': [0.1, 1, 10],
+        'reducer__n_components': [2, 3, 4],
         'reducer__n_neighbors': [10, 20, 30, 40, 50],
         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
+        'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
     }
 
     # Initialize the best hyperparameters and the largest difference
     best_params = None
     largest_diff = float('-inf')
-
-
     y = bhv[regress].values
 
     # Create a TimeSeriesSplit object for 5-fold cross-validation
@@ -136,12 +134,12 @@ def train_and_test_on_reduced(
         for train_index, test_index in tscv.split(spks):
             # Split the data into training and testing sets
             X_train, X_test = spks[train_index], spks[test_index]
-            y_train, y_test = bhv[train_index], bhv[test_index]
+            y_train, y_test = y[train_index], y[test_index]
 
             # Train the model and compute results_cv
 
 
-            results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+            results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
                                                      regressor, regressor_kwargs) for w in
                 tqdm(range(spks.shape[1] - window_size)))
@@ -149,9 +147,14 @@ def train_and_test_on_reduced(
 
             # Compute permutation_results
             y_train_perm = np.random.permutation(y_train)
-            results_perm = process_window_within_split(
-                w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor, regressor_kwargs
-            )
+            # results_perm = process_window_within_split(
+            #     w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor, regressor_kwargs
+            # )
+            results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+                delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
+                                                     regressor, regressor_kwargs) for w in
+                tqdm(range(spks.shape[1] - window_size)))
+            permutation_results_list.append(results_perm)
 
         # Calculate the difference between the mean of results_cv and permutation_results
         diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
