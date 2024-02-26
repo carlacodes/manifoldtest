@@ -486,7 +486,7 @@ def train_and_test_on_reduced(
 
     reducer_pipeline = Pipeline([
         #not sure if scaler is actually needed here TODO: check if scaler is needed
-        ('scaler', StandardScaler()),
+        # ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
     y = bhv[regress].values
@@ -504,17 +504,14 @@ def train_and_test_on_reduced(
 
         # Z-score to train data
         spks_mean = np.nanmean(X_train, axis=0)
-        spks_mean_test = np.nanmean(X_test, axis=0)
 
         spks_std = np.nanstd(X_train, axis=0)
         spks_std[spks_std == 0] = np.finfo(float).eps
-        spks_std_test = np.nanstd(X_test, axis=0)
-        spks_std_test[spks_std_test == 0] = np.finfo(float).eps
+
 
 
         X_train = (X_train - spks_mean) / spks_std
-        X_test = (X_test - spks_mean_test) / spks_std_test
-
+        X_test = (X_test - spks_mean) / spks_std
 
         # results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
         #     delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
@@ -542,15 +539,12 @@ def train_and_test_on_reduced(
 
                 # Z-score to train data
                 spks_mean = np.nanmean(X_train, axis=0)
-                spks_mean_test = np.nanmean(X_test, axis=0)
                 spks_std = np.nanstd(X_train, axis=0)
                 spks_std[spks_std == 0] = np.finfo(float).eps
-                spks_std_test = np.nanstd(X_test, axis=0)
-                spks_std_test[spks_std_test == 0] = np.finfo(float).eps
+
 
                 X_train = (X_train - spks_mean) / spks_std
-                X_test = (X_test - spks_mean_test) / spks_std_test
-
+                X_test = (X_test - spks_mean) / spks_std
 
                 results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
                     delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
@@ -605,15 +599,16 @@ def main():
     n_runs = 1
 
     regressor = SVR
-    regressor_kwargs = {'kernel': 'poly', 'C': 1}
+    regressor_kwargs = {'kernel': 'rbf', 'C': 1}
 
 
     reducer = UMAP
+
     reducer_kwargs = {
         'n_components': 3,
         'n_neighbors': 70,
-        'min_dist': 0.001,
-        'metric': 'cosine',
+        'min_dist': 0.3,
+        'metric': 'euclidean',
         'n_jobs': 1,
     }
 
