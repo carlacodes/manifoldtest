@@ -530,10 +530,11 @@ def train_and_test_on_reduced(
         for n in range(n_permutations):
             print(f'Permutation {n} / {n_permutations}')
             y_perm = np.random.permutation(y)
-            for i, (train_idx, test_idx) in enumerate(skf.split(spks, y_perm)):
+            spks_perm = np.random.permutation(spks)
+            for i, (train_idx, test_idx) in enumerate(skf.split(spks_perm, y_perm)):
                 print(f'Fold {i} / {skf.get_n_splits()}')
-                X_train = spks[train_idx, :, :]
-                X_test = spks[test_idx, :, :]
+                X_train = spks_perm[train_idx, :, :]
+                X_test = spks_perm[test_idx, :, :]
                 y_train = y_perm[train_idx]
                 y_test = y_perm[test_idx]
 
@@ -599,7 +600,7 @@ def main():
     n_runs = 1
 
     regressor = SVR
-    regressor_kwargs = {'kernel': 'rbf', 'C': 1}
+    regressor_kwargs = {'kernel': 'linear', 'C': 1}
 
 
     reducer = UMAP
