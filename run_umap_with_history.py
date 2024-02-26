@@ -528,10 +528,14 @@ def train_and_test_on_reduced(
 
                 # Z-score to train data
                 spks_mean = np.nanmean(X_train, axis=0)
+                spks_mean_test = np.nanmean(X_test, axis=0)
                 spks_std = np.nanstd(X_train, axis=0)
                 spks_std[spks_std == 0] = np.finfo(float).eps
+                spks_std_test = np.nanstd(X_test, axis=0)
+                spks_std_test[spks_std_test == 0] = np.finfo(float).eps
+
                 X_train = (X_train - spks_mean) / spks_std
-                X_test = (X_test - spks_mean) / spks_std
+                X_test = (X_test - spks_mean_test) / spks_std_test
 
                 results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
                     delayed(process_window)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
