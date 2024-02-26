@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 # mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
 ''' Modified from Jules Lebert's code
-spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
+spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 from sklearn.decomposition import PCA
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import ParameterGrid
@@ -120,8 +120,8 @@ def train_and_test_on_reduced(
     # Iterate over all combinations of hyperparameters
     for params in ParameterGrid(param_grid):
         # Update the kwargs with the current parameters
-        regressor_kwargs.update(params)
-        reducer_kwargs.update(params)
+        regressor_kwargs.update({k.replace('regressor__', ''): v for k, v in params.items() if k.startswith('regressor__')})
+        reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
 
         # Initialize lists to store results_cv and permutation_results for each fold
         results_cv_list = []
