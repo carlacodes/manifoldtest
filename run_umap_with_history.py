@@ -282,7 +282,7 @@ def process_window(
     return results
 
 
-def process_window_within_kold(
+def process_window_within_split(
         w,
         spks_train,
         spks_test,
@@ -515,8 +515,8 @@ def train_within(
         X_test = (X_test - spks_mean) / spks_std
 
         results = Parallel(n_jobs=-1, verbose=1)(
-            delayed(process_window_within_kold)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
-                                    regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
+            delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
+                                                 regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
 
         cv_results.append(results)
 
