@@ -503,10 +503,17 @@ def train_and_test_on_reduced(
 
         # Z-score to train data
         spks_mean = np.nanmean(X_train, axis=0)
+        spks_mean_test = np.nanmean(X_test, axis=0)
+
         spks_std = np.nanstd(X_train, axis=0)
         spks_std[spks_std == 0] = np.finfo(float).eps
+        spks_std_test = np.nanstd(X_test, axis=0)
+        spks_std_test[spks_std_test == 0] = np.finfo(float).eps
+
+
         X_train = (X_train - spks_mean) / spks_std
-        X_test = (X_test - spks_mean) / spks_std
+        X_test = (X_test - spks_mean_test) / spks_std_test
+
 
         results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
             delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
@@ -518,13 +525,13 @@ def train_and_test_on_reduced(
     if n_permutations > 0:
         for n in range(n_permutations):
             print(f'Permutation {n} / {n_permutations}')
-            ref_labels = np.random.permutation(ref_labels)
-            for i, (train_idx, test_idx) in enumerate(skf.split(spks, ref_labels)):
+            y_perm = np.random.permutation(y)
+            for i, (train_idx, test_idx) in enumerate(skf.split(spks, y_perm)):
                 print(f'Fold {i} / {skf.get_n_splits()}')
                 X_train = spks[train_idx, :, :]
                 X_test = spks[test_idx, :, :]
-                y_train = ref_labels[train_idx]
-                y_test = ref_labels[test_idx]
+                y_train = y_perm[train_idx]
+                y_test = y_perm[test_idx]
 
                 # Z-score to train data
                 spks_mean = np.nanmean(X_train, axis=0)
@@ -620,17 +627,17 @@ def main():
         results_within[run] = {}
         # for space in space_ref:
 
-        results_between[run] = train_ref_classify_rest(
-            X_for_umap,
-            label_df,
-            regress,
-            regressor,
-            regressor_kwargs,
-            reducer,
-            reducer_kwargs,
-            window_size,
-            n_permutations=n_permutations,
-        )
+        # results_between[run] = train_ref_classify_rest(
+        #     X_for_umap,
+        #     label_df,
+        #     regress,
+        #     regressor,
+        #     regressor_kwargs,
+        #     reducer,
+        #     reducer_kwargs,
+        #     window_size,
+        #     n_permutations=n_permutations,
+        # )
         results_w_perm_reduced[run] = train_and_test_on_reduced(
             X_for_umap,
             label_df,
