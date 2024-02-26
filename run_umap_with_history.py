@@ -485,6 +485,7 @@ def train_and_test_on_reduced(
 
 
     reducer_pipeline = Pipeline([
+        #not sure if scaler is actually needed here TODO: check if scaler is needed
         ('scaler', StandardScaler()),
         ('reducer', reducer(**reducer_kwargs)),
     ])
@@ -518,7 +519,7 @@ def train_and_test_on_reduced(
         # results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
         #     delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor,
         #                                          regressor_kwargs) for w in tqdm(range(spks.shape[1] - window_size)))
-
+        #possible redundnacy in Jules' original code as he normalises the data and then ALSO applies a Scaler, seems a bit redundant
         results = Parallel(n_jobs=n_jobs_parallel, backend='loky', verbose=1)(
             delayed(process_window_within_split)(
                 w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline, regressor, regressor_kwargs
@@ -549,6 +550,7 @@ def train_and_test_on_reduced(
 
                 X_train = (X_train - spks_mean) / spks_std
                 X_test = (X_test - spks_mean_test) / spks_std_test
+
 
                 results = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
                     delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
