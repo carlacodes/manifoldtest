@@ -223,7 +223,7 @@ def main():
     n_permutations = 5
     for run in range(n_runs):
         best_params = train_and_test_on_reduced(
-            X,
+            X_for_umap,
             label_df,
             regress,
             regressor,
