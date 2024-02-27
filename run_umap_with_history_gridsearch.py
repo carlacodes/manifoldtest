@@ -245,7 +245,7 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_jobs_parallel=16,
+            n_jobs_parallel=8,
         )
         if diff_result > largest_diff:
             largest_diff = diff_result
