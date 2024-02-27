@@ -228,6 +228,28 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
                 plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_all_neurons_num_components_{n_components}.png', bbox_inches='tight', dpi=300)
             plt.show()
 
+        fig = plt.figure(figsize=(20, 20))
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Sort the data by time_index to ensure the trajectory is plotted correctly
+        bhv_with_umap_sorted = bhv_with_umap.sort_values(by='time_index')
+
+        for var in list_of_vars:
+            ax.plot(bhv_with_umap_sorted['UMAP1'], bhv_with_umap_sorted['UMAP2'], bhv_with_umap_sorted['UMAP3'],
+                    c=bhv_with_umap_sorted[var])
+            ax.set_xlabel('UMAP1')
+            ax.set_ylabel('UMAP2')
+            ax.set_zlabel('UMAP3')
+            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
+            if filter_neurons:
+                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png',
+                            bbox_inches='tight', dpi=300)
+            else:
+                plt.savefig(
+                    f'figures/latent_projections/umap_angle_3d_colored_line_plot_by_{var}_all_neurons_num_components_{n_components}.png',
+                    bbox_inches='tight', dpi=300)
+            plt.show()
+
 
     return
 
@@ -592,7 +614,8 @@ def main():
     # labels_for_umap = labels[:, 0:3]
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    # unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
+    unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
+
     bin_width = 1
     window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
