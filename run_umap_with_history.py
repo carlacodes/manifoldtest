@@ -27,6 +27,10 @@ import umap
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+
 # mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
 ''' Modified from Jules Lebert's code
 spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
@@ -203,7 +207,6 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         plt.scatter(embedding[:, 0], embedding[:, 1])
         plt.gca().set_aspect('equal', 'datalim')
         plt.title('UMAP projection of the dataset', fontsize=24)
-
         # Assuming `bhv` is your behavioral data
         # Create a DataFrame for the UMAP components
         umap_df = pd.DataFrame(embedding, columns=['UMAP1', 'UMAP2', 'UMAP3'])
@@ -228,21 +231,30 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
                 plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_all_neurons_num_components_{n_components}.png', bbox_inches='tight', dpi=300)
             plt.show()
 
+
         fig = plt.figure(figsize=(20, 20))
         ax = fig.add_subplot(111, projection='3d')
 
         # Sort the data by time_index to ensure the trajectory is plotted correctly
         bhv_with_umap_sorted = bhv_with_umap.sort_values(by='time_index')
 
+        # Create a colormap
+        cmap = plt.get_cmap('viridis')
+
         for var in list_of_vars:
-            ax.plot(bhv_with_umap_sorted['UMAP1'], bhv_with_umap_sorted['UMAP2'], bhv_with_umap_sorted['UMAP3'],
-                    c=bhv_with_umap_sorted[var])
+            # Normalize your data to 0-1 for matching with the colormap
+            norm = plt.Normalize(bhv_with_umap_sorted[var].min(), bhv_with_umap_sorted[var].max())
+
+            for i in range(1, len(bhv_with_umap_sorted)):
+                ax.plot(bhv_with_umap_sorted['UMAP1'][i - 1:i + 1], bhv_with_umap_sorted['UMAP2'][i - 1:i + 1],
+                        bhv_with_umap_sorted['UMAP3'][i - 1:i + 1], color=cmap(norm(bhv_with_umap_sorted[var].iloc[i])))
+
             ax.set_xlabel('UMAP1')
             ax.set_ylabel('UMAP2')
             ax.set_zlabel('UMAP3')
             plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
             if filter_neurons:
-                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png',
+                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_line_plot_by_{var}_neuron_type_{neuron_type}.png',
                             bbox_inches='tight', dpi=300)
             else:
                 plt.savefig(
