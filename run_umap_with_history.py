@@ -686,7 +686,7 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_permutations=n_permutations, n_jobs_parallel=8
+            n_permutations=n_permutations, n_jobs_parallel=5
         )
 
         # Save results
