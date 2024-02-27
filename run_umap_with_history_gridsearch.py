@@ -132,6 +132,8 @@ def train_and_test_on_reduced(
             ('reducer', reducer(**reducer_kwargs)),
         ])
 
+
+
         # Perform 5-fold cross-validation
         for train_index, test_index in tscv.split(spks):
             # Split the data into training and testing sets
@@ -185,8 +187,8 @@ def main():
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
     param_grid_upper = {
-        'bins_before': [4, 5, 6, 7, 8],
-        'bin_width': [0.1, 0.5, 1, 2],
+        'bins_before': [1, 2, 3, 4, 5, 6, 7, 8],
+        'bin_width': [0.1, 0.5, 1, 2, 3, 4],
     }
     largest_diff = float('-inf')
     param_results = {}
@@ -196,8 +198,8 @@ def main():
         bins_after = bins_before  # How many bins of neural data after the output are used for decoding
         X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
         #remove the first six and last six bins
-        X_for_umap = X[6:-6]
-        labels_for_umap = labels[6:-6]
+        X_for_umap = X[bins_before:-bins_before]
+        labels_for_umap = labels[bins_before:-bins_before]
         labels_for_umap = labels_for_umap[:, 0:3]
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
@@ -229,6 +231,10 @@ def main():
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f'params_{now}.npy'
 
+        if window_size >= X_for_umap.shape[1]:
+            print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[1]} in the neural data')
+            continue
+
 
         best_params, diff_result = train_and_test_on_reduced(
             X_for_umap,
@@ -247,7 +253,9 @@ def main():
     param_results['difference'] = diff_result
     param_results['best_params'] = best_params_final
     param_results['upper_params'] = params
-    np.save(filename, param_results)
+    #save to data_dir
+
+    np.save(data_dir / filename, param_results)
 
 
 
