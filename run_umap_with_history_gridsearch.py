@@ -34,6 +34,8 @@ spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dat
 from sklearn.decomposition import PCA
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import ParameterGrid
+import os
+os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 
 
 def process_window_within_split(
