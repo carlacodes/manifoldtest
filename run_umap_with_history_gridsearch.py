@@ -25,7 +25,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 from sklearn.model_selection import train_test_split
 import umap
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 # mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
@@ -35,7 +35,7 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import ParameterGrid
 import os
-os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
+os.environ['JOBLIB_TEMP_FOLDER'] = '/home/zceccgr/Scratch/zceccgr/tmp/'
 
 
 def process_window_within_split(
@@ -141,7 +141,7 @@ def train_and_test_on_reduced(
             # Train the model and compute results_cv
 
 
-            results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+            results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=0)(
                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
                                                      regressor, regressor_kwargs) for w in
                 tqdm(range(spks.shape[1] - window_size)))
@@ -152,7 +152,7 @@ def train_and_test_on_reduced(
             # results_perm = process_window_within_split(
             #     w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor, regressor_kwargs
             # )
-            results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+            results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=0)(
                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
                                                      regressor, regressor_kwargs) for w in
                 tqdm(range(spks.shape[1] - window_size)))
@@ -175,7 +175,7 @@ def train_and_test_on_reduced(
 
 
 def main():
-    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
+    data_dir = '/home/zceccgr/Scratch/zceccgr/jake/rat_7/6-12-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -185,8 +185,8 @@ def main():
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
     param_grid_upper = {
-        'bins_before': [4, 5, 6, 7, 8],
-        'bin_width': [0.1, 0.5, 1, 2],
+        'bins_before': [1, 2, 3, 4, 5, 6, 7, 8],
+        'bin_width': [0.1, 0.5, 1, 2, 3, 4],
     }
     largest_diff = float('-inf')
     param_results = {}
@@ -196,9 +196,10 @@ def main():
         bins_after = bins_before  # How many bins of neural data after the output are used for decoding
         X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
         #remove the first six and last six bins
-        X_for_umap = X[6:-6]
-        labels_for_umap = labels[6:-6]
+        X_for_umap = X[bins_before:-bins_before]
+        labels_for_umap = labels[bins_before:-bins_before]
         labels_for_umap = labels_for_umap[:, 0:3]
+
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
@@ -216,18 +217,20 @@ def main():
             'n_neighbors': 70,
             'min_dist': 0.3,
             'metric': 'euclidean',
-            'n_jobs': 1,
+            'n_jobs': -1,
         }
 
         # space_ref = ['No Noise', 'Noise']
         #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
         regress = 'angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
 
-        # Use KFold for regression
-        # kf = KFold(n_splits=5, shuffle=True)
+
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f'params_{now}.npy'
+        if window_size >= X_for_umap.shape[1]:
+            print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[1]} in the neural data')
+            continue
 
 
         best_params, diff_result = train_and_test_on_reduced(
@@ -239,15 +242,20 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_jobs_parallel=5,
+            n_jobs_parallel=-1,
         )
+        print(f'upper params {params}')
+        print('best params for this corresponding upper param:')
+        print(best_params)
+        print(f'diff_result: {diff_result}')
+
         if diff_result > largest_diff:
             largest_diff = diff_result
             best_params_final = best_params
     param_results['difference'] = diff_result
     param_results['best_params'] = best_params_final
     param_results['upper_params'] = params
-    np.save(filename, param_results)
+    np.save(data_dir / filename, param_results)
 
 
 
