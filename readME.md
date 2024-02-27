@@ -1,4 +1,4 @@
-# Work in progress repo for running dimensionality reduction on honeyco maze data
+# Work in progress repo for running dimensionality reduction on honeycomb maze data
 overview of functions: 
 <br>
 1. extractlfpandspikedata.py:
