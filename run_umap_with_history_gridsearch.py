@@ -381,7 +381,7 @@ def main():
     param_results['upper_params'] = params
     #save to data_dir
 
-    np.save(data_dir / filename, param_results)
+    np.save(data_dir/ filename, param_results)
 
 
 
