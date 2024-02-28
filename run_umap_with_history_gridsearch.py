@@ -9,6 +9,8 @@ from joblib import Parallel, delayed
 # from extractlfpandspikedata import load_theta_data
 from helpers.load_and_save_data import load_pickle, save_pickle
 from helpers.datahandling import DataHandler
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+
 from sklearn.svm import SVR
 from sklearn.model_selection import KFold
 from scipy.ndimage import gaussian_filter1d
@@ -90,6 +92,92 @@ def process_window_within_split(
 
 
 
+# def train_and_test_on_reduced(
+#         spks,
+#         bhv,
+#         regress,
+#         regressor,
+#         regressor_kwargs,
+#         reducer,
+#         reducer_kwargs,
+#         window_size,
+#         n_jobs_parallel=1,
+# ):
+#     # Define the grid of hyperparameters
+#     param_grid = {
+#         'regressor__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+#         'regressor__C': [0.1, 1, 10],
+#         'reducer__n_components': [2, 3, 4],
+#         'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70, 80],
+#         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
+#         'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
+#     }
+#
+#     # Initialize the best hyperparameters and the largest difference
+#     best_params = None
+#     largest_diff = float('-inf')
+#     y = bhv[regress].values
+#
+#     # Create a TimeSeriesSplit object for 5-fold cross-validation
+#     tscv = TimeSeriesSplit(n_splits=5)
+#
+#     # Iterate over all combinations of hyperparameters
+#     for params in ParameterGrid(param_grid):
+#         # Update the kwargs with the current parameters
+#         regressor_kwargs.update({k.replace('regressor__', ''): v for k, v in params.items() if k.startswith('regressor__')})
+#         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
+#
+#         # Initialize lists to store results_cv and permutation_results for each fold
+#         results_cv_list = []
+#         permutation_results_list = []
+#         reducer_pipeline = Pipeline([
+#             ('reducer', reducer(**reducer_kwargs)),
+#         ])
+#
+#
+#
+#         # Perform 5-fold cross-validation
+#         for train_index, test_index in tscv.split(spks):
+#             # Split the data into training and testing sets
+#             X_train, X_test = spks[train_index], spks[test_index]
+#             y_train, y_test = y[train_index], y[test_index]
+#
+#             # Train the model and compute results_cv
+#
+#
+#             results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+#                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
+#                                                      regressor, regressor_kwargs) for w in
+#                 tqdm(range(spks.shape[1] - window_size)))
+#             results_cv_list.append(results_cv)
+#
+#             # Compute permutation_results
+#             y_train_perm = np.random.permutation(y_train)
+#             # results_perm = process_window_within_split(
+#             #     w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor, regressor_kwargs
+#             # )
+#             results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+#                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
+#                                                      regressor, regressor_kwargs) for w in
+#                 tqdm(range(spks.shape[1] - window_size)))
+#             permutation_results_list.append(results_perm)
+#
+#         # Calculate the difference between the mean of results_cv and permutation_results
+#         # diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
+#         # diff = np.mean([res['mse_score'] for res in results_cv_list]) - np.mean([res['mse_score'] for res in permutation_results_list])
+#         diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean([res['mse_score'] for sublist in permutation_results_list for res in sublist])
+#
+#
+#
+#         # If this difference is larger than the current largest difference, update the best hyperparameters and the largest difference
+#         if diff > largest_diff:
+#             largest_diff = diff
+#             best_params = params
+#
+#     # After the loop, the best hyperparameters are those that yield the largest difference
+#     return best_params, largest_diff
+
+
 def train_and_test_on_reduced(
         spks,
         bhv,
@@ -111,70 +199,28 @@ def train_and_test_on_reduced(
         'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
     }
 
-    # Initialize the best hyperparameters and the largest difference
-    best_params = None
-    largest_diff = float('-inf')
     y = bhv[regress].values
 
     # Create a TimeSeriesSplit object for 5-fold cross-validation
     tscv = TimeSeriesSplit(n_splits=5)
 
-    # Iterate over all combinations of hyperparameters
-    for params in ParameterGrid(param_grid):
-        # Update the kwargs with the current parameters
-        regressor_kwargs.update({k.replace('regressor__', ''): v for k, v in params.items() if k.startswith('regressor__')})
-        reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
+    # Create a pipeline
+    reducer_pipeline = Pipeline([
+        ('reducer', reducer(**reducer_kwargs)),
+        ('regressor', regressor(**regressor_kwargs))
+    ])
 
-        # Initialize lists to store results_cv and permutation_results for each fold
-        results_cv_list = []
-        permutation_results_list = []
-        reducer_pipeline = Pipeline([
-            ('reducer', reducer(**reducer_kwargs)),
-        ])
+    # Create a GridSearchCV object
+    grid_search = RandomizedSearchCV(reducer_pipeline, param_grid, cv=tscv, n_jobs=n_jobs_parallel, verbose=1)
 
+    # Fit the GridSearchCV object to the data
+    grid_search.fit(spks, y)
 
+    # Get the best parameters and the best score
+    best_params = grid_search.best_params_
+    best_score = grid_search.best_score_
 
-        # Perform 5-fold cross-validation
-        for train_index, test_index in tscv.split(spks):
-            # Split the data into training and testing sets
-            X_train, X_test = spks[train_index], spks[test_index]
-            y_train, y_test = y[train_index], y[test_index]
-
-            # Train the model and compute results_cv
-
-
-            results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
-                delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
-                                                     regressor, regressor_kwargs) for w in
-                tqdm(range(spks.shape[1] - window_size)))
-            results_cv_list.append(results_cv)
-
-            # Compute permutation_results
-            y_train_perm = np.random.permutation(y_train)
-            # results_perm = process_window_within_split(
-            #     w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor, regressor_kwargs
-            # )
-            results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
-                delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
-                                                     regressor, regressor_kwargs) for w in
-                tqdm(range(spks.shape[1] - window_size)))
-            permutation_results_list.append(results_perm)
-
-        # Calculate the difference between the mean of results_cv and permutation_results
-        # diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
-        # diff = np.mean([res['mse_score'] for res in results_cv_list]) - np.mean([res['mse_score'] for res in permutation_results_list])
-        diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean([res['mse_score'] for sublist in permutation_results_list for res in sublist])
-
-
-
-        # If this difference is larger than the current largest difference, update the best hyperparameters and the largest difference
-        if diff > largest_diff:
-            largest_diff = diff
-            best_params = params
-
-    # After the loop, the best hyperparameters are those that yield the largest difference
-    return best_params, largest_diff
-
+    return best_params, best_score
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
