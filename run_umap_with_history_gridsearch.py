@@ -9,8 +9,7 @@ from joblib import Parallel, delayed
 # from extractlfpandspikedata import load_theta_data
 from helpers.load_and_save_data import load_pickle, save_pickle
 from helpers.datahandling import DataHandler
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-
+from sklearn.model_selection import ParameterSampler
 from sklearn.svm import SVR
 from sklearn.model_selection import KFold
 from scipy.ndimage import gaussian_filter1d
@@ -248,7 +247,8 @@ def main():
     largest_diff = float('-inf')
     param_results = {}
     intermediate_results = pd.DataFrame(columns=['difference', 'best_params', 'upper_params'])
-    for params in ParameterGrid(param_grid_upper):
+    n_iter = 100
+    for params in ParameterSampler(param_grid_upper, n_iter=n_iter):
         bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
         bins_current = 1  # Whether to use concurrent time bin of neural data
         bins_after = bins_before  # How many bins of neural data after the output are used for decoding
