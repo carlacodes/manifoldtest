@@ -187,8 +187,10 @@ def main():
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
     param_grid_upper = {
-        'bins_before': [1, 2, 3, 4, 5, 6, 7, 8, 10, 20, 30, 50, 100],
-        'bin_width': [0.1, 0.5, 1, 2, 3, 4],
+        'bins_before': [6, 7, 8, 10, 20, 30, 50, 100],
+        'bin_width': [0.5],
+        'window_for_decoding': [0.5, 1, 2, 3, 4, 5, 6],
+
     }
     largest_diff = float('-inf')
     param_results = {}
@@ -205,7 +207,7 @@ def main():
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
-        window_for_decoding = 6  # in s
+        window_for_decoding = params['window_for_decoding']  # in s
         window_size = int(window_for_decoding / bin_width)  # in bins
 
         regressor = SVR
