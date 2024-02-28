@@ -228,7 +228,7 @@ def main():
             'n_neighbors': 70,
             'min_dist': 0.3,
             'metric': 'euclidean',
-            'n_jobs': 1,
+            'n_jobs': 10,
         }
 
         # space_ref = ['No Noise', 'Noise']
@@ -257,7 +257,7 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_jobs_parallel=8,
+            n_jobs_parallel=10,
         )
         #save at intermediate stage of grid search
         intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)
