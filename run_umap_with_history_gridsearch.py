@@ -192,6 +192,7 @@ def main():
     }
     largest_diff = float('-inf')
     param_results = {}
+    intermediate_results = pd.DataFrame(columns=['difference', 'best_params', 'upper_params'])
     for params in ParameterGrid(param_grid_upper):
         bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
         bins_current = 1  # Whether to use concurrent time bin of neural data
@@ -229,7 +230,9 @@ def main():
         # kf = KFold(n_splits=5, shuffle=True)
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_{now}.npy'
+        filename_intermediate_params = f'intermediate_params_{now_day}.npy'
 
         if window_size >= X_for_umap.shape[1]:
             print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[1]} in the neural data')
@@ -247,6 +250,10 @@ def main():
             window_size,
             n_jobs_parallel=8,
         )
+        #save at intermediate stage of grid search
+        intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)
+        np.save(data_dir / filename_intermediate_params, intermediate_results)
+
         if diff_result > largest_diff:
             largest_diff = diff_result
             best_params_final = best_params
