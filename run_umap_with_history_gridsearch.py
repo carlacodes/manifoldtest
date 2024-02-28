@@ -185,6 +185,13 @@ def main():
     #load labels
     labels = np.load(f'{dlc_dir}/labels.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
+    #find the times where the head angle is stationary
+    angle_labels = labels[:, 2]
+    stationary_indices = np.where(np.diff(angle_labels) == 0)[0]
+    #remove the stationary indices
+    labels = np.delete(labels, stationary_indices, axis=0)
+    spike_data = np.delete(spike_data, stationary_indices, axis=0)
+
 
     param_grid_upper = {
         'bins_before': [6, 7, 8, 10, 20, 30, 50, 100],
