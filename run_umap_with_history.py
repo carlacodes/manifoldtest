@@ -628,7 +628,7 @@ def main():
     label_df['time_index'] = np.arange(0, label_df.shape[0])
     unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
 
-    bin_width = 1
+    bin_width = 0.5
     window_for_decoding = 6  # in s
     window_size = int(window_for_decoding / bin_width)  # in bins
 
