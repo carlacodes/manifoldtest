@@ -15,6 +15,11 @@ from sklearn.model_selection import KFold
 from scipy.ndimage import gaussian_filter1d
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
+from sklearn.pipeline import make_pipeline
+from sklearn.svm import SVR
+from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
 from scipy.stats import randint
 from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV, \
@@ -207,12 +212,15 @@ def train_and_test_on_reduced(
 
     # RandomizedSearchCV parameters
     n_iter_search = 10  # Adjust this as needed
-    regressor_instance = regressor(**regressor_kwargs)
+
+
+    # Create a pipeline with StandardScaler and SVR
+    regressor_instance = make_pipeline(StandardScaler(), SVR(**regressor_kwargs))
     reducer_instance = reducer(**reducer_kwargs)
 
     param_dist = {
-        'regressor__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
-        'regressor__C': [0.1, 1, 10],
+        'regressor__svr__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],  # Update the kernel parameter path
+        'regressor__svr__C': [0.1, 1, 10],
         'reducer__n_components': [2, 3, 4],
         'reducer__n_neighbors': randint(10, 81),  # Randomize within the specified range
         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
@@ -220,17 +228,13 @@ def train_and_test_on_reduced(
     }
 
     random_search = RandomizedSearchCV(
-        estimator=Pipeline([
-            ('regressor', regressor_instance),
-            ('reducer', reducer_instance),
-        ]),
+        estimator=regressor_instance,
         param_distributions=param_dist,
-        scoring='neg_mean_squared_error',  # Specify a relevant scoring metric
+        scoring='neg_mean_squared_error',
         n_iter=n_iter_search,
-        cv=tscv,  # Use TimeSeriesSplit for time-series cross-validation
-        n_jobs=n_jobs_parallel,  # Use all available cores
+        cv=tscv,
+        n_jobs=n_jobs_parallel,
     )
-
     # Fit the RandomizedSearchCV
     random_search.fit(spks, y)
 
