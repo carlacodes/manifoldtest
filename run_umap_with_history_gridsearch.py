@@ -185,7 +185,7 @@ def main():
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
     param_grid_upper = {
-        'bins_before': [1, 2, 3, 4, 5, 6, 7, 8],
+        'bins_before': [1, 2, 3, 4, 5, 6, 7, 8, 10, 20, 30, 50, 100],
         'bin_width': [0.1, 0.5, 1, 2, 3, 4],
     }
     largest_diff = float('-inf')
