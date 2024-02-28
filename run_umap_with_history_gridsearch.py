@@ -247,7 +247,7 @@ def main():
     largest_diff = float('-inf')
     param_results = {}
     intermediate_results = pd.DataFrame(columns=['difference', 'best_params', 'upper_params'])
-    n_iter = 100
+    n_iter = 20
     for params in ParameterSampler(param_grid_upper, n_iter=n_iter):
         bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
         bins_current = 1  # Whether to use concurrent time bin of neural data
