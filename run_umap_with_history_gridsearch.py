@@ -206,9 +206,10 @@ def train_and_test_on_reduced(
     tscv = TimeSeriesSplit(n_splits=5)
 
     # RandomizedSearchCV parameters
-    n_iter_search = 10  # Adjust this as needed
+    n_iter_search = 10
+    regressor_instance = regressor(**regressor_kwargs)
     random_search = RandomizedSearchCV(
-        estimator=None,  # Specify your estimator (e.g., regressor(**regressor_kwargs))
+        estimator=regressor_instance,
         param_distributions=param_dist,
         n_iter=n_iter_search,
         cv=tscv,  # Use TimeSeriesSplit for time-series cross-validation
