@@ -228,7 +228,7 @@ def main():
             'n_neighbors': 70,
             'min_dist': 0.3,
             'metric': 'euclidean',
-            'n_jobs': 10,
+            'n_jobs': 1,
         }
 
         # space_ref = ['No Noise', 'Noise']
