@@ -16,6 +16,7 @@ from scipy.ndimage import gaussian_filter1d
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from scipy.stats import randint
 from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV, \
     RandomizedSearchCV, cross_val_score
 from sklearn.svm import SVC
@@ -90,7 +91,7 @@ def process_window_within_split(
     return results
 
 
-
+#
 # def train_and_test_on_reduced(
 #         spks,
 #         bhv,
@@ -176,50 +177,90 @@ def process_window_within_split(
 #     # After the loop, the best hyperparameters are those that yield the largest difference
 #     return best_params, largest_diff
 
-
 def train_and_test_on_reduced(
-        spks,
-        bhv,
-        regress,
-        regressor,
-        regressor_kwargs,
-        reducer,
-        reducer_kwargs,
-        window_size,
-        n_jobs_parallel=1,
+    spks,
+    bhv,
+    regress,
+    regressor,
+    regressor_kwargs,
+    reducer,
+    reducer_kwargs,
+    window_size,
+    n_jobs_parallel=1,
 ):
-    # Define the grid of hyperparameters
-    param_grid = {
+    param_dist = {
         'regressor__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
         'regressor__C': [0.1, 1, 10],
         'reducer__n_components': [2, 3, 4],
-        'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70, 80],
+        'reducer__n_neighbors': randint(10, 81),  # Randomize within the specified range
         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
         'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
     }
 
+    # Initialize the best hyperparameters and the largest difference
+    best_params = None
+    largest_diff = float('-inf')
     y = bhv[regress].values
 
     # Create a TimeSeriesSplit object for 5-fold cross-validation
     tscv = TimeSeriesSplit(n_splits=5)
 
-    # Create a pipeline
-    reducer_pipeline = Pipeline([
-        ('reducer', reducer(**reducer_kwargs)),
-        ('regressor', regressor(**regressor_kwargs))
-    ])
+    # RandomizedSearchCV parameters
+    n_iter_search = 10  # Adjust this as needed
+    random_search = RandomizedSearchCV(
+        estimator=None,  # Specify your estimator (e.g., regressor(**regressor_kwargs))
+        param_distributions=param_dist,
+        n_iter=n_iter_search,
+        cv=tscv,  # Use TimeSeriesSplit for time-series cross-validation
+        n_jobs=n_jobs_parallel,  # Use all available cores
+    )
 
-    # Create a GridSearchCV object
-    grid_search = RandomizedSearchCV(reducer_pipeline, param_grid, cv=tscv, n_jobs=n_jobs_parallel, verbose=1)
+    # Fit the RandomizedSearchCV
+    random_search.fit(spks, y)
 
-    # Fit the GridSearchCV object to the data
-    grid_search.fit(spks, y)
+    # Get best parameters from the search
+    best_params_final = random_search.best_params_
 
-    # Get the best parameters and the best score
-    best_params = grid_search.best_params_
-    best_score = grid_search.best_score_
+    # Extract regressor and reducer from best_params_final
+    regressor = regressor(**best_params_final['regressor'])
+    reducer = reducer(**best_params_final['reducer'])
 
-    return best_params, best_score
+    # Initialize lists to store results_cv and permutation_results for each fold
+    results_cv_list = []
+    permutation_results_list = []
+
+    # Perform 5-fold cross-validation
+    for train_index, test_index in tscv.split(spks):
+        # Split the data into training and testing sets
+        X_train, X_test = spks[train_index], spks[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+
+        # Train the model and compute results_cv
+        results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+            delayed(process_window_within_split)(
+                w, X_train, X_test, window_size, y_train, y_test, reducer, regressor
+            ) for w in tqdm(range(spks.shape[1] - window_size))
+        )
+        results_cv_list.append(results_cv)
+
+        # Compute permutation_results
+        y_train_perm = np.random.permutation(y_train)
+        results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+            delayed(process_window_within_split)(
+                w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor
+            ) for w in tqdm(range(spks.shape[1] - window_size))
+        )
+        permutation_results_list.append(results_perm)
+
+    # Calculate the difference between the mean of results_cv and permutation_results
+    diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean(
+        [res['mse_score'] for sublist in permutation_results_list for res in sublist]
+    )
+
+    # Return the best parameters and the largest difference
+    return best_params_final, diff
+
+
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
