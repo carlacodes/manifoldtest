@@ -206,11 +206,26 @@ def train_and_test_on_reduced(
     tscv = TimeSeriesSplit(n_splits=5)
 
     # RandomizedSearchCV parameters
-    n_iter_search = 10
+    n_iter_search = 10  # Adjust this as needed
     regressor_instance = regressor(**regressor_kwargs)
+    reducer_instance = reducer(**reducer_kwargs)
+
+    param_dist = {
+        'regressor__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+        'regressor__C': [0.1, 1, 10],
+        'reducer__n_components': [2, 3, 4],
+        'reducer__n_neighbors': randint(10, 81),  # Randomize within the specified range
+        'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
+        'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
+    }
+
     random_search = RandomizedSearchCV(
-        estimator=regressor_instance,
+        estimator=Pipeline([
+            ('regressor', regressor_instance),
+            ('reducer', reducer_instance),
+        ]),
         param_distributions=param_dist,
+        scoring='neg_mean_squared_error',  # Specify a relevant scoring metric
         n_iter=n_iter_search,
         cv=tscv,  # Use TimeSeriesSplit for time-series cross-validation
         n_jobs=n_jobs_parallel,  # Use all available cores
