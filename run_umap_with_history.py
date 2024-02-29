@@ -1,3 +1,4 @@
+import copy
 from pathlib import Path
 from datetime import datetime
 from sklearn.metrics import mean_squared_error, r2_score
@@ -563,8 +564,8 @@ def train_and_test_on_reduced(
     if n_permutations > 0:
         for n in range(n_permutations):
             print(f'Permutation {n} / {n_permutations}')
-            y_perm = y.deepcopy()
-            spks_perm = spks.deepcopy()
+            y_perm = copy.deepcopy(y)
+            spks_perm = copy.deepcopy(spks)
             for i, (train_idx, test_idx) in enumerate(skf.split(spks_perm, y_perm)):
                 print(f'Fold {i} / {skf.get_n_splits()}')
                 X_train = spks_perm[train_idx, :, :]
