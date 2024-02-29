@@ -269,7 +269,7 @@ if __name__ == "__main__":
     spike_trains = load_pickle('spike_trains', spike_dir)
 
     # concatenate data from all trials into np.arrays for training
-    labels, column_names = cat_dlc(windowed_dlc)
+    labels, column_names = cat_dlc(windowed_dlc, scale_data=False)
     # convert labels to float32
     labels = labels.astype(np.float32)
     np.save(f'{dlc_dir}/labels_2902_with_dist2goal.npy', labels)
