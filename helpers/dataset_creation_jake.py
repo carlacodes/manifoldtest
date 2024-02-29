@@ -115,7 +115,7 @@ def create_spike_trains(units, window_edges, window_size):
     return spike_trains
 
 
-def cat_dlc(windowed_dlc, include_raw_hd = True):
+def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = True):
     # concatenate data from all trials into np.arrays for training
     # we will keep columns x, y, and the 2 distance to goal columns.
     # the hd and relative_direction columns (but relative_direction_to columns)
@@ -173,9 +173,10 @@ def cat_dlc(windowed_dlc, include_raw_hd = True):
             dlc_array = np.concatenate((dlc_array, temp_array), axis=0)
 
     # all columns need to be scaled to the range 0-1
-    # for i in range(dlc_array.shape[1]):
-    #     dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
-    #                       (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
+    if scale_data:
+        for i in range(dlc_array.shape[1]):
+            dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
+                              (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
 
     dlc_array = np.round(dlc_array, 3)
 
@@ -268,10 +269,10 @@ if __name__ == "__main__":
     spike_trains = load_pickle('spike_trains', spike_dir)
 
     # concatenate data from all trials into np.arrays for training
-    labels = cat_dlc(windowed_dlc)
+    labels, column_names = cat_dlc(windowed_dlc)
     # convert labels to float32
     labels = labels.astype(np.float32)
-    np.save(f'{dlc_dir}/labels_2902_2.npy', labels)
+    np.save(f'{dlc_dir}/labels_2902_with_dist2goal.npy', labels)
 
     # concatenate spike trains into np.arrays for training
     model_inputs, unit_list = cat_spike_trains(spike_trains)
