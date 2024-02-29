@@ -90,11 +90,16 @@ def run_lstm(X, y):
         pvalue = (np.sum(permutation_scores >= score) + 1.0) / (n_permutations + 1.0)
 
         print(f"True score: {score}")
-        print(f"Permutation scores: {permutation_scores}")
+        # print(f"Permutation scores: {permutation_scores}")
+        print(f'Mean permutation score: {np.mean(permutation_scores)}')
         print(f"Permutation test p-value: {pvalue}")
 
         #append the scores to a list
-        score_df = score_df.append({'score': score, 'pvalue': pvalue, 'permutation_scores': permutation_scores}, ignore_index=True)
+        current_score_df = pd.DataFrame(
+            {'score': [score], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores], 'mean_perm_score': [np.mean(permutation_scores)]})
+
+        # Append the current scores to the main DataFrame
+        score_df = pd.concat([score_df, current_score_df], ignore_index=True)
     return score_df
 
 
@@ -136,6 +141,7 @@ def run_lstm_with_history(data_dir):
         score_df_neuron = run_lstm(X_of_neuron, target_reshaped)
         score_df_neuron['neuron_index'] = i
         big_score_df = big_score_df.append(score_df_neuron, ignore_index=True)
+    print('done')
 
 
 
