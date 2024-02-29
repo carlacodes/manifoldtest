@@ -116,9 +116,9 @@ def run_lstm_with_history(data_dir):
     labels = np.load(f'{dlc_dir}/labels_2902.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
-    bins_before = 6  # How many bins of neural data prior to the output are used for decoding
+    bins_before = 12  # How many bins of neural data prior to the output are used for decoding
     bins_current = 1  # Whether to use concurrent time bin of neural data
-    bins_after = 6  # How many bins of neural data after the output are used for decoding
+    bins_after = 12  # How many bins of neural data after the output are used for decoding
     X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
     # remove the first six and last six bins
     X_for_lstm = X[6:-6]
@@ -140,7 +140,7 @@ def run_lstm_with_history(data_dir):
         X_of_neuron = X_of_neuron.reshape(X_of_neuron.shape[0], X_of_neuron.shape[1], 1)
         score_df_neuron = run_lstm(X_of_neuron, target_reshaped)
         score_df_neuron['neuron_index'] = i
-        big_score_df = big_score_df.append(score_df_neuron, ignore_index=True)
+        big_score_df = pd.concat([big_score_df, score_df_neuron], ignore_index=True)
     print('done')
 
 
