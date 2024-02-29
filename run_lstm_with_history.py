@@ -78,13 +78,19 @@ def run_lstm(X, y):
         # Increase fold number
         fold_no = fold_no + 1
 
-        # Permutation test
-        score, permutation_scores, pvalue = permutation_test_score(
-            model, X_test_torch.numpy(), y_test, scoring="mse", cv=tscv, n_permutations=100
-        )
-        print(f"True score: {score}")
-        print(f"Permutation score: {permutation_scores}")
+        # Manual permutation test
+        n_permutations = 100
+        permutation_scores = np.zeros(n_permutations)
+        for i in range(n_permutations):
+            y_test_permuted = np.random.permutation(y_test)
+            y_pred_permuted = model(torch.from_numpy(X_test_torch.numpy()).float())
+            permutation_scores[i] = mean_squared_error(y_test_permuted, y_pred_permuted.detach().numpy())
 
+        score = mean_squared_error(y_test, y_pred.detach().numpy())
+        pvalue = (np.sum(permutation_scores >= score) + 1.0) / (n_permutations + 1.0)
+
+        print(f"True score: {score}")
+        print(f"Permutation scores: {permutation_scores}")
         print(f"Permutation test p-value: {pvalue}")
 
         #append the scores to a list
