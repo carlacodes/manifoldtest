@@ -173,9 +173,9 @@ def cat_dlc(windowed_dlc, include_raw_hd = True):
             dlc_array = np.concatenate((dlc_array, temp_array), axis=0)
 
     # all columns need to be scaled to the range 0-1
-    for i in range(dlc_array.shape[1]):
-        dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
-                          (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
+    # for i in range(dlc_array.shape[1]):
+    #     dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
+    #                       (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
 
     dlc_array = np.round(dlc_array, 3)
 
