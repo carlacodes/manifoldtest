@@ -115,7 +115,7 @@ def create_spike_trains(units, window_edges, window_size):
     return spike_trains
 
 
-def cat_dlc(windowed_dlc):
+def cat_dlc(windowed_dlc, include_raw_hd = True):
     # concatenate data from all trials into np.arrays for training
     # we will keep columns x, y, and the 2 distance to goal columns.
     # the hd and relative_direction columns (but relative_direction_to columns)
@@ -153,11 +153,19 @@ def cat_dlc(windowed_dlc):
                 temp_array[:, count] = windowed_dlc[k][c].values
                 count += 1
 
-            else:
+            elif include_raw_hd:
                 # angular data needs to be converted to sin and cos
                 temp_array[:, count] = np.sin(windowed_dlc[k][c].values)
                 temp_array[:, count + 1] = np.cos(windowed_dlc[k][c].values)
+                temp_array[:, count + 2] = windowed_dlc[k][c].values
+                count += 3
+            else:
+                temp_array[:, count] = np.sin(windowed_dlc[k][c].values)
+                temp_array[:, count + 1] = np.cos(windowed_dlc[k][c].values)
                 count += 2
+
+
+
 
         if i == 0:
             dlc_array = temp_array.copy()
@@ -263,7 +271,7 @@ if __name__ == "__main__":
     labels = cat_dlc(windowed_dlc)
     # convert labels to float32
     labels = labels.astype(np.float32)
-    np.save(f'{dlc_dir}/labels.npy', labels)
+    np.save(f'{dlc_dir}/labels_2902.npy', labels)
 
     # concatenate spike trains into np.arrays for training
     model_inputs, unit_list = cat_spike_trains(spike_trains)
