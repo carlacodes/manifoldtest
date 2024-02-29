@@ -9,12 +9,19 @@ from joblib import Parallel, delayed
 # from extractlfpandspikedata import load_theta_data
 from helpers.load_and_save_data import load_pickle, save_pickle
 from helpers.datahandling import DataHandler
+from sklearn.model_selection import ParameterSampler
 from sklearn.svm import SVR
 from sklearn.model_selection import KFold
 from scipy.ndimage import gaussian_filter1d
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
+from sklearn.pipeline import make_pipeline
+from sklearn.svm import SVR
+from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
+from scipy.stats import randint
 from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV, \
     RandomizedSearchCV, cross_val_score
 from sklearn.svm import SVC
@@ -25,6 +32,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 from sklearn.model_selection import train_test_split
 import umap
+# import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 # mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
@@ -88,7 +96,7 @@ def process_window_within_split(
     return results
 
 
-
+#
 def train_and_test_on_reduced(
         spks,
         bhv,
@@ -106,7 +114,7 @@ def train_and_test_on_reduced(
         'regressor__C': [0.1, 1, 10],
         'reducer__n_components': [2, 3, 4],
         'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70, 80],
-        'reducer__min_dist': [0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5],
+        'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
         'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
     }
 
@@ -119,7 +127,9 @@ def train_and_test_on_reduced(
     tscv = TimeSeriesSplit(n_splits=5)
 
     # Iterate over all combinations of hyperparameters
-    for params in ParameterGrid(param_grid):
+    # for params in ParameterGrid(param_grid):
+    n_iter = 20
+    for params in ParameterSampler(param_grid, n_iter=n_iter):
         # Update the kwargs with the current parameters
         regressor_kwargs.update({k.replace('regressor__', ''): v for k, v in params.items() if k.startswith('regressor__')})
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
@@ -163,7 +173,7 @@ def train_and_test_on_reduced(
         # diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
         # diff = np.mean([res['mse_score'] for res in results_cv_list]) - np.mean([res['mse_score'] for res in permutation_results_list])
         diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean([res['mse_score'] for sublist in permutation_results_list for res in sublist])
-
+        print(f'difference is: {diff}')
 
 
         # If this difference is larger than the current largest difference, update the best hyperparameters and the largest difference
@@ -173,6 +183,106 @@ def train_and_test_on_reduced(
 
     # After the loop, the best hyperparameters are those that yield the largest difference
     return best_params, largest_diff
+
+# def train_and_test_on_reduced(
+#     spks,
+#     bhv,
+#     regress,
+#     regressor,
+#     regressor_kwargs,
+#     reducer,
+#     reducer_kwargs,
+#     window_size,
+#     n_jobs_parallel=1,
+# ):
+#     param_dist = {
+#         'regressor__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+#         'regressor__C': [0.1, 1, 10],
+#         'reducer__n_components': [2, 3, 4],
+#         'reducer__n_neighbors': randint(10, 81),  # Randomize within the specified range
+#         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
+#         'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
+#     }
+#
+#     # Initialize the best hyperparameters and the largest difference
+#     best_params = None
+#     largest_diff = float('-inf')
+#     y = bhv[regress].values
+#
+#     # Create a TimeSeriesSplit object for 5-fold cross-validation
+#     tscv = TimeSeriesSplit(n_splits=5)
+#
+#     # RandomizedSearchCV parameters
+#     n_iter_search = 10  # Adjust this as needed
+#
+#
+#     # Create a pipeline with StandardScaler and SVR
+#     regressor_instance = make_pipeline(StandardScaler(), SVR(**regressor_kwargs))
+#     reducer_instance = reducer(**reducer_kwargs)
+#
+#     param_dist = {
+#         'svr__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+#         'svr__C': [0.1, 1, 10],
+#         'reducer__n_components': [2, 3, 4],
+#         'reducer__n_neighbors': randint(10, 81),
+#         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
+#         'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
+#     }
+#
+#     random_search = RandomizedSearchCV(
+#         estimator=regressor_instance,
+#         param_distributions=param_dist,
+#         scoring='neg_mean_squared_error',
+#         n_iter=n_iter_search,
+#         cv=tscv,
+#         n_jobs=n_jobs_parallel,
+#     )
+#
+#     # Fit the RandomizedSearchCV
+#     random_search.fit(spks, y)
+#
+#     # Get best parameters from the search
+#     best_params_final = random_search.best_params_
+#
+#     # Extract regressor and reducer from best_params_final
+#     regressor = regressor(**best_params_final['regressor'])
+#     reducer = reducer(**best_params_final['reducer'])
+#
+#     # Initialize lists to store results_cv and permutation_results for each fold
+#     results_cv_list = []
+#     permutation_results_list = []
+#
+#     # Perform 5-fold cross-validation
+#     for train_index, test_index in tscv.split(spks):
+#         # Split the data into training and testing sets
+#         X_train, X_test = spks[train_index], spks[test_index]
+#         y_train, y_test = y[train_index], y[test_index]
+#
+#         # Train the model and compute results_cv
+#         results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+#             delayed(process_window_within_split)(
+#                 w, X_train, X_test, window_size, y_train, y_test, reducer, regressor
+#             ) for w in tqdm(range(spks.shape[1] - window_size))
+#         )
+#         results_cv_list.append(results_cv)
+#
+#         # Compute permutation_results
+#         y_train_perm = np.random.permutation(y_train)
+#         results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
+#             delayed(process_window_within_split)(
+#                 w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor
+#             ) for w in tqdm(range(spks.shape[1] - window_size))
+#         )
+#         permutation_results_list.append(results_perm)
+#
+#     # Calculate the difference between the mean of results_cv and permutation_results
+#     diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean(
+#         [res['mse_score'] for sublist in permutation_results_list for res in sublist]
+#     )
+#
+#     # Return the best parameters and the largest difference
+#     return best_params_final, diff
+
 
 
 def main():
@@ -184,6 +294,13 @@ def main():
     #load labels
     labels = np.load(f'{dlc_dir}/labels.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
+    #find the times where the head angle is stationary
+    angle_labels = labels[:, 2]
+    stationary_indices = np.where(np.diff(angle_labels) == 0)[0]
+    #remove the stationary indices
+    labels = np.delete(labels, stationary_indices, axis=0)
+    spike_data = np.delete(spike_data, stationary_indices, axis=0)
+
 
     param_grid_upper = {
         'bins_before': [6, 7, 8, 10, 20, 30, 50, 100],
@@ -194,7 +311,8 @@ def main():
     largest_diff = float('-inf')
     param_results = {}
     intermediate_results = pd.DataFrame(columns=['difference', 'best_params', 'upper_params'])
-    for params in ParameterGrid(param_grid_upper):
+    n_iter = 20
+    for params in ParameterSampler(param_grid_upper, n_iter=n_iter):
         bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
         bins_current = 1  # Whether to use concurrent time bin of neural data
         bins_after = bins_before  # How many bins of neural data after the output are used for decoding
@@ -232,8 +350,8 @@ def main():
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
-        filename = f'params_{now}.npy'
-        filename_intermediate_params = f'intermediate_params_{now_day}.npy'
+        filename = f'params_reducrandom_{now}.npy'
+        filename_intermediate_params = f'intermediate_params_reducrandom_random_search_{now_day}.npy'
 
         if window_size >= X_for_umap.shape[1]:
             print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[1]} in the neural data')
