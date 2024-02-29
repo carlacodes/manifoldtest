@@ -43,7 +43,7 @@ def create_positional_trains(dlc_data, window_size=100):  # we'll default to 100
         # find the cols that begin "distance_to_goal_", but don't end "platform"
         # and add them to the list
         cols_to_lin_interp.extend([col for col in dlc_data[k].columns if \
-                                   col.startswith('distance_to_goal_') and not \
+                                   col.startswith('dist2') and not \
                                        col.endswith('platform')])
 
         for c in cols_to_lin_interp:
@@ -127,7 +127,7 @@ def cat_dlc(windowed_dlc, include_raw_hd = True):
             columns = windowed_dlc[k].columns
 
             # find the distance to goal columns
-            distance_cols = [c for c in columns if c.startswith('distance_to_goal_')]
+            distance_cols = [c for c in columns if c.startswith('dist')]
 
             # find the relative direction columns (but not relative_direction_to columns)
             relative_direction_cols = [c for c in columns if c.startswith('relative_direction_') \
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     labels = cat_dlc(windowed_dlc)
     # convert labels to float32
     labels = labels.astype(np.float32)
-    np.save(f'{dlc_dir}/labels_2902.npy', labels)
+    np.save(f'{dlc_dir}/labels_2902_2.npy', labels)
 
     # concatenate spike trains into np.arrays for training
     model_inputs, unit_list = cat_spike_trains(spike_trains)

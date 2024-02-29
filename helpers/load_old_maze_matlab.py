@@ -68,6 +68,9 @@ def create_ps_dataframes(positional_data_dir):
         # extract the head angle
         hd = pos_data['dlc_angle']
         hd = round_matlab_data(hd, 2)
+        dist2goal = pos_data['dist2goal']
+
+
 
         # extract the video time
         video_time = pos_data['videoTime']
@@ -85,6 +88,7 @@ def create_ps_dataframes(positional_data_dir):
             x = xy[t][:, 0].flatten()
             y = xy[t][:, 1].flatten()
             hd[t] = hd[t].flatten()
+            dist2goal[t] = dist2goal[t].flatten()
 
             # the hd data needs to be rotated by 90deg and converted to radians
             hdtemp = (hd[t] - 90)
@@ -98,7 +102,7 @@ def create_ps_dataframes(positional_data_dir):
             trial = f'trial_{t + 1}'
             pos_dataframes[task][trial] = pd.DataFrame({'video_samples': samples[t],
                                                         'video_time': video_time[t], 'x': x, 'y': y,
-                                                        'hd': hdtemp})
+                                                        'hd': hdtemp, 'dist2goal': dist2goal[t]})
 
     return pos_dataframes, goal_position, goal_id
 

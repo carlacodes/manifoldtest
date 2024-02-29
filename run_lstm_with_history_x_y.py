@@ -113,7 +113,7 @@ def run_lstm_with_history(data_dir):
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
     # load labels
-    labels = np.load(f'{dlc_dir}/labels_2902.npy')
+    labels = np.load(f'{dlc_dir}/labels.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
     bins_before = 6  # How many bins of neural data prior to the output are used for decoding
