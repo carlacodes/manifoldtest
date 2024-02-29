@@ -116,15 +116,18 @@ def run_lstm_with_history(data_dir):
     # labels_for_umap = labels[:, 0:3]
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_raw'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    target = label_df['dlc_angle_raw']
+    target = label_df['dlc_angle_raw'].values
+
     #big dataframe
     big_score_df = pd.DataFrame()
     #isolate each of the 112 neurons and run the lstm on each of them
     for i in range(0, X_for_lstm.shape[2]):
         X_of_neuron = X_for_lstm[:, :, i]
+        target_reshaped = target.reshape(-1, 1)
+
         #add back the third dimension
         X_of_neuron = X_of_neuron.reshape(X_of_neuron.shape[0], X_of_neuron.shape[1], 1)
-        score_df_neuron = run_lstm(X_of_neuron, target)
+        score_df_neuron = run_lstm(X_of_neuron, target_reshaped)
         score_df_neuron['neuron_index'] = i
         big_score_df = big_score_df.append(score_df_neuron, ignore_index=True)
 
