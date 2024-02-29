@@ -40,6 +40,7 @@ def run_lstm(X, y):
     tscv = TimeSeriesSplit(n_splits=5)
     # TimeSeries Cross Validation model evaluation
     fold_no = 1
+    score_df = pd.DataFrame()
     for train, test in tscv.split(X):
         input_dim = X[train].shape[2]  # number of features
         hidden_dim = 50  # you can change this
@@ -80,8 +81,15 @@ def run_lstm(X, y):
         score, permutation_scores, pvalue = permutation_test_score(
             model, X_test_torch.numpy(), y_test, scoring="r2", cv=tscv, n_permutations=100
         )
-        print(f"Permutation test score: {score}")
+        print(f"True score: {score}")
+        print(f"Permutation score: {permutation_scores}")
+
         print(f"Permutation test p-value: {pvalue}")
+
+        #append the scores to a list
+        score_df = score_df.append({'score': score, 'pvalue': pvalue, 'permutation_scores': permutation_scores}, ignore_index=True)
+    return score_df
+
 
 
 
@@ -108,11 +116,16 @@ def run_lstm_with_history(data_dir):
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_raw'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
     target = label_df['dlc_angle_raw']
-
+    #big dataframe
+    big_score_df = pd.DataFrame()
     #isolate each of the 112 neurons and run the lstm on each of them
     for i in range(0, X_for_lstm.shape[2]):
         X_of_neuron = X_for_lstm[:, :, i]
-        run_lstm(X_of_neuron, target)
+        score_df_neuron = run_lstm(X_of_neuron, target)
+        score_df_neuron['neuron'] = i
+        big_score_df = big_score_df.append(score_df_neuron, ignore_index=True)
+
+
 
 
 def main():
