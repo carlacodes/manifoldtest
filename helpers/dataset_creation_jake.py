@@ -179,7 +179,7 @@ def cat_dlc(windowed_dlc, include_raw_hd = True):
 
     dlc_array = np.round(dlc_array, 3)
 
-    return dlc_array
+    return dlc_array, column_names
 
 
 def cat_spike_trains(spike_trains):
