@@ -122,6 +122,8 @@ def run_lstm_with_history(data_dir):
     #isolate each of the 112 neurons and run the lstm on each of them
     for i in range(0, X_for_lstm.shape[2]):
         X_of_neuron = X_for_lstm[:, :, i]
+        #add back the third dimension
+        X_of_neuron = X_of_neuron.reshape(X_of_neuron.shape[0], X_of_neuron.shape[1], 1)
         score_df_neuron = run_lstm(X_of_neuron, target)
         score_df_neuron['neuron_index'] = i
         big_score_df = big_score_df.append(score_df_neuron, ignore_index=True)
