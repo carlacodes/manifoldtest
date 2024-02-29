@@ -563,13 +563,14 @@ def train_and_test_on_reduced(
     if n_permutations > 0:
         for n in range(n_permutations):
             print(f'Permutation {n} / {n_permutations}')
-            y_perm = np.random.permutation(y)
-            spks_perm = np.random.permutation(spks)
+            y_perm = y.deepcopy()
+            spks_perm = spks.deepcopy()
             for i, (train_idx, test_idx) in enumerate(skf.split(spks_perm, y_perm)):
                 print(f'Fold {i} / {skf.get_n_splits()}')
                 X_train = spks_perm[train_idx, :, :]
                 X_test = spks_perm[test_idx, :, :]
                 y_train = y_perm[train_idx]
+                y_train = np.random.permutation(y_train)
                 y_test = y_perm[test_idx]
 
                 # Z-score to train data
@@ -610,7 +611,7 @@ def main():
 
 
     #load labels
-    labels = np.load(f'{dlc_dir}/labels.npy')
+    labels = np.load(f'{dlc_dir}/labels_2902.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
 
 
@@ -622,11 +623,11 @@ def main():
     #remove the first six and last six bins
     X_for_umap = X[6:-6]
     labels_for_umap = labels[6:-6]
-    labels_for_umap = labels_for_umap[:, 0:3]
+    labels_for_umap = labels_for_umap[:, 0:5]
     # labels_for_umap = labels[:, 0:3]
-    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
+    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_norm'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
+    # unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
 
     bin_width = 0.5
     window_for_decoding = 6  # in s
@@ -650,7 +651,7 @@ def main():
 
     # space_ref = ['No Noise', 'Noise']
     #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
-    regress = 'angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
+    regress = 'dlc_angle_norm'  # Assuming 'head_angle' is the column in your DataFrame for regression
 
     # Use KFold for regression
     # kf = KFold(n_splits=5, shuffle=True)
