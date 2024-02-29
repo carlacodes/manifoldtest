@@ -43,7 +43,7 @@ def run_lstm(X, y):
     score_df = pd.DataFrame()
     for train, test in tscv.split(X):
         input_dim = X[train].shape[2]  # number of features
-        hidden_dim = 50  # you can change this
+        hidden_dim = 400  # you can change this
         output_dim = 1  # regression problem, so output dimension is 1
         model = LSTMNet(input_dim, hidden_dim, output_dim)
 
@@ -79,7 +79,7 @@ def run_lstm(X, y):
 
         # Permutation test
         score, permutation_scores, pvalue = permutation_test_score(
-            model, X_test_torch.numpy(), y_test, scoring="r2", cv=tscv, n_permutations=100
+            model, X_test_torch.numpy(), y_test, scoring="mse", cv=tscv, n_permutations=100
         )
         print(f"True score: {score}")
         print(f"Permutation score: {permutation_scores}")
@@ -122,7 +122,7 @@ def run_lstm_with_history(data_dir):
     for i in range(0, X_for_lstm.shape[2]):
         X_of_neuron = X_for_lstm[:, :, i]
         score_df_neuron = run_lstm(X_of_neuron, target)
-        score_df_neuron['neuron'] = i
+        score_df_neuron['neuron_index'] = i
         big_score_df = big_score_df.append(score_df_neuron, ignore_index=True)
 
 
