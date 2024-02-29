@@ -596,9 +596,9 @@ def train_and_test_on_reduced(
     }
     return results
 
-def main():
-    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    results_old = np.load(f'{data_dir}/results_2024-02-22_16-57-58.npy', allow_pickle=True).item(0)
+
+def run_umap_with_history(data_dir):
+    # results_old = np.load(f'{data_dir}/results_2024-02-22_16-57-58.npy', allow_pickle=True).item(0)
 
     # data_dir = '/media/jake/DataStorage_6TB/DATA/neural_network/og_honeycomb/rat7/6-12-2019'
 
@@ -610,18 +610,15 @@ def main():
     # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
-
-    #load labels
+    # load labels
     labels = np.load(f'{dlc_dir}/labels_2902.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
-
-
 
     bins_before = 6  # How many bins of neural data prior to the output are used for decoding
     bins_current = 1  # Whether to use concurrent time bin of neural data
     bins_after = 6  # How many bins of neural data after the output are used for decoding
     X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
-    #remove the first six and last six bins
+    # remove the first six and last six bins
     X_for_umap = X[6:-6]
     labels_for_umap = labels[6:-6]
     labels_for_umap = labels_for_umap[:, 0:5]
@@ -639,7 +636,6 @@ def main():
     regressor = SVR
     regressor_kwargs = {'kernel': 'linear', 'C': 1}
 
-
     reducer = UMAP
 
     reducer_kwargs = {
@@ -651,7 +647,7 @@ def main():
     }
 
     # space_ref = ['No Noise', 'Noise']
-    #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
+    # temporarily remove the space_ref variable, I don't want to incorporate separate data yet
     regress = 'dlc_angle_norm'  # Assuming 'head_angle' is the column in your DataFrame for regression
 
     # Use KFold for regression
@@ -696,8 +692,12 @@ def main():
     save_path = Path('C:/neural_data/rat_7/6-12-2019')
     save_path.mkdir(exist_ok=True)
     np.save(save_path / filename, results)
+def main():
+    dir = 'C:/neural_data/rat_7/6-12-2019/'
+    run_umap_with_history(dir)
+    return
+
 
 
 if __name__ == '__main__':
-    #
     main()
