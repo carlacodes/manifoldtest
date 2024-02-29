@@ -5,6 +5,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.dummy import DummyRegressor
 # from mpl_toolkits import mplot3d
 import os
+from sklearn.model_selection import permutation_test_score
+
 from tqdm import tqdm
 from joblib import Parallel, delayed
 # from extractlfpandspikedata import load_theta_data
@@ -13,7 +15,7 @@ from helpers.datahandling import DataHandler
 from sklearn.svm import SVR
 from umap import UMAP
 import pandas as pd
-import matplotlib.pyplot as plt
+from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV
 import matplotlib.cm as cm
 import numpy as np
 import torch
@@ -32,46 +34,59 @@ class LSTMNet(nn.Module):
         out = self.fc(lstm_out[:, -1, :])
         return out
 
-# Instantiate the model
 
-def run_lstm():
-    #split by timeseries
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
-    input_dim = X_train.shape[2]  # number of features
-    hidden_dim = 50  # you can change this
-    output_dim = 1  # regression problem, so output dimension is 1
-    model = LSTMNet(input_dim, hidden_dim, output_dim)
+def run_lstm(X, y):
+    # Define the TimeSeries Cross Validator
+    tscv = TimeSeriesSplit(n_splits=5)
+    # TimeSeries Cross Validation model evaluation
+    fold_no = 1
+    for train, test in tscv.split(X):
+        input_dim = X[train].shape[2]  # number of features
+        hidden_dim = 50  # you can change this
+        output_dim = 1  # regression problem, so output dimension is 1
+        model = LSTMNet(input_dim, hidden_dim, output_dim)
 
-    # Define loss function and optimizer
-    criterion = nn.MSELoss()  # for regression problem
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)  # you can change the learning rate
+        # Define loss function and optimizer
+        criterion = nn.MSELoss()  # for regression problem
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.01)  # you can change the learning rate
 
-    # Convert numpy arrays to PyTorch tensors
-    X_train_torch = torch.from_numpy(X_train).float()
-    y_train_torch = torch.from_numpy(y_train).float()
+        # Convert numpy arrays to PyTorch tensors
+        X_train_torch = torch.from_numpy(X[train]).float()
+        y_train_torch = torch.from_numpy(y[train]).float()
 
-    # Train the model
-    num_epochs = 100  # you can change this
-    for epoch in range(num_epochs):
-        model.train()
-        optimizer.zero_grad()
-        outputs = model(X_train_torch)
-        loss = criterion(outputs, y_train_torch)
-        loss.backward()
-        optimizer.step()
+        # Train the model
+        num_epochs = 100  # you can change this
+        for epoch in range(num_epochs):
+            model.train()
+            optimizer.zero_grad()
+            outputs = model(X_train_torch)
+            loss = criterion(outputs, y_train_torch)
+            loss.backward()
+            optimizer.step()
 
-    # Convert test data to PyTorch tensor
-    X_test_torch = torch.from_numpy(X_test).float()
+        # Convert test data to PyTorch tensor
+        X_test_torch = torch.from_numpy(X[test]).float()
+        y_test = y[test]
 
-    # Make predictions on the test set
-    model.eval()
-    with torch.no_grad():
-        y_pred = model(X_test_torch)
+        # Make predictions on the test set
+        model.eval()
+        with torch.no_grad():
+            y_pred = model(X_test_torch)
+
+        # Increase fold number
+        fold_no = fold_no + 1
+
+        # Permutation test
+        score, permutation_scores, pvalue = permutation_test_score(
+            model, X_test_torch.numpy(), y_test, scoring="r2", cv=tscv, n_permutations=100
+        )
+        print(f"Permutation test score: {score}")
+        print(f"Permutation test p-value: {pvalue}")
 
 
 
 
-def run_umap_with_history(data_dir):
+def run_lstm_with_history(data_dir):
 
     spike_dir = os.path.join(data_dir, 'physiology_data')
     # spike_trains = load_pickle('spike_trains', spike_dir)
@@ -86,82 +101,23 @@ def run_umap_with_history(data_dir):
     bins_after = 6  # How many bins of neural data after the output are used for decoding
     X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
     # remove the first six and last six bins
-    X_for_umap = X[6:-6]
+    X_for_lstm = X[6:-6]
     labels_for_umap = labels[6:-6]
     labels_for_umap = labels_for_umap[:, 0:5]
     # labels_for_umap = labels[:, 0:3]
-    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_norm'])
+    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_raw'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    # unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
+    target = label_df['dlc_angle_raw']
 
-    bin_width = 0.5
-    window_for_decoding = 6  # in s
-    window_size = int(window_for_decoding / bin_width)  # in bins
+    #isolate each of the 112 neurons and run the lstm on each of them
+    for i in range(0, X_for_lstm.shape[2]):
+        X_of_neuron = X_for_lstm[:, :, i]
+        run_lstm(X_of_neuron, target)
 
-    n_runs = 1
 
-    regressor = SVR
-    regressor_kwargs = {'kernel': 'linear', 'C': 1}
-
-    reducer = UMAP
-
-    reducer_kwargs = {
-        'n_components': 3,
-        'n_neighbors': 70,
-        'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
-    }
-
-    # space_ref = ['No Noise', 'Noise']
-    # temporarily remove the space_ref variable, I don't want to incorporate separate data yet
-    regress = 'dlc_angle_norm'  # Assuming 'head_angle' is the column in your DataFrame for regression
-
-    # Use KFold for regression
-    # kf = KFold(n_splits=5, shuffle=True)
-
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f'results_{now}.npy'
-    results_between = {}
-    results_within = {}
-    results_w_perm_reduced = {}
-    n_permutations = 5
-    for run in range(n_runs):
-        results_between[run] = {}
-        results_within[run] = {}
-        # for space in space_ref:
-
-        # results_between[run] = train_ref_classify_rest(
-        #     X_for_umap,
-        #     label_df,
-        #     regress,
-        #     regressor,
-        #     regressor_kwargs,
-        #     reducer,
-        #     reducer_kwargs,
-        #     window_size,
-        #     n_permutations=n_permutations,
-        # )
-        results_w_perm_reduced[run] = train_and_test_on_reduced(
-            X_for_umap,
-            label_df,
-            regress,
-            regressor,
-            regressor_kwargs,
-            reducer,
-            reducer_kwargs,
-            window_size,
-            n_permutations=n_permutations, n_jobs_parallel=5
-        )
-
-        # Save results
-    results = {'between': results_between, 'within': results_w_perm_reduced}
-    save_path = Path('C:/neural_data/rat_7/6-12-2019')
-    save_path.mkdir(exist_ok=True)
-    np.save(save_path / filename, results)
 def main():
     dir = 'C:/neural_data/rat_7/6-12-2019/'
-    run_umap_with_history(dir)
+    run_lstm_with_history(dir)
     return
 
 
