@@ -156,8 +156,8 @@ def run_lstm_with_history(data_dir):
 
 
 def main():
-    dir = 'C:/neural_data/rat_7/6-12-2019/'
-    run_lstm_with_history(dir)
+    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
+    run_lstm_with_history(data_dir)
     return
 
 
