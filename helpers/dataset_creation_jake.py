@@ -115,7 +115,7 @@ def create_spike_trains(units, window_edges, window_size):
     return spike_trains
 
 
-def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = True):
+def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_data = True):
     # concatenate data from all trials into np.arrays for training
     # we will keep columns x, y, and the 2 distance to goal columns.
     # the hd and relative_direction columns (but relative_direction_to columns)
@@ -177,6 +177,10 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = True):
         for i in range(dlc_array.shape[1]):
             dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
                               (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
+    elif z_score_data:
+        for i in range(dlc_array.shape[1]):
+            dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / \
+                              np.std(dlc_array[:, i])
 
     dlc_array = np.round(dlc_array, 3)
 
@@ -270,10 +274,11 @@ if __name__ == "__main__":
 
     # concatenate data from all trials into np.arrays for training
     norm_data = True
-    labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data)
+    zscore_option = True
+    labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
     # convert labels to float32
     labels = labels.astype(np.float32)
-    np.save(f'{dlc_dir}/labels_2902_with_dist2goal_scale_data_{norm_data}.npy', labels)
+    np.save(f'{dlc_dir}/labels_2902_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}.npy', labels)
 
     # concatenate spike trains into np.arrays for training
     model_inputs, unit_list = cat_spike_trains(spike_trains)
