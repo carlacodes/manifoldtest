@@ -45,7 +45,7 @@ def run_lstm(X, y):
     for train, test in tscv.split(X):
         input_dim = X[train].shape[2]  # number of features
         hidden_dim = 400  # you can change this
-        output_dim = 1  # regression problem, so output dimension is 1
+        output_dim = 2  # regression problem, changing output dimension to 2
         model = LSTMNet(input_dim, hidden_dim, output_dim)
 
         # Define loss function and optimizer
@@ -84,9 +84,10 @@ def run_lstm(X, y):
         for i in range(n_permutations):
             y_test_permuted = np.random.permutation(y_test)
             y_pred_permuted = model(torch.from_numpy(X_test_torch.numpy()).float())
-            permutation_scores[i] = mean_squared_error(y_test_permuted, y_pred_permuted.detach().numpy())
+            permutation_scores[i] = mean_squared_error(y_test_permuted, y_pred_permuted.detach().numpy(),
+                                                       multioutput='raw_values').mean()  # calculate mean squared error for each output and then take the mean
 
-        score = mean_squared_error(y_test, y_pred.detach().numpy())
+        score = mean_squared_error(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
         pvalue = (np.sum(permutation_scores >= score) + 1.0) / (n_permutations + 1.0)
 
         print(f"True score: {score}")
