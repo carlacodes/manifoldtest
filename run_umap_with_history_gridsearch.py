@@ -292,7 +292,8 @@ def main():
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
     #load labels
-    labels = np.load(f'{dlc_dir}/labels.npy')
+    labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
+
     spike_data = np.load(f'{spike_dir}/inputs.npy')
     #find the times where the head angle is stationary
     angle_labels = labels[:, 2]
@@ -321,7 +322,7 @@ def main():
         X_for_umap = X[bins_before:-bins_before]
         labels_for_umap = labels[bins_before:-bins_before]
         labels_for_umap = labels_for_umap[:, 0:3]
-        label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle'])
+        label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
         window_for_decoding = params['window_for_decoding']  # in s
@@ -343,7 +344,7 @@ def main():
 
         # space_ref = ['No Noise', 'Noise']
         #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
-        regress = 'angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
+        regress = ['angle_sin', 'angle_cos']# changing to two target variables
 
         # Use KFold for regression
         # kf = KFold(n_splits=5, shuffle=True)
