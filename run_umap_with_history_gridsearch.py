@@ -67,7 +67,23 @@ def process_window_within_split(
     # window_train = scaler.transform(window_train)
     # window_test = scaler.transform(window_test)
     # print("Before any transformation:", window_train.shape)
-    reducer_pipeline.fit(window_train)
+    #make into coordinates for umap
+    sin_values = y_train[:, 0]
+    cos_values = y_train[:, 1]
+    combined_values = np.array([f"{sin:.3f}{cos:.3f}" for sin, cos in zip(sin_values, cos_values)], dtype=float)
+    combined_values = np.array([(sin, cos) for sin, cos in zip(sin_values, cos_values)])
+    coord_list = []
+    for i in range(0, len(combined_values)):
+        coords = np.array(combined_values[i])
+        #convert combined_values into a tuple of coordinates
+        coords = tuple(coords)
+        coord_list.append(coords)
+
+    # coord_list = np.array(coord_list).flatten()
+    # print("After transformation:", window_train.shape)
+
+    # Combine sin and cos values into a 1D array
+    reducer_pipeline.fit(window_train, y = coord_list)
     # Transform the reference and non-reference space
     window_ref_reduced = reducer_pipeline.transform(window_train)
     window_nref_reduced = reducer_pipeline.transform(window_test)
@@ -118,7 +134,7 @@ def train_and_test_on_reduced(
         'reducer__n_components': [2, 3, 4],
         'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70, 80],
         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
-        'reducer__metric': ['euclidean', 'manhattan'],
+        'reducer__metric': ['euclidean'],
     }
 
     # Initialize the best hyperparameters and the largest difference
