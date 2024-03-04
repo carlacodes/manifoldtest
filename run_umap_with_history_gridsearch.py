@@ -115,7 +115,7 @@ def train_and_test_on_reduced(
         'reducer__n_components': [2, 3, 4],
         'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70, 80],
         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
-        'reducer__metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski'],
+        'reducer__metric': ['euclidean', 'manhattan', 'minkowski'],
     }
 
     # Initialize the best hyperparameters and the largest difference
