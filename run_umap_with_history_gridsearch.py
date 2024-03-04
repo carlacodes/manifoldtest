@@ -67,7 +67,7 @@ def process_window_within_split(
     # window_train = scaler.transform(window_train)
     # window_test = scaler.transform(window_test)
     # print("Before any transformation:", window_train.shape)
-    reducer_pipeline.fit(window_train, y=y_train)
+    reducer_pipeline.fit(window_train)
     # Transform the reference and non-reference space
     window_ref_reduced = reducer_pipeline.transform(window_train)
     window_nref_reduced = reducer_pipeline.transform(window_test)
