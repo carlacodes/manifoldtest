@@ -113,12 +113,12 @@ def train_and_test_on_reduced(
 ):
     # Define the grid of hyperparameters
     param_grid = {
-        'regressor__kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
-        'regressor__C': [0.1, 1, 10],
+        'regressor__kernel': ['linear'],
+        # 'regressor__C': [0.1, 1, 10],
         'reducer__n_components': [2, 3, 4],
         'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70, 80],
         'reducer__min_dist': [0.1, 0.2, 0.3, 0.4, 0.5],
-        'reducer__metric': ['euclidean', 'manhattan', 'minkowski'],
+        'reducer__metric': ['euclidean', 'manhattan'],
     }
 
     # Initialize the best hyperparameters and the largest difference
@@ -131,7 +131,7 @@ def train_and_test_on_reduced(
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
-    n_iter = 100
+    n_iter = 5
     for params in ParameterSampler(param_grid, n_iter=n_iter):
         # Update the kwargs with the current parameters
         regressor_kwargs.update({k.replace('regressor__', ''): v for k, v in params.items() if k.startswith('regressor__')})
@@ -313,7 +313,7 @@ def main():
     largest_diff = float('-inf')
     param_results = {}
     intermediate_results = pd.DataFrame(columns=['difference', 'best_params', 'upper_params'])
-    n_iter = 20
+    n_iter = 5
     for params in ParameterSampler(param_grid_upper, n_iter=n_iter):
         bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
         bins_current = 1  # Whether to use concurrent time bin of neural data
@@ -322,7 +322,7 @@ def main():
         #remove the first six and last six bins
         X_for_umap = X[bins_before:-bins_before]
         labels_for_umap = labels[bins_before:-bins_before]
-        labels_for_umap = labels_for_umap[:, 0:3]
+        labels_for_umap = labels_for_umap[:, 0:6]
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
