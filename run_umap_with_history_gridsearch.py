@@ -10,6 +10,8 @@ from joblib import Parallel, delayed
 from helpers.load_and_save_data import load_pickle, save_pickle
 from helpers.datahandling import DataHandler
 from sklearn.model_selection import ParameterSampler
+from sklearn.multioutput import MultiOutputRegressor
+
 from sklearn.svm import SVR
 from sklearn.model_selection import KFold
 from scipy.ndimage import gaussian_filter1d
@@ -170,8 +172,6 @@ def train_and_test_on_reduced(
             permutation_results_list.append(results_perm)
 
         # Calculate the difference between the mean of results_cv and permutation_results
-        # diff = np.mean(results_cv_list) - np.mean(permutation_results_list)
-        # diff = np.mean([res['mse_score'] for res in results_cv_list]) - np.mean([res['mse_score'] for res in permutation_results_list])
         diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean([res['mse_score'] for sublist in permutation_results_list for res in sublist])
 
 
