@@ -56,6 +56,8 @@ def plot_histograms(big_df_by_independent_variable):
         current_independent_variable = big_df_by_independent_variable['independent_variable'].unique()[i]
         current_df = big_df_by_independent_variable[big_df_by_independent_variable['independent_variable'] == current_independent_variable]
         ax[i].hist(current_df['fraction_above_mean_perm_score'])
+        ax[i].set_ylim(0, 40)
+        ax[i].set_xticks([0, 0.25, 0.5, 0.75, 1])
         ax[i].set_title(f'{current_independent_variable}')
         ax[i].set_xlabel('Fraction of scores above mean_perm_score')
         ax[i].set_ylabel('Number of neurons')
