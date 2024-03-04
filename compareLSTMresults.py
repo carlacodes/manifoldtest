@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 
 def load_csvs(csv_dir):
     #load the csv files
@@ -48,9 +49,24 @@ def run_analysis_on_csvs(csv_dict):
         big_df_by_independent_variable = pd.concat([big_df_by_independent_variable, fraction_df], ignore_index=True)
     return big_df_by_independent_variable
 
+def plot_histograms(big_df_by_independent_variable):
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    #plot the histograms
+    for i in range(0, len(big_df_by_independent_variable['independent_variable'].unique())):
+        current_independent_variable = big_df_by_independent_variable['independent_variable'].unique()[i]
+        current_df = big_df_by_independent_variable[big_df_by_independent_variable['independent_variable'] == current_independent_variable]
+        ax[i].hist(current_df['fraction_above_mean_perm_score'])
+        ax[i].set_title(f'{current_independent_variable}')
+        ax[i].set_xlabel('Fraction of scores above mean_perm_score')
+        ax[i].set_ylabel('Number of neurons')
+    plt.savefig('C:/neural_data/rat_7/lstm_csvs/histograms.png')
+    plt.show()
+
 def main():
     csv_dict = load_csvs('C:/neural_data/rat_7/lstm_csvs/')
     big_df = run_analysis_on_csvs(csv_dict)
+    plot_histograms(big_df)
+
 
 
 
