@@ -274,11 +274,11 @@ if __name__ == "__main__":
 
     # concatenate data from all trials into np.arrays for training
     norm_data = False
-    zscore_option = True
+    zscore_option = False
     labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
     # convert labels to float32
     labels = labels.astype(np.float32)
-    np.save(f'{dlc_dir}/labels_2902_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}.npy', labels)
+    np.save(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}.npy', labels)
 
     # concatenate spike trains into np.arrays for training
     model_inputs, unit_list = cat_spike_trains(spike_trains)
