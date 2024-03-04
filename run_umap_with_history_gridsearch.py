@@ -87,7 +87,7 @@ def process_window_within_split(
 
     #combine coord_list into one number per row
 
-    reducer_pipeline.fit(window_train, coord_list)
+    reducer_pipeline.fit(window_train, y = coord_list)
     # Transform the reference and non-reference space
     window_ref_reduced = reducer_pipeline.transform(window_train)
     window_nref_reduced = reducer_pipeline.transform(window_test)
