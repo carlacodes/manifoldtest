@@ -70,20 +70,24 @@ def process_window_within_split(
     #make into coordinates for umap
     sin_values = y_train[:, 0]
     cos_values = y_train[:, 1]
-    combined_values = np.array([f"{sin:.3f}{cos:.3f}" for sin, cos in zip(sin_values, cos_values)], dtype=float)
+
     combined_values = np.array([(sin, cos) for sin, cos in zip(sin_values, cos_values)])
     coord_list = []
-    for i in range(0, len(combined_values)):
-        coords = np.array(combined_values[i])
-        #convert combined_values into a tuple of coordinates
-        coords = tuple(coords)
-        coord_list.append(coords)
 
-    # coord_list = np.array(coord_list).flatten()
-    # print("After transformation:", window_train.shape)
+    for i in range(len(combined_values)):
+        coords = combined_values[i]
 
-    # Combine sin and cos values into a 1D array
-    reducer_pipeline.fit(window_train, y = coord_list)
+        # Map values to the range [0, 2] (assuming values are between -1 and 1)
+        mapped_coords = [(val + 1) / 2 for val in coords]
+
+        # Convert mapped coordinates to a single float using a unique multiplier
+        unique_float_representation = sum(val * (10 ** (i + 1)) for i, val in enumerate(mapped_coords))
+        coord_list.append(unique_float_representation)
+    coord_list = np.array(coord_list).reshape(-1, 1)
+
+    #combine coord_list into one number per row
+
+    reducer_pipeline.fit(window_train, coord_list)
     # Transform the reference and non-reference space
     window_ref_reduced = reducer_pipeline.transform(window_train)
     window_nref_reduced = reducer_pipeline.transform(window_test)
