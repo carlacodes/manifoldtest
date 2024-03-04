@@ -273,7 +273,7 @@ if __name__ == "__main__":
     spike_trains = load_pickle('spike_trains', spike_dir)
 
     # concatenate data from all trials into np.arrays for training
-    norm_data = True
+    norm_data = False
     zscore_option = True
     labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
     # convert labels to float32
