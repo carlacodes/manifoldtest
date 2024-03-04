@@ -58,7 +58,8 @@ def process_window_within_split(
         regressor,
         regressor_kwargs,
 ):
-    reg = regressor(**regressor_kwargs)
+    base_reg = regressor(**regressor_kwargs)
+    reg = MultiOutputRegressor(base_reg)
     window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
     window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
     # scaler = StandardScaler()
