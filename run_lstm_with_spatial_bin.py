@@ -150,6 +150,31 @@ def run_lstm_with_history(data_dir):
         for neuron_index in range(num_neurons):
             binned_spike_data[bin_index, neuron_index].append(spike[neuron_index])
     max_time_points = max(len(spike_list) for spike_list in binned_spike_data.flatten())
+    #find out where the max time points is
+    # max_time_points = 0
+    # max_position = None
+    #
+    # # Iterate over the binned_spike_data array
+    # for position_index in range(256):
+    #     for neuron_index in range(112):
+    #         # Get the spike data for the current position and neuron
+    #         spike_list = binned_spike_data[position_index, neuron_index]
+    #
+    #         # Calculate the length of the current spike list
+    #         current_length = len(spike_list)
+    #
+    #         # If the current length is greater than max_time_points
+    #         if current_length > max_time_points:
+    #             # Update max_time_points and max_position
+    #             max_time_points = current_length
+    #             max_position = position_index
+
+
+    print(f"Maximum time points: {max_time_points} found at position: {max_position}")
+
+    #figure out where the max time points is
+
+    #find where the max length is
 
     # Create a new 3D numpy array with shape (256, max_time_points, 112)
     reshaped_spike_data = np.zeros((256, max_time_points, 112))
