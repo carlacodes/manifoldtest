@@ -178,9 +178,10 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_dat
             dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
                               (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
     elif z_score_data:
+        epsilon = 1e-10
         for i in range(dlc_array.shape[1]):
             dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / \
-                              np.std(dlc_array[:, i])
+                              (np.std(dlc_array[:, i]) + epsilon)
 
     dlc_array = np.round(dlc_array, 3)
 
@@ -240,6 +241,7 @@ if __name__ == "__main__":
 
     for rat in [3, 8, 9, 10]:
         #get the list of folders directory that have dates
+        print(f'now starting rat:{rat}')
         dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
         #check if the folder name is a date by checking if it contains a hyphen
         date = [d for d in dates if '-' in d][0]
