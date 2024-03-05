@@ -158,6 +158,9 @@ def run_lstm_with_history(data_dir):
         for neuron_index in range(112):
             # Get the spike data for the current position and neuron
             spike_data = binned_spike_data[position_index, neuron_index]
+            #check spike_data is not all 0s
+            if np.any(spike_data):
+                print('test')
 
             # Check if spike_data is not empty
             if spike_data:
