@@ -127,23 +127,6 @@ def run_lstm_with_history(data_dir):
 
     x_data = labels[:, 0]
     y_data = labels[:, 1]
-    # Bin the x and y position data
-    # Bin the x and y position data
-    # x_bins = np.digitize(x_data, x_edges) - 1  # subtract 1 to make the bins start from 0
-    # y_bins = np.digitize(y_data, y_edges) - 1
-    #
-    # # Combine the x and y bin indices to create a 2D bin index
-    # bin_indices = x_bins * 16 + y_bins  # assuming the size of y dimension is 16
-    #
-    # # Create an empty array of lists to store the spike data for each bin
-    # binned_spike_data = np.empty((256, 1), dtype=object)
-    # for i in range(256):
-    #     binned_spike_data[i, 0] = []
-    #
-    # # Iterate over the spike data and the 2D bin indices
-    # for spike, bin_index in zip(spike_data, bin_indices):
-    #     # Append the spike data to the list in the corresponding bin
-    #     binned_spike_data[bin_index, 0].append(spike)
 
     # Define the number of neurons
     num_neurons = 112
@@ -171,14 +154,15 @@ def run_lstm_with_history(data_dir):
     # Create a new 3D numpy array with shape (256, max_time_points, 112)
     reshaped_spike_data = np.zeros((256, max_time_points, 112))
 
-    # Iterate over the binned_spike_data array
     for position_index in range(256):
         for neuron_index in range(112):
             # Get the spike data for the current position and neuron
             spike_data = binned_spike_data[position_index, neuron_index]
 
-            # Convert the spike data to a numpy array, add a new axis, and copy it into the reshaped_spike_data array
-            reshaped_spike_data[position_index, :len(spike_data), neuron_index] = np.array(spike_data)[:, np.newaxis]
+            # Check if spike_data is not empty
+            if spike_data:
+                # Convert the spike data to a numpy array and copy it into the reshaped_spike_data array
+                reshaped_spike_data[position_index, :len(spike_data), neuron_index] = np.array(spike_data)
 
     # Flatten the binned_spike_data into a 256 x 1 array
     flattened_spike_data = binned_spike_data.reshape(-1, 1)
