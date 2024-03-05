@@ -177,9 +177,8 @@ def run_lstm_with_history(data_dir):
             # Get the spike data for the current position and neuron
             spike_data = binned_spike_data[position_index, neuron_index]
 
-            # Convert the spike data to a numpy array and copy it into the reshaped_spike_data array
-            reshaped_spike_data[position_index, :len(spike_data), neuron_index] = np.array(spike_data)
-    # make binned
+            # Convert the spike data to a numpy array, add a new axis, and copy it into the reshaped_spike_data array
+            reshaped_spike_data[position_index, :len(spike_data), neuron_index] = np.array(spike_data)[:, np.newaxis]
 
     # Flatten the binned_spike_data into a 256 x 1 array
     flattened_spike_data = binned_spike_data.reshape(-1, 1)
