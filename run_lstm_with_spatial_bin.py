@@ -15,11 +15,13 @@ from helpers.datahandling import DataHandler
 from sklearn.svm import SVR
 from umap import UMAP
 import pandas as pd
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV
+from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, \
+    GridSearchCV
 import matplotlib.cm as cm
 import numpy as np
 import torch
 from torch import nn
+
 
 # Define LSTM model
 class LSTMNet(nn.Module):
@@ -95,20 +97,17 @@ def run_lstm(X, y):
         print(f'Mean permutation score: {np.mean(permutation_scores)}')
         print(f"Permutation test p-value: {pvalue}")
 
-        #append the scores to a list
+        # append the scores to a list
         current_score_df = pd.DataFrame(
-            {'score': [score], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores], 'mean_perm_score': [np.mean(permutation_scores)]})
+            {'score': [score], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores],
+             'mean_perm_score': [np.mean(permutation_scores)]})
 
         # Append the current scores to the main DataFrame
         score_df = pd.concat([score_df, current_score_df], ignore_index=True)
     return score_df
 
 
-
-
-
 def run_lstm_with_history(data_dir):
-
     spike_dir = os.path.join(data_dir, 'physiology_data')
     # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -116,12 +115,43 @@ def run_lstm_with_history(data_dir):
     # load labels
     labels = np.load(f'{dlc_dir}/labels_2902.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
-    #bin into 256 positions 16 x 16
-    
+    # bin into 256 positions 16 x 16
 
     bins_before = 6  # How many bins of neural data prior to the output are used for decoding
     bins_current = 1  # Whether to use concurrent time bin of neural data
     bins_after = 6  # How many bins of neural data after the output are used for decoding
+    frame_size = [496, 442]
+    diff_xy = frame_size[0] - frame_size[1]
+    x_edges = np.linspace(diff_xy/2 +1, frame_size[0] - diff_xy/2, 16+1)
+    y_edges = np.linspace(0, frame_size[1], 16+1)
+
+    x_data = labels[:, 0]
+    y_data = labels[:, 1]
+    # Bin the x and y position data
+    x_bins = np.digitize(x_data, x_edges) - 1  # subtract 1 to make the bins start from 0
+    y_bins = np.digitize(y_data, y_edges) - 1
+
+    # Combine the x and y bin indices to create a 2D bin index
+    bin_indices = (x_bins.astype(str) + y_bins.astype(str)).astype(int)
+
+    # Create an empty array of lists to store the spike data for each bin
+    binned_spike_data = np.empty((16, 16), dtype=object)
+    for i in range(16):
+        for j in range(16):
+            binned_spike_data[i, j] = []
+
+    # Iterate over the spike data and the 2D bin indices
+    for spike, bin_index in zip(spike_data, bin_indices):
+        # Append the spike data to the list in the corresponding bin
+        x_bin = bin_index // 100  # integer division to get the x bin index
+        y_bin = bin_index % 100  # modulus to get the y bin index
+        binned_spike_data[x_bin, y_bin].append(spike)
+
+    # Flatten the binned_spike_data into a 256 x 1 array
+    flattened_spike_data = binned_spike_data.reshape(-1, 1)
+
+
+
     X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
     # remove the first six and last six bins
     X_for_lstm = X[6:-6]
@@ -137,9 +167,9 @@ def run_lstm_with_history(data_dir):
     # Stack 'x' and 'y' to form a 2D target array
     target = np.column_stack((target_x, target_y))
 
-    #big dataframe
+    # big dataframe
     big_score_df = pd.DataFrame()
-    #isolate each of the 112 neurons and run the lstm on each of them
+    # isolate each of the 112 neurons and run the lstm on each of them
     for i in range(0, X_for_lstm.shape[2]):
         X_of_neuron = X_for_lstm[:, :, i]
         target_reshaped = target.reshape(-1, 2)  # reshape to (-1, 2)
@@ -150,18 +180,15 @@ def run_lstm_with_history(data_dir):
         score_df_neuron['neuron_index'] = i
         big_score_df = pd.concat([big_score_df, score_df_neuron], ignore_index=True)
 
-    #save big_score_df to csv
+    # save big_score_df to csv
     big_score_df.to_csv(f'{data_dir}/lstm_scores_{target_label}.csv')
     print('done')
-
-
 
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     run_lstm_with_history(data_dir)
     return
-
 
 
 if __name__ == '__main__':
