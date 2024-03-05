@@ -146,18 +146,25 @@ if __name__ == '__main__':
     data_dir = 'C:/neural_data/'
 
     rat = 7
-    date = '6-12-2019'
+    # date = '6-12-2019'
 
     # load the positional data
-    positional_data_dir = os.path.join(data_dir, f'rat_{rat}', date, 'positional_data')
-    pos_dataframes, goal_position, goal_id = create_ps_dataframes(positional_data_dir)
-    save_pickle(goal_position, 'goal_position', positional_data_dir)
-    # save the data in positional_data_dir
-    save_pickle(pos_dataframes, 'dlc_data', positional_data_dir)
+    for rat in [3, 8, 9, 10]:
+        #get the list of folders directory that have dates
+        dates = os.listdir(os.path.join(data_dir, f'rat_{rat}'))
+        #check if the folder name is a date by checking if it contains a hyphen
+        date = [d for d in dates if '-' in d][0]
 
-    # load the spike data
-    spike_data_dir = os.path.join(data_dir, f'rat_{rat}', date, 'physiology_data')
-    spike_arrays = create_spike_arrays(spike_data_dir)
-    save_pickle(spike_arrays, 'unit_spike_times', spike_data_dir)
+
+        positional_data_dir = os.path.join(data_dir, f'rat_{rat}', date, 'positional_data')
+        pos_dataframes, goal_position, goal_id = create_ps_dataframes(positional_data_dir)
+        save_pickle(goal_position, 'goal_position', positional_data_dir)
+        # save the data in positional_data_dir
+        save_pickle(pos_dataframes, 'dlc_data', positional_data_dir)
+
+        # load the spike data
+        spike_data_dir = os.path.join(data_dir, f'rat_{rat}', date, 'physiology_data')
+        spike_arrays = create_spike_arrays(spike_data_dir)
+        save_pickle(spike_arrays, 'unit_spike_times', spike_data_dir)
 
     pass

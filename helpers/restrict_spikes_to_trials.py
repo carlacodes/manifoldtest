@@ -47,23 +47,30 @@ if __name__ == "__main__":
 
     # data_dir = 'D:/analysis/og_honeycomb/rat7/6-12-2019'
     # data_dir = '/media/jake/DataStorage_6TB/DATA/neural_network/og_honeycomb/rat7/6-12-2019'
-    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
+    big_dir = 'C:/neural_data/'
+
+    for rat in [3, 8, 9, 10]:
+        #get the list of folders directory that have dates
+        dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
+        #check if the folder name is a date by checking if it contains a hyphen
+        date = [d for d in dates if '-' in d][0]
+        data_dir = os.path.join(big_dir, f'rat_{rat}', date)
 
     # load the dlc data, which contains the trial times
     # dlc_dir = os.path.join(data_dir, 'deeplabcut')
     # dlc_data = load_pickle('dlc_final', dlc_dir)
 
-    pos_dir = os.path.join(data_dir, 'positional_data')
-    dlc_data = load_pickle('dlc_data', pos_dir)
+        pos_dir = os.path.join(data_dir, 'positional_data')
+        dlc_data = load_pickle('dlc_data', pos_dir)
 
-    # load the spike data
-    # unit_dir = os.path.join(data_dir, 'spike_sorting')
+        # load the spike data
+        # unit_dir = os.path.join(data_dir, 'spike_sorting')
 
-    unit_dir = os.path.join(data_dir, 'physiology_data')
-    units = load_pickle('unit_spike_times', unit_dir)
-    units = units['pyramid']
+        unit_dir = os.path.join(data_dir, 'physiology_data')
+        units = load_pickle('unit_spike_times', unit_dir)
+        units = units['pyramid']
 
-    restricted_units = restrict_spikes_to_trials(units, dlc_data['hComb'])
-    save_pickle(restricted_units, 'restricted_units', unit_dir)
+        restricted_units = restrict_spikes_to_trials(units, dlc_data['hComb'])
+        save_pickle(restricted_units, 'restricted_units', unit_dir)
 
     pass

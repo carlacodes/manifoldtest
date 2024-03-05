@@ -104,7 +104,7 @@ def run_lstm(X, y):
 
 
 
-def run_lstm_with_history(data_dir):
+def run_lstm_with_history(data_dir, rat_id = 'rat_unknown'):
 
     spike_dir = os.path.join(data_dir, 'physiology_data')
     # spike_trains = load_pickle('spike_trains', spike_dir)
@@ -146,16 +146,18 @@ def run_lstm_with_history(data_dir):
         big_score_df = pd.concat([big_score_df, score_df_neuron], ignore_index=True)
 
     #save big_score_df to csv
-    big_score_df.to_csv(f'{data_dir}/lstm_scores_{target_label}.csv')
+    big_score_df.to_csv(f'{data_dir}/lstm_scores_{target_label}_{rat_id}.csv')
     print('done')
 
 
 
 
 def main():
-    data_dir = '/home/zceccgr/Scratch/zceccgr/jake/rat_7/6-12-2019/'
-    run_lstm_with_history(data_dir)
-    return
+
+    for rat in ['rat_3', 'rat_8', 'rat_9', 'rat_10']:
+        data_dir = f'/home/zceccgr/Scratch/zceccgr/jake/{rat}/6-12-2019/'
+        run_lstm_with_history(data_di, rat_id = rat)
+        return
 
 
 

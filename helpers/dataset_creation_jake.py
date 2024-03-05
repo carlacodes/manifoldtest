@@ -236,7 +236,14 @@ if __name__ == "__main__":
     # session = '10-11-2023'
     # data_dir = get_data_dir(animal, session)
 
-    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
+    big_dir = 'C:/neural_data/'
+
+    for rat in [3, 8, 9, 10]:
+        #get the list of folders directory that have dates
+        dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
+        #check if the folder name is a date by checking if it contains a hyphen
+        date = [d for d in dates if '-' in d][0]
+        data_dir = os.path.join(big_dir, f'rat_{rat}', date)
 
     # data_dir = '/media/jake/DataStorage_6TB/DATA/neural_network/og_honeycomb/rat7/6-12-2019'
 
@@ -244,50 +251,50 @@ if __name__ == "__main__":
     # spike_dir = os.path.join(data_dir, 'spike_sorting')
     # units = load_pickle('units_w_behav_correlates', spike_dir)
 
-    spike_dir = os.path.join(data_dir, 'physiology_data')
-    units = load_pickle('restricted_units', spike_dir)
+        spike_dir = os.path.join(data_dir, 'physiology_data')
+        units = load_pickle('restricted_units', spike_dir)
 
-    # load positional data
-    # dlc_dir = os.path.join(data_dir, 'deeplabcut')
-    # dlc_data = load_pickle('dlc_final', dlc_dir)
+        # load positional data
+        # dlc_dir = os.path.join(data_dir, 'deeplabcut')
+        # dlc_data = load_pickle('dlc_final', dlc_dir)
 
-    dlc_dir = os.path.join(data_dir, 'positional_data')
-    dlc_data = load_pickle('dlc_data', dlc_dir)
-    dlc_data = dlc_data['hComb']
+        dlc_dir = os.path.join(data_dir, 'positional_data')
+        dlc_data = load_pickle('dlc_data', dlc_dir)
+        dlc_data = dlc_data['hComb']
 
-    # create positional and spike trains with overlapping windows
-    # and save as a pickle file
-    windowed_dlc, window_edges, window_size = \
-        create_positional_trains(dlc_data, window_size=500)
-    windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
-    save_pickle(windowed_data, 'windowed_data', dlc_dir)
+        # create positional and spike trains with overlapping windows
+        # and save as a pickle file
+        windowed_dlc, window_edges, window_size = \
+            create_positional_trains(dlc_data, window_size=500)
+        windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
+        save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
-    windowed_data = load_pickle('windowed_data', dlc_dir)
-    windowed_dlc = windowed_data['windowed_dlc']
-    window_edges = windowed_data['window_edges']
+        windowed_data = load_pickle('windowed_data', dlc_dir)
+        windowed_dlc = windowed_data['windowed_dlc']
+        window_edges = windowed_data['window_edges']
 
-    # create spike trains
-    spike_trains = create_spike_trains(units, window_edges, window_size=window_size)
-    save_pickle(spike_trains, 'spike_trains', spike_dir)
+        # create spike trains
+        spike_trains = create_spike_trains(units, window_edges, window_size=window_size)
+        save_pickle(spike_trains, 'spike_trains', spike_dir)
 
-    spike_trains = load_pickle('spike_trains', spike_dir)
+        spike_trains = load_pickle('spike_trains', spike_dir)
 
-    # concatenate data from all trials into np.arrays for training
-    norm_data = False
-    zscore_option = True
-    labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
-    # convert labels to float32
-    labels = labels.astype(np.float32)
-    np.save(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}.npy', labels)
+        # concatenate data from all trials into np.arrays for training
+        norm_data = False
+        zscore_option = True
+        labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
+        # convert labels to float32
+        labels = labels.astype(np.float32)
+        np.save(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}.npy', labels)
 
     # concatenate spike trains into np.arrays for training
-    model_inputs, unit_list = cat_spike_trains(spike_trains)
-    #
+        model_inputs, unit_list = cat_spike_trains(spike_trains)
+        #
 
-    # convert model_inputs to float32
-    model_inputs = model_inputs.astype(np.float32)
-    np.save(f'{spike_dir}/inputs.npy', model_inputs)
-    save_pickle(unit_list, 'unit_list', spike_dir)
+        # convert model_inputs to float32
+        model_inputs = model_inputs.astype(np.float32)
+        np.save(f'{spike_dir}/inputs.npy', model_inputs)
+        save_pickle(unit_list, 'unit_list', spike_dir)
 
-    reshape_model_inputs_and_labels(model_inputs, labels)
+        reshape_model_inputs_and_labels(model_inputs, labels)
     pass
