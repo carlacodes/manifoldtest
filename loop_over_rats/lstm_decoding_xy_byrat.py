@@ -154,10 +154,22 @@ def run_lstm_with_history(data_dir, rat_id = 'rat_unknown'):
 
 def main():
 
-    for rat in ['rat_3', 'rat_8', 'rat_9', 'rat_10']:
-        data_dir = f'/home/zceccgr/Scratch/zceccgr/jake/{rat}/6-12-2019/'
-        run_lstm_with_history(data_di, rat_id = rat)
-        return
+    big_dir = '/home/zceccgr/Scratch/zceccgr/jake/'
+
+    for rat in [3, 8, 9, 10]:
+        #get the list of folders directory that have dates
+        print(f'now starting rat:{rat}')
+        dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
+        #check if the folder name is a date by checking if it contains a hyphen
+        date = [d for d in dates if '-' in d][0]
+        data_dir = os.path.join(big_dir, f'rat_{rat}', date)
+        #check if the lstm scores have already been computed
+        if Path(f'{data_dir}/lstm_scores_xy_{rat}.csv').is_file():
+            print(f'lstm scores for rat {rat} already computed')
+            continue
+        run_lstm_with_history(data_dir, rat_id = rat)
+    return
+
 
 
 
