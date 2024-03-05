@@ -170,12 +170,7 @@ def run_lstm_with_history(data_dir):
     #             max_position = position_index
 
 
-    print(f"Maximum time points: {max_time_points} found at position: {max_position}")
-
-    #figure out where the max time points is
-
-    #find where the max length is
-
+    # print(f"Maximum time points: {max_time_points} found at position: {max_position}")
     # Create a new 3D numpy array with shape (256, max_time_points, 112)
     reshaped_spike_data = np.zeros((256, max_time_points, 112))
 
@@ -192,15 +187,9 @@ def run_lstm_with_history(data_dir):
                 # Convert the spike data to a numpy array and copy it into the reshaped_spike_data array
                 reshaped_spike_data[position_index, :len(spike_data), neuron_index] = np.array(spike_data)
 
-    # Flatten the binned_spike_data into a 256 x 1 array
-    flattened_spike_data = binned_spike_data.reshape(-1, 1)
-
-
-
-    X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
     # remove the first six and last six bins
-    X_for_lstm = X[6:-6]
-    labels_for_umap = labels[6:-6]
+    X_for_lstm = reshaped_spike_data
+    labels_for_umap = labels
     labels_for_umap = labels_for_umap[:, 0:5]
     # labels_for_umap = labels[:, 0:3]
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_raw'])
