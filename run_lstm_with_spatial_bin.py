@@ -128,24 +128,22 @@ def run_lstm_with_history(data_dir):
     x_data = labels[:, 0]
     y_data = labels[:, 1]
     # Bin the x and y position data
+    # Bin the x and y position data
     x_bins = np.digitize(x_data, x_edges) - 1  # subtract 1 to make the bins start from 0
     y_bins = np.digitize(y_data, y_edges) - 1
 
     # Combine the x and y bin indices to create a 2D bin index
-    bin_indices = (x_bins.astype(str) + y_bins.astype(str)).astype(int)
+    bin_indices = x_bins * 16 + y_bins  # assuming the size of y dimension is 16
 
     # Create an empty array of lists to store the spike data for each bin
-    binned_spike_data = np.empty((16, 16), dtype=object)
-    for i in range(16):
-        for j in range(16):
-            binned_spike_data[i, j] = []
+    binned_spike_data = np.empty((256, 1), dtype=object)
+    for i in range(256):
+        binned_spike_data[i, 0] = []
 
     # Iterate over the spike data and the 2D bin indices
     for spike, bin_index in zip(spike_data, bin_indices):
         # Append the spike data to the list in the corresponding bin
-        x_bin = bin_index // 100  # integer division to get the x bin index
-        y_bin = bin_index % 100  # modulus to get the y bin index
-        binned_spike_data[x_bin, y_bin].append(spike)
+        binned_spike_data[bin_index, 0].append(spike)
 
     # Flatten the binned_spike_data into a 256 x 1 array
     flattened_spike_data = binned_spike_data.reshape(-1, 1)
