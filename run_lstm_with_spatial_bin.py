@@ -117,9 +117,6 @@ def run_lstm_with_history(data_dir):
     spike_data = np.load(f'{spike_dir}/inputs.npy')
     # bin into 256 positions 16 x 16
 
-    bins_before = 6  # How many bins of neural data prior to the output are used for decoding
-    bins_current = 1  # Whether to use concurrent time bin of neural data
-    bins_after = 6  # How many bins of neural data after the output are used for decoding
     frame_size = [496, 442]
     diff_xy = frame_size[0] - frame_size[1]
     x_edges = np.linspace(diff_xy/2 +1, frame_size[0] - diff_xy/2, 16+1)
