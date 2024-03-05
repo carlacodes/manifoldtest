@@ -62,7 +62,7 @@ def run_analysis_on_csvs(csv_dict):
         big_df_by_independent_variable_diff = pd.concat([big_df_by_independent_variable_diff, diff_df], ignore_index=True)
     return big_df_by_independent_variable, big_df_by_independent_variable_diff
 
-def plot_histograms(big_df_by_independent_variable):
+def plot_histograms(big_df_by_independent_variable, rat_id):
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     #plot the histograms
     for i in range(0, len(big_df_by_independent_variable['independent_variable'].unique())):
@@ -74,10 +74,11 @@ def plot_histograms(big_df_by_independent_variable):
         ax[i].set_title(f'{current_independent_variable}')
         ax[i].set_xlabel('Fraction of scores above mean_perm_score')
         ax[i].set_ylabel('Number of neurons')
+    plt.suptitle(f'Fraction of scores above mean_perm_score for:  {rat_id}')
     plt.savefig('C:/neural_data/rat_7/lstm_csvs/histograms.png')
     plt.show()
 
-def plot_difference_in_scores(dataframe):
+def plot_difference_in_scores(dataframe, rat_id):
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     #plot the histograms
     for i in range(0, len(dataframe['independent_variable'].unique())):
@@ -85,9 +86,12 @@ def plot_difference_in_scores(dataframe):
         current_df = dataframe[dataframe['independent_variable'] == current_independent_variable]
         ax[i].hist(current_df['difference_in_scores'])
         ax[i].set_ylim(0, 40)
+        ax[i].set_xlim(-1.25, 0.3)
+        # ax[i].set_xticks([-0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3])
         ax[i].set_title(f'{current_independent_variable}')
         ax[i].set_xlabel('Difference in scores')
         ax[i].set_ylabel('Number of neurons')
+    plt.suptitle(f'Difference in scores between actual and permuted scores for: {rat_id}')
     plt.savefig('C:/neural_data/rat_7/lstm_csvs/histograms_diff.png', dpi = 300, bbox_inches = 'tight')
     plt.show()
 
@@ -96,9 +100,10 @@ def plot_difference_in_scores(dataframe):
 
 def main():
     csv_dict = load_csvs('C:/neural_data/rat_7/lstm_csvs/')
+    rat_id = 'rat_7'
     big_df, diff_df = run_analysis_on_csvs(csv_dict)
-    plot_histograms(big_df)
-    plot_difference_in_scores(diff_df)
+    plot_histograms(big_df, rat_id)
+    plot_difference_in_scores(diff_df, rat_id)
     #plot the distribution of scores - mean perm score for each neuron
 
 
