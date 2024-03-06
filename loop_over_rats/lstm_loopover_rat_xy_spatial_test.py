@@ -6,22 +6,15 @@ from sklearn.dummy import DummyRegressor
 # from mpl_toolkits import mplot3d
 import os
 from sklearn.model_selection import permutation_test_score
-
 from tqdm import tqdm
 from joblib import Parallel, delayed
 # from extractlfpandspikedata import load_theta_data
-from helpers.load_and_save_data import load_pickle, save_pickle
-from helpers.datahandling import DataHandler
 from sklearn.svm import SVR
-from umap import UMAP
 import pandas as pd
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, \
-    GridSearchCV
-import matplotlib.cm as cm
+from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV
 import numpy as np
 import torch
 from torch import nn
-
 
 # Define LSTM model
 class LSTMNet(nn.Module):
@@ -97,23 +90,24 @@ def run_lstm(X, y):
         print(f'Mean permutation score: {np.mean(permutation_scores)}')
         print(f"Permutation test p-value: {pvalue}")
 
-        # append the scores to a list
+        #append the scores to a list
         current_score_df = pd.DataFrame(
-            {'score': [score], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores],
-             'mean_perm_score': [np.mean(permutation_scores)]})
+            {'score': [score], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores], 'mean_perm_score': [np.mean(permutation_scores)]})
 
         # Append the current scores to the main DataFrame
         score_df = pd.concat([score_df, current_score_df], ignore_index=True)
     return score_df
 
 
-def run_lstm_with_history(data_dir):
+
+
+
+def run_lstm_with_history(data_dir, rat_id = 'rat_unknown'):
+
     spike_dir = os.path.join(data_dir, 'physiology_data')
     # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
-
-    # load labels
-    labels = np.load(f'{dlc_dir}/labels_2902.npy')
+    labels_unscaled = np.load(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_False_zscore_data_False.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
     # bin into 256 positions 16 x 16
 
@@ -122,11 +116,12 @@ def run_lstm_with_history(data_dir):
     x_edges = np.linspace(diff_xy/2 +1, frame_size[0] - diff_xy/2, 16+1)
     y_edges = np.linspace(0, frame_size[1], 16+1)
 
-    x_data = labels[:, 0]
-    y_data = labels[:, 1]
+    x_data = labels_unscaled[:, 0]
+    y_data = labels_unscaled[:, 1]
 
     # Define the number of neurons
     num_neurons = spike_data.shape[1]
+    print(f'number of neurons in the array: {num_neurons}')
 
     # Bin the x and y position data
     x_bins = np.digitize(x_data, x_edges) - 1  # subtract 1 to make the bins start from 0
@@ -138,7 +133,7 @@ def run_lstm_with_history(data_dir):
     # Create an empty array of lists to store the spike data for each bin and each neuron
     binned_spike_data = np.empty((256, num_neurons), dtype=object)
     for i in range(256):
-        for j in range(num_neurons):
+        for j in range(0, num_neurons):
             binned_spike_data[i, j] = []
 
     # Iterate over the spike data and the 2D bin indices
@@ -147,57 +142,28 @@ def run_lstm_with_history(data_dir):
         for neuron_index in range(num_neurons):
             binned_spike_data[bin_index, neuron_index].append(spike[neuron_index])
     max_time_points = max(len(spike_list) for spike_list in binned_spike_data.flatten())
-    #find out where the max time points is
-    # max_time_points = 0
-    # max_position = None
-    #
-    # # Iterate over the binned_spike_data array
-    # for position_index in range(256):
-    #     for neuron_index in range(112):
-    #         # Get the spike data for the current position and neuron
-    #         spike_list = binned_spike_data[position_index, neuron_index]
-    #
-    #         # Calculate the length of the current spike list
-    #         current_length = len(spike_list)
-    #
-    #         # If the current length is greater than max_time_points
-    #         if current_length > max_time_points:
-    #             # Update max_time_points and max_position
-    #             max_time_points = current_length
-    #             max_position = position_index
-
-
-    # print(f"Maximum time points: {max_time_points} found at position: {max_position}")
-    # Create a new 3D numpy array with shape (256, max_time_points, 112)
     reshaped_spike_data = np.zeros((256, max_time_points, num_neurons))
 
     for position_index in range(256):
         for neuron_index in range(num_neurons):
             # Get the spike data for the current position and neuron
             spike_data = binned_spike_data[position_index, neuron_index]
-            #check spike_data is not all 0s
-
             # Check if spike_data is not empty
             if spike_data:
                 # Convert the spike data to a numpy array and copy it into the reshaped_spike_data array
                 reshaped_spike_data[position_index, :len(spike_data), neuron_index] = np.array(spike_data)
 
-    # remove the first six and last six bins
+    labels = np.load(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_False_zscore_data_True.npy')
+    spike_data = np.load(f'{spike_dir}/inputs.npy')
+
+
+    labels = np.load(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_False_zscore_data_True.npy')
+    spike_data = np.load(f'{spike_dir}/inputs.npy')
+
+
     X_for_lstm = reshaped_spike_data
-    #remove the nans from the labels and the reshaped_spike_data
-    # labels_for_umap = labels[6:-6]
-    #check if there are any nans in the X_for_lstm
-    nan_indices = np.where(np.isnan(X_for_lstm))
-
-    print(nan_indices)
-
-
-
-
-    labels_for_umap = labels
-    labels_for_umap = labels_for_umap[:, 0:5]
-    # labels_for_umap = labels[:, 0:3]
-    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_raw'])
+    labels_for_umap = labels[:, 0:6]
+    label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
     target_label = 'xy'
     target_x = label_df['x'].values
@@ -206,11 +172,9 @@ def run_lstm_with_history(data_dir):
     # Stack 'x' and 'y' to form a 2D target array
     target = np.column_stack((target_x, target_y))
 
-    nan_indices_target = np.where(np.isnan(target))
-
-    # big dataframe
+    #big dataframe
     big_score_df = pd.DataFrame()
-    # isolate each of the 112 neurons and run the lstm on each of them
+    #isolate each of the 112 neurons and run the lstm on each of them
     for i in range(0, X_for_lstm.shape[2]):
         X_of_neuron = X_for_lstm[:, :, i]
         target_reshaped = target.reshape(-1, 2)  # reshape to (-1, 2)
@@ -221,15 +185,29 @@ def run_lstm_with_history(data_dir):
         score_df_neuron['neuron_index'] = i
         big_score_df = pd.concat([big_score_df, score_df_neuron], ignore_index=True)
 
-    # save big_score_df to csv
-    big_score_df.to_csv(f'{data_dir}/lstm_scores_{target_label}.csv')
+    #save big_score_df to csv
+    big_score_df.to_csv(f'{data_dir}/lstm_scores_spatial_{target_label}_rat_{rat_id}.csv')
     print('done')
 
 
+
+
 def main():
-    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    run_lstm_with_history(data_dir)
+    big_dir = 'C:/neural_data/'
+
+    for rat in [3, 8, 9, 10, 7]:
+        #get the list of folders directory that have dates
+        print(f'now starting rat:{rat}')
+        dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
+        #check if the folder name is a date by checking if it contains a hyphen
+        date = [d for d in dates if '-' in d][0]
+        data_dir = os.path.join(big_dir, f'rat_{rat}', date)
+        if Path(f'{data_dir}/lstm_scores_spatial_xy_rat_{rat}.csv').is_file():
+            print(f'lstm scores for rat {rat} already computed')
+            continue
+        run_lstm_with_history(data_dir, rat_id = rat)
     return
+
 
 
 if __name__ == '__main__':

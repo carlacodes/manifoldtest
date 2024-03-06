@@ -238,8 +238,8 @@ if __name__ == "__main__":
     # data_dir = get_data_dir(animal, session)
 
     big_dir = 'C:/neural_data/'
-
-    for rat in [7, 3, 8, 9, 10]:
+    # 3, 8, 9, 10
+    for rat in [7]:
         #get the list of folders directory that have dates
         print(f'now starting rat:{rat}')
         dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
@@ -283,7 +283,7 @@ if __name__ == "__main__":
 
         # concatenate data from all trials into np.arrays for training
         norm_data = False
-        zscore_option = False
+        zscore_option = True
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
         # convert labels to float32
         labels = labels.astype(np.float32)
