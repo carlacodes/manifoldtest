@@ -133,7 +133,7 @@ def train_and_test_on_reduced(
         # 'regressor__kernel': ['linear'],
         # 'regressor__C': [0.1, 1, 10],
         'regresssor__normalize_y': [True],
-        'regressor__kernel': [(ConstantKernel * RBF) + WhiteKernel],
+        'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-06, 1.0))],
         'reducer__n_components': [9],
         'reducer__n_neighbors': [20],
         # 'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
