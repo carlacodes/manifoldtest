@@ -33,6 +33,15 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import ParameterGrid
 import os
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
+#TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
+# 2. change the regressor to GaussianProcessRegressor
+#3. should the umap X_training data be 2d rather than 3d?
+#4. in the 2021 sci advances paper they used 2 fold cross validation
+#5. for the isomap they used n_neighbours = 20 #
+#6. they used the gaussian-filtered (omega = 2-time bins) square root of instantenous firing rates for the isomap decomposition
+#7. bin duration = 512 ms, so about the same as what I have
+#8. target position was smoothed using a gaussian filter
+
 
 def process_window_within_split(
         w,
@@ -250,8 +259,8 @@ def main():
 
         regressor = GaussianProcessRegressor
 
-        regressor_kwargs = {'kernel': 'linear', 'C': 1}
-
+        # regressor_kwargs = {'kernel': 'linear', 'C': 1}
+        regressor_kwargs = {'alpha': 1}
 
         reducer = UMAP
 
