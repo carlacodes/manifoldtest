@@ -36,7 +36,7 @@ import os
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 #TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
 # 2. change the regressor to GaussianProcessRegressor
-#3. should the umap X_training data be 2d rather than 3d?
+#3. should the umap X_training data be 2d rather than 3d? Also need to z-score the X input data
 #4. in the 2021 sci advances paper they used 2 fold cross validation
 #5. for the isomap they used n_neighbours = 20 #
 #6. they used the gaussian-filtered (omega = 2-time bins) square root of instantenous firing rates for the isomap decomposition
