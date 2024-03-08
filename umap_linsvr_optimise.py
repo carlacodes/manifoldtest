@@ -1,9 +1,5 @@
 #from pathlib import Path
 from datetime import datetime
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.dummy import DummyRegressor
-# from mpl_toolkits import mplot3d
-import os
 from tqdm import tqdm
 from joblib import Parallel, delayed
 # from extractlfpandspikedata import load_theta_data
@@ -11,14 +7,6 @@ from helpers.load_and_save_data import load_pickle, save_pickle
 from helpers.datahandling import DataHandler
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
-from sklearn.svm import SVR
-from sklearn.model_selection import KFold
-from scipy.ndimage import gaussian_filter1d
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVR
-from sklearn.pipeline import make_pipeline
 from sklearn.svm import SVR
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
@@ -43,7 +31,6 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import ParameterGrid
 import os
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
-
 
 def process_window_within_split(
         w,
@@ -209,7 +196,7 @@ def train_and_test_on_reduced(
 
 
 def main():
-    data_dir = '/home/zceccgr/Scratch/zceccgr/jake/rat_7/6-12-2019/'
+    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
