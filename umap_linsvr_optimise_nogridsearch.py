@@ -31,6 +31,7 @@ spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dat
 from sklearn.decomposition import PCA
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import ParameterGrid
+from sklearn.gaussian_process.kernels import WhiteKernel, ConstantKernel, RBF
 import os
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 #TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
@@ -131,6 +132,8 @@ def train_and_test_on_reduced(
     param_grid = {
         # 'regressor__kernel': ['linear'],
         # 'regressor__C': [0.1, 1, 10],
+        'regresssor__normalize_y': [True],
+        'regressor__kernel': [(ConstantKernel * RBF) + WhiteKernel],
         'reducer__n_components': [9],
         'reducer__n_neighbors': [20],
         # 'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
