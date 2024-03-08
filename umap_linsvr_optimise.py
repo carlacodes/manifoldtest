@@ -1,4 +1,5 @@
 #from pathlib import Path
+import copy
 from datetime import datetime
 from tqdm import tqdm
 from joblib import Parallel, delayed
@@ -167,7 +168,17 @@ def train_and_test_on_reduced(
             results_cv_list.append(results_cv)
 
             # Compute permutation_results
-            y_train_perm = np.random.permutation(y_train)
+            y_train_perm = copy.deepcopy(y_train)
+            X_train_perm = copy.deepcopy(X_train)
+            for i in range(100):
+                row_indices = np.arange(X_train_perm.shape[0])
+                np.random.shuffle(row_indices)
+                X_train_perm = X_train_perm[row_indices]
+
+            #shuffle along the second axis
+            X_train_perm = X_train_perm[:, np.random.permutation(X_train_perm.shape[1]), :]
+
+
             # results_perm = process_window_within_split(
             #     w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor, regressor_kwargs
             # )
