@@ -134,6 +134,7 @@ def train_and_test_on_reduced(
 
     # Create a TimeSeriesSplit object for 5-fold cross-validation
     tscv = TimeSeriesSplit(n_splits=5)
+    #TODO:check if the n_splits is too big and the sample size is too small?1??!?
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
