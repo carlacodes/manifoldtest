@@ -248,6 +248,7 @@ def main():
         bins_after = bins_before  # How many bins of neural data after the output are used for decoding
         X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
         #remove the first six and last six bins
+        #not sure if I need to have the covariant matrix, can just be a 2d vector of time x neuron firing rate
         X_for_umap = X[bins_before:-bins_before]
         labels_for_umap = labels[bins_before:-bins_before]
         labels_for_umap = labels_for_umap[:, 0:6]
