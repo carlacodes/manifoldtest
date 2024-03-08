@@ -8,6 +8,7 @@ from helpers.load_and_save_data import load_pickle, save_pickle
 from helpers.datahandling import DataHandler
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.svm import SVR
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
@@ -119,7 +120,7 @@ def train_and_test_on_reduced(
 ):
     # Define the grid of hyperparameters
     param_grid = {
-        'regressor__kernel': ['linear'],
+        # 'regressor__kernel': ['linear'],
         # 'regressor__C': [0.1, 1, 10],
         'reducer__n_components': [3],
         'reducer__n_neighbors': [50, 60, 70],
@@ -247,7 +248,8 @@ def main():
         window_for_decoding = params['window_for_decoding']  # in s
         window_size = int(window_for_decoding / bin_width)  # in bins
 
-        regressor = SVR
+        regressor = GaussianProcessRegressor
+
         regressor_kwargs = {'kernel': 'linear', 'C': 1}
 
 
@@ -258,7 +260,7 @@ def main():
             'n_neighbors': 70,
             'min_dist': 0.3,
             'metric': 'euclidean',
-            'n_jobs': -1,
+            'n_jobs': 5,
         }
 
         # space_ref = ['No Noise', 'Noise']
@@ -287,7 +289,7 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_jobs_parallel=-1,
+            n_jobs_parallel=5,
         )
         #save at intermediate stage of grid search
         # intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)
