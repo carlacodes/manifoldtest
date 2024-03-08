@@ -178,12 +178,8 @@ def train_and_test_on_reduced(
             #shuffle along the second axis
             X_train_perm = X_train_perm[:, np.random.permutation(X_train_perm.shape[1]), :]
 
-
-            # results_perm = process_window_within_split(
-            #     w, X_train, X_test, window_size, y_train_perm, y_test, reducer, regressor, regressor_kwargs
-            # )
             results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
-                delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
+                delayed(process_window_within_split)(w, X_train_perm, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
                                                      regressor, regressor_kwargs) for w in
                 tqdm(range(spks.shape[1] - window_size)))
             permutation_results_list.append(results_perm)
