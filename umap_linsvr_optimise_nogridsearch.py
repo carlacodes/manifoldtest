@@ -131,10 +131,10 @@ def train_and_test_on_reduced(
     param_grid = {
         # 'regressor__kernel': ['linear'],
         # 'regressor__C': [0.1, 1, 10],
-        'reducer__n_components': [3],
-        'reducer__n_neighbors': [50, 60, 70],
-        'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
-        'reducer__metric': ['euclidean'],
+        'reducer__n_components': [9],
+        'reducer__n_neighbors': [20],
+        # 'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
+        # 'reducer__metric': ['euclidean'],
     }
 
     # Initialize the best hyperparameters and the largest difference
@@ -148,7 +148,7 @@ def train_and_test_on_reduced(
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
-    n_iter = 5
+    n_iter = 1
     for params in ParameterSampler(param_grid, n_iter=n_iter):
         # Update the kwargs with the current parameters
         regressor_kwargs.update({k.replace('regressor__', ''): v for k, v in params.items() if k.startswith('regressor__')})
@@ -216,7 +216,6 @@ def train_and_test_on_reduced(
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
-    # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
     #load labels
@@ -241,7 +240,7 @@ def main():
     largest_diff = float('-inf')
     param_results = {}
     intermediate_results = pd.DataFrame(columns=['difference', 'best_params', 'upper_params'])
-    n_iter = 5
+    n_iter = 1
     for params in ParameterSampler(param_grid_upper, n_iter=n_iter):
         bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
         bins_current = 1  # Whether to use concurrent time bin of neural data
