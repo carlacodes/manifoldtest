@@ -265,8 +265,8 @@ def main():
 
         reducer_kwargs = {
             'n_components': 3,
-            'n_neighbors': 70,
-            'min_dist': 0.3,
+            # 'n_neighbors': 70,
+            # 'min_dist': 0.3,
             'metric': 'euclidean',
             'n_jobs': 5,
         }
