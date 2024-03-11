@@ -1,13 +1,17 @@
+
+#add sys.path.append to the top of the file
+import sys
 import copy
 from pathlib import Path
 from datetime import datetime
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.dummy import DummyRegressor
-# from mpl_toolkits import mplot3d
 import os
 from sklearn.model_selection import permutation_test_score
 from tqdm import tqdm
 from joblib import Parallel, delayed
+# from extractlfpandspikedata import load_theta_data
+from manifold_neural.helpers.datahandling import DataHandler
 from sklearn.svm import SVR
 import pandas as pd
 from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV
@@ -68,9 +72,7 @@ def run_lstm(X, y):
         model.eval()
         with torch.no_grad():
             y_pred = model(X_test_torch)
-        for name, param in model.named_parameters():
-            if torch.isnan(param).any():
-                print(f'{name} has nan')
+
         # Increase fold number
         fold_no = fold_no + 1
 
@@ -81,6 +83,7 @@ def run_lstm(X, y):
             y_test_permuted = copy.deepcopy(y_pred)
             X_test_torch_permuted = copy.deepcopy(X_test_torch)
             X_test_torch_permuted = X_test_torch_permuted[np.random.permutation(X_test_torch_permuted.shape[0])]
+            #
 
             model.eval()
             with torch.no_grad():
@@ -95,17 +98,17 @@ def run_lstm(X, y):
             permutation_scores[i] = mean_squared_error(y_test_permuted, y_pred_permuted.detach().numpy(),
                                                        multioutput='raw_values').mean()  # calculate mean squared error for each output and then take the mean
 
-        score = mean_squared_error(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
-        pvalue = (np.sum(permutation_scores >= score) + 1.0) / (n_permutations + 1.0)
+        score_mse = mean_squared_error(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
+        pvalue = (np.sum(permutation_scores >= score_mse) + 1.0) / (n_permutations + 1.0)
 
-        print(f"True score: {score}")
+        print(f"True score: {score_mse}")
         # print(f"Permutation scores: {permutation_scores}")
         print(f'Mean permutation score: {np.mean(permutation_scores)}')
         print(f"Permutation test p-value: {pvalue}")
 
         #append the scores to a list
         current_score_df = pd.DataFrame(
-            {'score': [score], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores], 'mean_perm_score': [np.mean(permutation_scores)]})
+            {'score': [score_mse], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores], 'mean_perm_score': [np.mean(permutation_scores)]})
 
         # Append the current scores to the main DataFrame
         score_df = pd.concat([score_df, current_score_df], ignore_index=True)
@@ -121,59 +124,18 @@ def run_lstm_with_history(data_dir, rat_id = 'unknown_rat'):
     # spike_trains = load_pickle('spike_trains', spike_dir)
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
-    labels_unscaled = np.load(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_False_zscore_data_False.npy')
-    spike_data = np.load(f'{spike_dir}/inputs.npy')
-    # bin into 256 positions 16 x 16
-
-    frame_size = [496, 442]
-    diff_xy = frame_size[0] - frame_size[1]
-    x_edges = np.linspace(diff_xy/2 +1, frame_size[0] - diff_xy/2, 16+1)
-    y_edges = np.linspace(0, frame_size[1], 16+1)
-
-    x_data = labels_unscaled[:, 0]
-    y_data = labels_unscaled[:, 1]
-
-    # Define the number of neurons
-    num_neurons = spike_data.shape[1]
-    print(f'number of neurons: {num_neurons}')
-
-    # Bin the x and y position data
-    x_bins = np.digitize(x_data, x_edges) - 1  # subtract 1 to make the bins start from 0
-    y_bins = np.digitize(y_data, y_edges) - 1
-
-    # Combine the x and y bin indices to create a 2D bin index
-    bin_indices = x_bins * 16 + y_bins  # assuming the size of y dimension is 16
-
-    # Create an empty array of lists to store the spike data for each bin and each neuron
-    binned_spike_data = np.empty((256, num_neurons), dtype=object)
-    for i in range(256):
-        for j in range(num_neurons):
-            binned_spike_data[i, j] = []
-
-    # Iterate over the spike data and the 2D bin indices
-    for spike, bin_index in zip(spike_data, bin_indices):
-        # Append the spike data to the list in the corresponding bin for each neuron
-        for neuron_index in range(num_neurons):
-            binned_spike_data[bin_index, neuron_index].append(spike[neuron_index])
-    max_time_points = max(len(spike_list) for spike_list in binned_spike_data.flatten())
-    reshaped_spike_data = np.zeros((256, max_time_points, num_neurons))
-
-    for position_index in range(256):
-        for neuron_index in range(num_neurons):
-            # Get the spike data for the current position and neuron
-            spike_data = binned_spike_data[position_index, neuron_index]
-            #check spike_data is not all 0s
-
-            # Check if spike_data is not empty
-            if spike_data:
-                # Convert the spike data to a numpy array and copy it into the reshaped_spike_data array
-                reshaped_spike_data[position_index, :len(spike_data), neuron_index] = np.array(spike_data)
-
+    # load labels
     labels = np.load(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_False_zscore_data_True.npy')
     spike_data = np.load(f'{spike_dir}/inputs.npy')
+
+    bins_before = 6  # How many bins of neural data prior to the output are used for decoding
+    bins_current = 1  # Whether to use concurrent time bin of neural data
+    bins_after = 6  # How many bins of neural data after the output are used for decoding
+    X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
     # remove the first six and last six bins
-    X_for_lstm =reshaped_spike_data
-    labels_for_umap = labels[:, 0:6]
+    X_for_lstm = X[6:-6]
+    labels_for_umap = labels[6:-6]
+    labels_for_umap = labels_for_umap[:, 0:6]
     # labels_for_umap = labels[:, 0:3]
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
@@ -186,7 +148,7 @@ def run_lstm_with_history(data_dir, rat_id = 'unknown_rat'):
 
     #big dataframe
     big_score_df = pd.DataFrame()
-    #isolate each of the neurons and run the lstm on each of them
+    #isolate each of the 112 neurons and run the lstm on each of them
     for i in range(0, X_for_lstm.shape[2]):
         X_of_neuron = X_for_lstm[:, :, i]
         target_reshaped = target.reshape(-1, 2)  # reshape to (-1, 2)
@@ -198,7 +160,7 @@ def run_lstm_with_history(data_dir, rat_id = 'unknown_rat'):
         big_score_df = pd.concat([big_score_df, score_df_neuron], ignore_index=True)
 
     #save big_score_df to csv
-    big_score_df.to_csv(f'{data_dir}/lstm_scores_spatial_{target_label}_rat_{rat_id}.csv')
+    big_score_df.to_csv(f'{data_dir}/csvs_0603/lstm_scores_{target_label}_rat_{rat_id}.csv')
     print('done')
 
 
@@ -209,14 +171,14 @@ def main():
     # run_lstm_with_history(data_dir)
     big_dir = 'C:/neural_data/'
 
-    for rat in [3, 7, 8, 9, 10]:
+    for rat in [3, 8, 9, 10, 7]:
         #get the list of folders directory that have dates
         print(f'now starting rat:{rat}')
         dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
         #check if the folder name is a date by checking if it contains a hyphen
         date = [d for d in dates if '-' in d][0]
         data_dir = os.path.join(big_dir, f'rat_{rat}', date)
-        if Path(f'{data_dir}/lstm_scores_spatial_angle_sincos_zscore_rat_{rat}.csv').is_file():
+        if Path(f'{data_dir}/csvs_0603/lstm_scores_angle_sincos_zscore_rat_{rat}.csv').is_file():
             print(f'lstm scores for rat {rat} already computed')
             continue
         run_lstm_with_history(data_dir, rat_id = rat)
