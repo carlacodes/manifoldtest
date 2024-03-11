@@ -39,7 +39,7 @@ import torch.nn.functional as F
 import torch.nn.functional as F
 
 class LSTMNet(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers=6, dropout_prob=0.25):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers=3, dropout_prob=0.25):
         super(LSTMNet, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
@@ -83,7 +83,7 @@ def run_lstm(X, y):
         model = LSTMNet(input_dim, hidden_dim, output_dim)
 
         # Define loss function and optimizer
-        criterion = nn.MSELoss()  # for regression problem
+        criterion = nn.SmoothL1Loss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # you can change the learning rate
 
         # Convert numpy arrays to PyTorch tensors
