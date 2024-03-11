@@ -39,7 +39,7 @@ import torch.nn.functional as F
 import torch.nn.functional as F
 
 class LSTMNet(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers=3, dropout_prob=0.25):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers=3, dropout_prob=0.3):
         super(LSTMNet, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
@@ -80,21 +80,23 @@ def run_lstm(X, y):
     score_df = pd.DataFrame()
     for train, test in tscv.split(X):
         input_dim = X[train].shape[2]  # number of features
-        hidden_dim = 400  # you can change this
+        hidden_dim = 200  # you can change this
         output_dim = 2  # regression problem, changing output dimension to 2
         model = LSTMNet(input_dim, hidden_dim, output_dim)
 
         # Define loss function and optimizer
-        criterion = nn.SmoothL1Loss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)  # Adjust the weight decay value
-        scheduler = StepLR(optimizer, step_size=30, gamma=0.1)  # Adjust the step_size and gamma
+        # criterion = nn.SmoothL1Loss()
+        criterion = nn.HuberLoss(delta=1.0)  # Adjust the delta parameter
+
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-5)  # Adjust the weight decay value
+        # scheduler = StepLR(optimizer, step_size=30, gamma=0.1)  # Adjust the step_size and gamma
 
         # Convert numpy arrays to PyTorch tensors
         X_train_torch = torch.from_numpy(X[train]).float()
         y_train_torch = torch.from_numpy(y[train]).float()
 
         # Train the model
-        num_epochs = 200  # you can change this
+        num_epochs = 100  # you can change this
         for epoch in range(num_epochs):
             model.train()
             optimizer.zero_grad()
@@ -105,7 +107,7 @@ def run_lstm(X, y):
             loss.backward()
             clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
 
         # Convert test data to PyTorch tensor
         X_test_torch = torch.from_numpy(X[test]).float()
@@ -122,10 +124,15 @@ def run_lstm(X, y):
         # Manual permutation test
         n_permutations = 1
         permutation_scores = np.zeros(n_permutations)
+        score_mse = mean_squared_error(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
         for i in range(n_permutations):
             y_test_permuted = copy.deepcopy(y_test)
+            y_test_permuted = np.roll(y_test_permuted, np.random.randint(0, y_test_permuted.shape[0]), axis=0)
             X_test_torch_permuted = copy.deepcopy(X_test_torch)
-            X_test_torch_permuted = np.roll(X_test_torch_permuted, np.random.randint(0, X_test_torch_permuted.shape[0]), axis=0)
+            # X_test_torch_permuted = np.roll(X_test_torch_permuted, np.random.randint(0, X_test_torch_permuted.shape[0]), axis=0)
+            # #roll along the second axis as well
+            # X_test_torch_permuted = np.roll(X_test_torch_permuted, np.random.randint(0, X_test_torch_permuted.shape[1]), axis=1)
+
             model.eval()
             X_test_torch_numpy = X_test_torch.numpy()
             #check if X_test_torch_permuted is the same as X_test_torch
@@ -136,7 +143,7 @@ def run_lstm(X, y):
             #check if X_test_torch_permuted is the same as X_test_torch
 
             with torch.no_grad():
-                y_pred_permuted = model(torch.from_numpy(X_test_torch_permuted).float())
+                y_pred_permuted = model(X_test_torch_permuted)
             #check if y_pred_permuted has nan
             if torch.isnan(y_pred_permuted).any():
                 print('y_pred_permuted has nan')
@@ -150,12 +157,11 @@ def run_lstm(X, y):
 
         y_pred_numpy = y_pred.detach().numpy()
         #check if y_pred_numpy is equal to y_pred_permuted_numpy
-        if np.array_equal(y_pred_numpy, y_pred_permuted_numpy):
-            print('y_pred_numpy is equal to y_pred_permuted_numpy')
-        #check if y_test_permuted is equal to y_test
-        if np.array_equal(y_test_permuted, y_test):
-            print('y_test_permuted is equal to y_test')
-        score_mse = mean_squared_error(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
+        # if np.array_equal(y_pred_numpy, y_pred_permuted_numpy):
+        #     print('y_pred_numpy is equal to y_pred_permuted_numpy')
+        # #check if y_test_permuted is equal to y_test
+        # if np.array_equal(y_test_permuted, y_test):
+        #     print('y_test_permuted is equal to y_test')
         pvalue = (np.sum(permutation_scores >= score_mse) + 1.0) / (n_permutations + 1.0)
 
         print(f"True score: {score_mse}")
