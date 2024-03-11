@@ -11,7 +11,7 @@ def load_csvs(csv_dir):
     csv_list = {}
     #load the csv files
     for i in range(0, len(file_list)):
-        csv_file_to_read = csv_dir + file_list[i]
+        csv_file_to_read = csv_dir +'/'+ file_list[i]
         #add to a dictionary
         if 'angle' in file_list[i]:
             csv_list['angle'] = pd.read_csv(csv_file_to_read)
@@ -69,7 +69,7 @@ def plot_histograms(big_df_by_independent_variable, rat_id, savedir = ''):
         current_independent_variable = big_df_by_independent_variable['independent_variable'].unique()[i]
         current_df = big_df_by_independent_variable[big_df_by_independent_variable['independent_variable'] == current_independent_variable]
         ax[i].hist(current_df['fraction_above_mean_perm_score'])
-        ax[i].set_ylim(0, 40)
+        # ax[i].set_ylim(0, 40)
         ax[i].set_xticks([0, 0.25, 0.5, 0.75, 1])
         ax[i].set_title(f'{current_independent_variable}')
         ax[i].set_xlabel('Fraction of scores above mean_perm_score')
@@ -85,8 +85,8 @@ def plot_difference_in_scores(dataframe, rat_id, savedir = 'C:/neural_data/rat_7
         current_independent_variable = dataframe['independent_variable'].unique()[i]
         current_df = dataframe[dataframe['independent_variable'] == current_independent_variable]
         ax[i].hist(current_df['difference_in_scores'])
-        ax[i].set_ylim(0, 40)
-        ax[i].set_xlim(-1.25, 0.3)
+        # ax[i].set_ylim(0, 40)
+        # ax[i].set_xlim(-1.25, 0.3)
         # ax[i].set_xticks([-0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3])
         ax[i].set_title(f'{current_independent_variable}')
         ax[i].set_xlabel('Difference in scores')
