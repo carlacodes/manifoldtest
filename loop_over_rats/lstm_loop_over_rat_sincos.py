@@ -100,7 +100,7 @@ def run_lstm(X, y):
             #print the loss for each epoch
             print(f'Epoch {epoch} has loss: {loss}')
             loss.backward()
-            clip_grad_norm_(model.parameters(), max_grad_norm)
+            clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
         # Convert test data to PyTorch tensor
