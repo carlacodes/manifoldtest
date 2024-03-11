@@ -33,6 +33,7 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import ParameterGrid
 from sklearn.gaussian_process.kernels import WhiteKernel, ConstantKernel, RBF
 import os
+import scipy
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 #TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
 # 2. change the regressor to GaussianProcessRegressor
@@ -249,11 +250,16 @@ def main():
         bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
         bins_current = 1  # Whether to use concurrent time bin of neural data
         bins_after = bins_before  # How many bins of neural data after the output are used for decoding
-        X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
-        #remove the first six and last six bins
-        X_for_umap = X[bins_before:-bins_before]
-        labels_for_umap = labels[bins_before:-bins_before]
+        # X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
+        # #remove the first six and last six bins
+        # X_for_umap = X[bins_before:-bins_before]
+        # labels_for_umap = labels[bins_before:-bins_before]
+        #apply gaussian filtering, omega = 2
+
+        X_for_umap = scipy.ndimage.gaussian_filter(spike_data, 2)
         labels_for_umap = labels_for_umap[:, 0:6]
+
+
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
