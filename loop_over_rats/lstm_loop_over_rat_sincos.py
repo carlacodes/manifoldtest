@@ -124,7 +124,9 @@ def run_lstm(X, y):
         # Manual permutation test
         n_permutations = 1
         permutation_scores = np.zeros(n_permutations)
+        permutation_scores_r2 = np.zeros(n_permutations)
         score_mse = mean_squared_error(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
+        score_r2 = r2_score(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
         for i in range(n_permutations):
             y_test_permuted = copy.deepcopy(y_test)
             y_test_permuted = np.roll(y_test_permuted, np.random.randint(0, y_test_permuted.shape[0]), axis=0)
@@ -152,10 +154,11 @@ def run_lstm(X, y):
                 print('X_test_torch has nan')
             y_pred_permuted_numpy = y_pred.detach().numpy()
             permutation_scores[i] = mean_squared_error(y_test_permuted, y_pred_permuted.detach().numpy(),
-                                                       multioutput='raw_values').mean()  # calculate mean squared error for each output and then take the mean
+                                                       multioutput='raw_values').mean()
+            permutation_scores_r2[i] = r2_score(y_test_permuted, y_pred_permuted.detach().numpy(), multioutput='raw_values').mean()
+            # calculate mean squared error for each output and then take the mean
 
 
-        y_pred_numpy = y_pred.detach().numpy()
         #check if y_pred_numpy is equal to y_pred_permuted_numpy
         # if np.array_equal(y_pred_numpy, y_pred_permuted_numpy):
         #     print('y_pred_numpy is equal to y_pred_permuted_numpy')
@@ -171,7 +174,7 @@ def run_lstm(X, y):
 
         #append the scores to a list
         current_score_df = pd.DataFrame(
-            {'score': [score_mse], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores], 'mean_perm_score': [np.mean(permutation_scores)]})
+            {'score': [score_mse], 'r2_score': [score_r2], 'pvalue': [pvalue], 'permutation_scores': [permutation_scores], 'mean_perm_score': [np.mean(permutation_scores)], 'permutation_scores_r2': [permutation_scores_r2], 'mean_perm_score_r2': [np.mean(permutation_scores_r2)]})
 
         # Append the current scores to the main DataFrame
         score_df = pd.concat([score_df, current_score_df], ignore_index=True)
