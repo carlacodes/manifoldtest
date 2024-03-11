@@ -99,12 +99,29 @@ def plot_difference_in_scores(dataframe, rat_id):
 
 
 def main():
-    csv_dict = load_csvs('C:/neural_data/rat_7/lstm_csvs/')
-    rat_id = 'rat_7'
-    big_df, diff_df = run_analysis_on_csvs(csv_dict)
-    plot_histograms(big_df, rat_id)
-    plot_difference_in_scores(diff_df, rat_id)
+
+    # csv_dict = load_csvs('C:/neural_data/rat_7/lstm_csvs/')
+
     #plot the distribution of scores - mean perm score for each neuron
+    big_dir = 'C:/myriad_results/jake/'
+
+    for rat in [3, 8, 9, 10, 7]:
+        #get the list of folders directory that have dates
+        print(f'now starting rat:{rat}')
+        dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
+        #check if the folder name is a date by checking if it contains a hyphen
+        date = [d for d in dates if '-' in d][0]
+        data_dir = os.path.join(big_dir, f'rat_{rat}', date)
+        csv_dir = os.path.join(data_dir, 'csvs_0603')
+        #load the list of files in the csv_dir
+        csv_dict = load_csvs(csv_dir)
+        big_df, diff_df = run_analysis_on_csvs(csv_dict)
+        plot_histograms(big_df, rat)
+        plot_difference_in_scores(diff_df, rat)
+
+
+    return
+
 
 
 
