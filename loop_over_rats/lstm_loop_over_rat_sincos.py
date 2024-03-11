@@ -92,7 +92,7 @@ def run_lstm(X, y):
         y_train_torch = torch.from_numpy(y[train]).float()
 
         # Train the model
-        num_epochs = 500  # you can change this
+        num_epochs = 200  # you can change this
         for epoch in range(num_epochs):
             model.train()
             optimizer.zero_grad()
