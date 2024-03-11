@@ -194,7 +194,11 @@ def train_and_test_on_reduced(
                 X_train_perm = X_train_perm[row_indices]
 
             #shuffle along the second axis
-            X_train_perm = X_train_perm[:, np.random.permutation(X_train_perm.shape[1]), :]
+            # X_train_perm = X_train_perm[:, np.random.permutation(X_train_perm.shape[1]), :]
+            y_train_perm = y_train_perm[np.random.permutation(y_train_perm.shape[0])]
+            #check if y_train_perm is equal to y_train
+            if np.array_equal(y_train_perm, y_train):
+                print('y_train_perm is equal to y_train')
 
             results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
                 delayed(process_window_within_split)(w, X_train_perm, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
