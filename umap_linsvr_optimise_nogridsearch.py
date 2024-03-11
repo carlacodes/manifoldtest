@@ -58,8 +58,10 @@ def process_window_within_split(
 ):
     base_reg = regressor(**regressor_kwargs)
     reg = MultiOutputRegressor(base_reg)
-    window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
-    window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
+    window_train = spks_train[:, w:w + window_size]
+    # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    window_test = spks_test[:, w:w + window_size]
     # scaler = StandardScaler()
     # # scaler.fit(window_train)
     # window_train = scaler.transform(window_train)
@@ -255,9 +257,11 @@ def main():
         # X_for_umap = X[bins_before:-bins_before]
         # labels_for_umap = labels[bins_before:-bins_before]
         #apply gaussian filtering, omega = 2
+        #take the square root of the firing rates
+        X_for_umap = np.sqrt(spike_data)
 
-        X_for_umap = scipy.ndimage.gaussian_filter(spike_data, 2)
-        labels_for_umap = labels_for_umap[:, 0:6]
+        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=1)
+        labels_for_umap = labels[:, 0:6]
 
 
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
