@@ -228,7 +228,7 @@ def run_lstm_with_history(data_dir, rat_id = 'unknown_rat'):
         big_score_df = pd.concat([big_score_df, score_df_neuron], ignore_index=True)
 
     #save big_score_df to csv
-    big_score_df.to_csv(f'{data_dir}/csvs_0603/lstm_scores_{target_label}_rat_{rat_id}.csv')
+    big_score_df.to_csv(f'{data_dir}/lstm_scores_{target_label}_rat_{rat_id}.csv')
     print('done')
 
 
@@ -246,10 +246,14 @@ def main():
         #check if the folder name is a date by checking if it contains a hyphen
         date = [d for d in dates if '-' in d][0]
         data_dir = os.path.join(big_dir, f'rat_{rat}', date)
-        if Path(f'{data_dir}/csvs_0603/lstm_scores_angle_sincos_zscore_rat_{rat}.csv').is_file():
+        csv_dir = os.path.join(data_dir, 'csvs_1103')
+        #check if the csvs_0603 folder exists
+        if not os.path.exists(f'{csv_dir}'):
+            os.makedirs(f'{csv_dir}', exist_ok=True)
+        if Path(f'{csv_dir}/lstm_scores_angle_sincos_zscore_rat_{rat}.csv').is_file():
             print(f'lstm scores for rat {rat} already computed')
             continue
-        run_lstm_with_history(data_dir, rat_id = rat)
+        run_lstm_with_history(csv_dir, rat_id = rat)
     return
 
 
