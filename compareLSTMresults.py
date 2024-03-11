@@ -36,12 +36,12 @@ def run_analysis_on_csvs(csv_dict):
             #get the scores of the current neuron
             current_neuron_scores = df[df['neuron_index'] == i]
             #get the number of scores that are above the mean_perm_score
-            difference_in_scores = current_neuron_scores['score'] - current_neuron_scores['mean_perm_score']
+            difference_in_scores =  current_neuron_scores['mean_perm_score'] - current_neuron_scores['score']
             difference_in_scores = np.array(difference_in_scores)
             neuron_index = np.array([i]*len(difference_in_scores))
             key_index = np.array([key]*len(difference_in_scores))
-            scores_above_mean_perm_score = current_neuron_scores[current_neuron_scores['score'] > current_neuron_scores['mean_perm_score']]
-            print(f'Neuron {i} has {len(scores_above_mean_perm_score)} scores that are above the mean_perm_score')
+            scores_above_mean_perm_score = current_neuron_scores[current_neuron_scores['score'] < current_neuron_scores['mean_perm_score']]
+            print(f'Neuron {i} has {len(scores_above_mean_perm_score)} scores that are below the mean_perm_score')
             #get the fraction of scores that are above the mean_perm_score
             fraction_above_mean_perm_score = len(scores_above_mean_perm_score)/len(current_neuron_scores)
             print(f'Neuron {i} has {fraction_above_mean_perm_score} fraction of scores that are above the mean_perm_score')
