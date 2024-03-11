@@ -39,7 +39,7 @@ import torch.nn.functional as F
 import torch.nn.functional as F
 
 class LSTMNet(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers=3, dropout_prob=0.25):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers=6, dropout_prob=0.25):
         super(LSTMNet, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
