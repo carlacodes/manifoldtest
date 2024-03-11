@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn.utils import clip_grad_norm_
-
+from torch.optim.lr_scheduler import StepLR
 
 # Define LSTM model
 # class LSTMNet(nn.Module):
@@ -84,7 +84,8 @@ def run_lstm(X, y):
 
         # Define loss function and optimizer
         criterion = nn.SmoothL1Loss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # you can change the learning rate
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)  # Adjust the weight decay value
+        scheduler = StepLR(optimizer, step_size=30, gamma=0.1)  # Adjust the step_size and gamma
 
         # Convert numpy arrays to PyTorch tensors
         X_train_torch = torch.from_numpy(X[train]).float()
@@ -102,6 +103,7 @@ def run_lstm(X, y):
             loss.backward()
             clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
+            scheduler.step()
 
         # Convert test data to PyTorch tensor
         X_test_torch = torch.from_numpy(X[test]).float()
