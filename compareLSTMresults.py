@@ -11,7 +11,7 @@ def load_csvs(csv_dir):
     csv_list = {}
     #load the csv files
     for i in range(0, len(file_list)):
-        csv_file_to_read = 'C:/neural_data/rat_7\lstm_csvs/' + file_list[i]
+        csv_file_to_read = csv_dir + file_list[i]
         #add to a dictionary
         if 'angle' in file_list[i]:
             csv_list['angle'] = pd.read_csv(csv_file_to_read)
@@ -62,7 +62,7 @@ def run_analysis_on_csvs(csv_dict):
         big_df_by_independent_variable_diff = pd.concat([big_df_by_independent_variable_diff, diff_df], ignore_index=True)
     return big_df_by_independent_variable, big_df_by_independent_variable_diff
 
-def plot_histograms(big_df_by_independent_variable, rat_id):
+def plot_histograms(big_df_by_independent_variable, rat_id, savedir = ''):
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     #plot the histograms
     for i in range(0, len(big_df_by_independent_variable['independent_variable'].unique())):
@@ -75,10 +75,10 @@ def plot_histograms(big_df_by_independent_variable, rat_id):
         ax[i].set_xlabel('Fraction of scores above mean_perm_score')
         ax[i].set_ylabel('Number of neurons')
     plt.suptitle(f'Fraction of scores above mean_perm_score for:  {rat_id}')
-    plt.savefig('C:/neural_data/rat_7/lstm_csvs/histograms.png')
+    plt.savefig(f'{savedir}/histograms_rat_{rat_id}.png')
     plt.show()
 
-def plot_difference_in_scores(dataframe, rat_id):
+def plot_difference_in_scores(dataframe, rat_id, savedir = 'C:/neural_data/rat_7/lstm_csvs/'):
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     #plot the histograms
     for i in range(0, len(dataframe['independent_variable'].unique())):
@@ -92,7 +92,7 @@ def plot_difference_in_scores(dataframe, rat_id):
         ax[i].set_xlabel('Difference in scores')
         ax[i].set_ylabel('Number of neurons')
     plt.suptitle(f'Difference in scores between actual and permuted scores for: {rat_id}')
-    plt.savefig('C:/neural_data/rat_7/lstm_csvs/histograms_diff.png', dpi = 300, bbox_inches = 'tight')
+    plt.savefig(f'{savedir}/histograms_diff_rat_{rat_id}.png', dpi = 300, bbox_inches = 'tight')
     plt.show()
 
     return
@@ -116,8 +116,8 @@ def main():
         #load the list of files in the csv_dir
         csv_dict = load_csvs(csv_dir)
         big_df, diff_df = run_analysis_on_csvs(csv_dict)
-        plot_histograms(big_df, rat)
-        plot_difference_in_scores(diff_df, rat)
+        plot_histograms(big_df, rat, savedir = csv_dir)
+        plot_difference_in_scores(diff_df, rat, savedir = csv_dir)
 
 
     return
