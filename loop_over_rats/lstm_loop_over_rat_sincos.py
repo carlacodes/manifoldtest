@@ -71,6 +71,8 @@ class LSTMNet(nn.Module):
 
 
 def run_lstm(X, y):
+    np.random.seed(None)
+
     # Define the TimeSeries Cross Validator
     tscv = TimeSeriesSplit(n_splits=5)
     # TimeSeries Cross Validation model evaluation
@@ -118,26 +120,41 @@ def run_lstm(X, y):
         fold_no = fold_no + 1
 
         # Manual permutation test
-        n_permutations = 100
+        n_permutations = 1
         permutation_scores = np.zeros(n_permutations)
         for i in range(n_permutations):
-            y_test_permuted = copy.deepcopy(y_pred)
+            y_test_permuted = copy.deepcopy(y_test)
             X_test_torch_permuted = copy.deepcopy(X_test_torch)
             X_test_torch_permuted = np.roll(X_test_torch_permuted, np.random.randint(0, X_test_torch_permuted.shape[0]), axis=0)
-
             model.eval()
+            X_test_torch_numpy = X_test_torch.numpy()
+            #check if X_test_torch_permuted is the same as X_test_torch
+            if np.array_equal(X_test_torch_permuted, X_test_torch_numpy):
+                print('X_test_torch_permuted is the same as X_test_torch')
+
+
+            #check if X_test_torch_permuted is the same as X_test_torch
+
             with torch.no_grad():
-                y_pred_permuted = model(torch.from_numpy(X_test_torch_permuted.numpy()).float())
+                y_pred_permuted = model(torch.from_numpy(X_test_torch_permuted).float())
             #check if y_pred_permuted has nan
             if torch.isnan(y_pred_permuted).any():
                 print('y_pred_permuted has nan')
             #check if X_test_torch has nan
             if torch.isnan(X_test_torch).any():
                 print('X_test_torch has nan')
-
+            y_pred_permuted_numpy = y_pred.detach().numpy()
             permutation_scores[i] = mean_squared_error(y_test_permuted, y_pred_permuted.detach().numpy(),
                                                        multioutput='raw_values').mean()  # calculate mean squared error for each output and then take the mean
 
+
+        y_pred_numpy = y_pred.detach().numpy()
+        #check if y_pred_numpy is equal to y_pred_permuted_numpy
+        if np.array_equal(y_pred_numpy, y_pred_permuted_numpy):
+            print('y_pred_numpy is equal to y_pred_permuted_numpy')
+        #check if y_test_permuted is equal to y_test
+        if np.array_equal(y_test_permuted, y_test):
+            print('y_test_permuted is equal to y_test')
         score_mse = mean_squared_error(y_test, y_pred.detach().numpy(), multioutput='raw_values').mean()
         pvalue = (np.sum(permutation_scores >= score_mse) + 1.0) / (n_permutations + 1.0)
 
