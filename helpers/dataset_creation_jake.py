@@ -2,18 +2,59 @@
 import os
 import numpy as np
 import pandas as pd
-
 from get_directories import get_data_dir, get_robot_maze_directory
 from load_and_save_data import load_pickle, save_pickle
 from calculate_spike_pos_hd import interpolate_rads
-
 sample_freq = 30000  # Hz
 
+def create_positional_trains_no_overlap(dlc_data, window_size=100):  # we'll default to 100 ms windows for now
+    # first, get the start and end time of the video
+    window_in_samples = window_size * sample_freq / 1000  # convert window size to samples
+    windowed_dlc = {}
+    window_edges = {}
+    for k in dlc_data.keys():
+        start_time = dlc_data[k].video_samples.iloc[0]
+        end_time = dlc_data[k].video_samples.iloc[-1]
+        duration = end_time - start_time
 
-def smooth_positional_data(dlc_data, window_size=100):
-    # THIS IS JUST A PLACEHOLDER FOR NOW
-    pass
+        # calculate the number of windows. No overlap.
+        num_windows = int(np.floor(duration / window_in_samples))
 
+        # get the bin edges for the windows, these will be returned and used to bin the spikes
+        window_edges[k] = np.int64([start_time + i * window_in_samples for i in range(num_windows + 1)])
+
+        # calculate the window centres. No overlap, so they are simply the window edges with the last value excluded
+        window_centres = window_edges[k][:-1]
+
+        # create a dataframe and make window_centres the video_samples column
+        windowed_dlc[k] = pd.DataFrame(window_centres, columns=['video_samples'])
+
+        # interpolate the x and y position, and goal distances data using window_centres
+        cols_to_lin_interp = ['x', 'y']
+        # find the cols that begin "distance_to_goal_", but don't end "platform"
+        # and add them to the list
+        cols_to_lin_interp.extend([col for col in dlc_data[k].columns if \
+                                   col.startswith('dist2') and not \
+                                       col.endswith('platform')])
+
+        for c in cols_to_lin_interp:
+            # make the column c in windowed_dlc[k] equal to the linearly interpolated values
+            # of the column c in dlc_data[k] at the window_centres
+            windowed_dlc[k][c] = np.round(np.interp(window_centres, \
+                                                    dlc_data[k].video_samples, dlc_data[k][c]), 1)
+
+        # use interpolate_rads to interpolate the head direction data, and data in columns that
+        # begin "relative_direction" but not including those that begin "relative_direction_to"
+        cols_to_rad_interp = ['hd']
+        cols_to_rad_interp.extend([col for col in dlc_data[k].columns if \
+                                   col.startswith('relative_direction_') and not \
+                                       col.startswith('relative_direction_to')])
+
+        for c in cols_to_rad_interp:
+            windowed_dlc[k][c] = np.round(interpolate_rads(dlc_data[k].video_samples, \
+                                                           dlc_data[k][c], window_centres), 2)
+
+    return windowed_dlc, window_edges, window_size
 
 def create_positional_trains(dlc_data, window_size=100):  # we'll default to 100 ms windows for now
     # first, get the start and end time of the video
@@ -114,6 +155,33 @@ def create_spike_trains(units, window_edges, window_size):
 
     return spike_trains
 
+def create_spike_trains_no_overlap(units, window_edges, window_size):
+    # No overlap.
+    # window_size in ms - just hard coded, not checked, so be careful!!!!!
+
+    # create a dictionary to hold the spike trains
+    spike_trains = {}
+
+    for i, k in enumerate(window_edges.keys()):
+
+        for u in units.keys():
+
+            if i == 0:
+                spike_trains[u] = {}
+
+            # get the spike times for the unit
+            spike_times = units[u][k]
+
+            if not isinstance(spike_times, np.ndarray):
+                spike_times = spike_times['samples']
+
+            # bin spike times into the windows
+            binned_spikes = np.histogram(spike_times, window_edges[k])[0]
+
+            spike_rate = binned_spikes / (window_size / 1000)
+            spike_trains[u][k] = spike_rate
+
+    return spike_trains
 
 def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_data = True):
     # concatenate data from all trials into np.arrays for training
@@ -239,7 +307,7 @@ if __name__ == "__main__":
 
     big_dir = 'C:/neural_data/'
     # 3, 8, 9, 10
-    for rat in [7]:
+    for rat in [7, 3, 8, 9, 10]:
         #get the list of folders directory that have dates
         print(f'now starting rat:{rat}')
         dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
@@ -255,6 +323,7 @@ if __name__ == "__main__":
 
         spike_dir = os.path.join(data_dir, 'physiology_data')
         units = load_pickle('restricted_units', spike_dir)
+        use_overlap = False
 
         # load positional data
         # dlc_dir = os.path.join(data_dir, 'deeplabcut')
@@ -266,8 +335,12 @@ if __name__ == "__main__":
 
         # create positional and spike trains with overlapping windows
         # and save as a pickle file
-        windowed_dlc, window_edges, window_size = \
-            create_positional_trains(dlc_data, window_size=500)
+        if use_overlap:
+            windowed_dlc, window_edges, window_size = \
+                create_positional_trains(dlc_data, window_size=25)
+        else:
+            windowed_dlc, window_edges, window_size = \
+                create_positional_trains_no_overlap(dlc_data, window_size=25)
         windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
         save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
@@ -276,18 +349,20 @@ if __name__ == "__main__":
         window_edges = windowed_data['window_edges']
 
         # create spike trains
-        spike_trains = create_spike_trains(units, window_edges, window_size=window_size)
-        save_pickle(spike_trains, 'spike_trains', spike_dir)
-
-        spike_trains = load_pickle('spike_trains', spike_dir)
+        if use_overlap:
+            spike_trains = create_spike_trains(units, window_edges, window_size=window_size)
+        else:
+            spike_trains = create_spike_trains_no_overlap(units, window_edges, window_size=window_size)
+        save_pickle(spike_trains, f'spike_trains_overlap_{use_overlap}', spike_dir)
+        spike_trains = load_pickle(f'spike_trains_overlap_{use_overlap}', spike_dir)
 
         # concatenate data from all trials into np.arrays for training
         norm_data = False
-        zscore_option = True
+        zscore_option = False
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
         # convert labels to float32
         labels = labels.astype(np.float32)
-        np.save(f'{dlc_dir}/labels_0503_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}.npy', labels)
+        np.save(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}.npy', labels)
 
         # concatenate spike trains into np.arrays for training
         model_inputs, unit_list = cat_spike_trains(spike_trains)
@@ -295,8 +370,8 @@ if __name__ == "__main__":
 
         # convert model_inputs to float32
         model_inputs = model_inputs.astype(np.float32)
-        np.save(f'{spike_dir}/inputs.npy', model_inputs)
-        save_pickle(unit_list, 'unit_list', spike_dir)
+        np.save(f'{spike_dir}/inputs_overlap_{use_overlap}.npy', model_inputs)
+        save_pickle(unit_list, f'unit_list_overlap_{use_overlap}', spike_dir)
 
         reshape_model_inputs_and_labels(model_inputs, labels)
     pass

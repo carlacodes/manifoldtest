@@ -74,7 +74,7 @@ def run_lstm(X, y):
     np.random.seed(None)
 
     # Define the TimeSeries Cross Validator
-    tscv = TimeSeriesSplit(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=2)
     # TimeSeries Cross Validation model evaluation
     fold_no = 1
     score_df = pd.DataFrame()
