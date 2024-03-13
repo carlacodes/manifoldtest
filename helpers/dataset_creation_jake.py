@@ -857,7 +857,7 @@ if __name__ == "__main__":
                 rearranged_dlc[col].append(df[col].values)
         #convert the lists to np.arrays
 
-        #save the rearranged dlc
+        ##3D ROLLING WINDOW:
         labels_rolling_window, var_list, trial_list = cat_behav_data_3d_rolling_window(rearranged_dlc, length_size=100)
         #take an example trial_list from the second dimension
 
@@ -871,7 +871,7 @@ if __name__ == "__main__":
 
         # concatenate spike trains into np.arrays for training
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
-
+        ##3D ROLLING WINDOW:
         model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
         trial_number_tracker_example = trial_number_tracker[:,0,:]
 
