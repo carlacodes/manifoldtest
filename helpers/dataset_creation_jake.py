@@ -7,6 +7,8 @@ from load_and_save_data import load_pickle, save_pickle
 from calculate_spike_pos_hd import interpolate_rads
 sample_freq = 30000  # Hz
 
+
+import numpy as np
 def create_positional_trains_no_overlap(dlc_data, window_size=100):  # we'll default to 100 ms windows for now
     # first, get the start and end time of the video
     window_in_samples = window_size * sample_freq / 1000  # convert window size to samples
@@ -403,6 +405,81 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_dat
     return dlc_array, column_names
 
 
+def cat_dlc_modified(windowed_dlc, length_size, include_raw_hd=True, scale_data=False, z_score_data=True):
+    # Concatenate data from all trials into np.arrays for training
+    # Restructure data to have trial number x variable feature x time
+
+    trial_arrays = []  # List to hold arrays for each trial
+    trial_numbers = []  # List to hold trial numbers for each row in the trial_arrays
+
+    for i, k in enumerate(windowed_dlc):
+        # Get the column names
+        columns = windowed_dlc[k].columns
+
+        # Find the distance to goal columns
+        distance_cols = [c for c in columns if c.startswith('dist')]
+
+        # Find the relative direction columns (but not relative_direction_to columns)
+        relative_direction_cols = [c for c in columns if c.startswith('relative_direction_') \
+                                   and not c.startswith('relative_direction_screen')]
+
+        column_names = ['x', 'y']
+        column_names.extend(distance_cols)
+        column_names.extend(['hd'])
+        column_names.extend(relative_direction_cols)
+
+        total_num_cols = 10  # x, y, distance_to_goal x2, hd x2, relative_direction x 4
+
+        # Get the number of rows in the dataframe
+        num_rows = len(windowed_dlc[k])
+
+        # Create an empty np.array of the correct size
+        temp_array = np.zeros((num_rows, total_num_cols))
+
+        count = 0
+        for c in column_names:
+            # If c is not hd or relative_direction, just add the column to the array
+            if c not in ['hd'] and not c.startswith('relative_direction'):
+                temp_array[:, count] = windowed_dlc[k][c].values
+                count += 1
+
+            elif include_raw_hd:
+                # Angular data needs to be converted to sin and cos
+                temp_array[:, count] = np.sin(windowed_dlc[k][c].values)
+                temp_array[:, count + 1] = np.cos(windowed_dlc[k][c].values)
+                temp_array[:, count + 2] = windowed_dlc[k][c].values
+                count += 3
+            else:
+                temp_array[:, count] = np.sin(windowed_dlc[k][c].values)
+                temp_array[:, count + 1] = np.cos(windowed_dlc[k][c].values)
+                count += 2
+
+        # Split each trial into windows
+        for start in range(0, num_rows, length_size):
+            end = start + length_size
+            trial_arrays.append(temp_array[start:min(end, num_rows), :])
+            trial_numbers.append(np.full(min(end - start, num_rows), i))
+
+    # Stack all trial arrays into a 3D array
+    dlc_array = np.stack(trial_arrays, axis=0)
+    trial_numbers = np.concatenate(trial_numbers)
+
+    # All columns need to be scaled to the range 0-1
+    if scale_data:
+        for i in range(dlc_array.shape[2]):
+            dlc_array[:, :, i] = (dlc_array[:, :, i] - np.min(dlc_array[:, :, i])) / \
+                                  (np.max(dlc_array[:, :, i]) - np.min(dlc_array[:, :, i]))
+    elif z_score_data:
+        epsilon = 1e-10
+        for i in range(dlc_array.shape[2]):
+            dlc_array[:, :, i] = (dlc_array[:, :, i] - np.mean(dlc_array[:, :, i])) / \
+                                  (np.std(dlc_array[:, :, i]) + epsilon)
+
+    dlc_array = np.round(dlc_array, 3)
+
+    return dlc_array, trial_numbers, column_names
+
+
 def cat_dlc_rolling_window_shape(windowed_dlc, include_raw_hd=True, scale_data=False, z_score_data=True, length_size=100):
     # get list of keys
     key_list = list(windowed_dlc.keys())
@@ -423,7 +500,10 @@ def cat_dlc_rolling_window_shape(windowed_dlc, include_raw_hd=True, scale_data=F
         end = start + length_size
         temp_array = np.zeros((n_keys, length_size))
         temp_trial_array = np.zeros((n_keys, length_size))
-        for j, k in enumerate(key_list):
+        for j, k in enumerate(
+
+
+        ):
             # Create a temporary array filled with zeros
             temp_dlc = np.zeros(length_size)
             # Fill the temporary array with the data if it is not empty
@@ -581,6 +661,55 @@ def cat_spike_trains_3d_rolling_window(spike_trains, length_size = 100):
     trial_array = np.stack(trial_numbers, axis=0)
 
     return spike_array, unit_list, trial_array
+
+def cat_behav_data_3d_rolling_window(dlc_data, length_size = 100):
+    # get list of units
+    unit_list = list(dlc_data.keys())
+    n_units = len(unit_list)
+
+    trial_arrays = []  # list to hold arrays for each trial
+    trial_numbers = []  # list to hold trial numbers for each spike bin
+
+    # Flatten all trials into a single long array for each unit
+    flat_spike_trains = {u: np.concatenate(dlc_data[u]) for u in unit_list}
+
+    flat_trial_numbers = {u: np.concatenate([np.full(len(df), i) for i, df in enumerate(dlc_data[u])]) for u in
+                          unit_list}
+
+    # Determine the total length of the flattened spike trains
+    total_length = len(next(iter(flat_spike_trains.values())))
+
+    # Create rolling windows for each unit
+    trial_number = 0  # Initialize trial number
+    for start in range(0, total_length, length_size):
+        end = start + length_size
+        temp_array = np.zeros((n_units, length_size))
+        temp_trial_array = np.zeros((n_units, length_size))
+        for j, u in enumerate(unit_list):
+            # Create a temporary array filled with zeros
+            temp_spike_train = np.zeros(length_size)
+            # Fill the temporary array with the spike train data
+            temp_spike_train[:min(end, len(flat_spike_trains[u])) - start] = flat_spike_trains[u][start:min(end, len(flat_spike_trains[u]))]
+            # Assign the temporary array to the temp_array
+            temp_array[j, :] = temp_spike_train
+
+
+            temp_trial_train = np.zeros(length_size)
+            temp_trial_train[:min(end, len(flat_spike_trains[u])) - start] = flat_trial_numbers[u][start:min(end, len(flat_spike_trains[u]))]
+            temp_trial_array[j, :] = temp_trial_train
+
+        trial_arrays.append(temp_array)
+        trial_numbers.append(temp_trial_array)
+
+
+    # Stack all trial arrays into a 3D array
+    spike_array = np.stack(trial_arrays, axis=0)
+
+    spike_array = np.round(spike_array, 3)
+
+    trial_array = np.stack(trial_numbers, axis=0)
+
+    return spike_array, unit_list, trial_array
 def reshape_model_inputs_and_labels(model_inputs, labels):
     labels = labels[:, 0:3]
     #reshape the the model input to be time interval x time bin x neuron
@@ -657,8 +786,21 @@ if __name__ == "__main__":
         # concatenate data from all trials into np.arrays for training
         norm_data = False
         zscore_option = False
+        #rearrange windowed_dlc so it's index by variable number
+        rearranged_dlc = {}
+        for key, df in windowed_dlc.items():
+            variable_name = f"trial_{key.split('_')[1]}"
+            #get the columns of the dataframe
+            columns = df.columns
+            for col in columns:
+                if col not in rearranged_dlc:
+                    rearranged_dlc[col] = []
+                rearranged_dlc[col].append(df[col].values)
+        #convert the lists to np.arrays
 
-        labels_rolling_window, column_names_rolling_window, trial_number_tracker = cat_dlc_rolling_window_shape(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option, length_size=100)
+        #save the rearranged dlc
+        labels_rolling_window, var_list, trial_list  =cat_behav_data_3d_rolling_window(rearranged_dlc, length_size=100)
+
 
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
         # convert labels to float32
