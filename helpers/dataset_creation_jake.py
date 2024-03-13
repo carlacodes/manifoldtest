@@ -615,6 +615,61 @@ def cat_spike_trains_3d(spike_trains):
 
     return spike_array, unit_list
 
+def cat_spike_trains_3d(spike_trains):
+    '''using padding to make the spike trains the same length'''
+    # get list of units
+    unit_list = list(spike_trains.keys())
+    n_units = len(unit_list)
+
+    trial_arrays = []  # list to hold arrays for each trial
+
+    max_cols = max(len(spike_trains[u][k]) for u in unit_list for k in spike_trains[unit_list[0]].keys())
+
+    for i, k in enumerate(spike_trains[unit_list[0]].keys()):
+        # create an empty np.array of the correct size
+        temp_array = np.zeros((n_units, max_cols))
+
+        for j, u in enumerate(unit_list):
+            # add the spike trains to the array
+            temp_array[j, :len(spike_trains[u][k])] = spike_trains[u][k]
+
+        # add the array for this trial to the list
+        trial_arrays.append(temp_array)
+
+    # concatenate along a new trial axis to get a 3D array
+    spike_array = np.stack(trial_arrays, axis=0)
+
+    spike_array = np.round(spike_array, 3)
+
+    return spike_array, unit_list
+
+def cat_dlc_3d(dlc_data):
+    '''using padding to make the spike trains the same length'''
+    # get list of units
+    var_list = list(dlc_data.keys())
+    n_units = len(var_list)
+
+    trial_arrays = []  # list to hold arrays for each trial
+
+    max_cols = max(len(dlc_data[u][k]) for u in var_list for k in dlc_data[var_list[0]].keys())
+
+    for i, k in enumerate(dlc_data[var_list[0]].keys()):
+        # create an empty np.array of the correct size
+        temp_array = np.zeros((n_units, max_cols))
+
+        for j, u in enumerate(var_list):
+            # add the spike trains to the array
+            temp_array[j, :len(dlc_data[u][k])] = dlc_data[u][k]
+
+        # add the array for this trial to the list
+        trial_arrays.append(temp_array)
+
+    # concatenate along a new trial axis to get a 3D array
+    behav_array = np.stack(trial_arrays, axis=0)
+
+    behav_array = np.round(behav_array, 3)
+
+    return behav_array, var_list
 def cat_spike_trains_3d_rolling_window(spike_trains, length_size = 100):
     # get list of units
     unit_list = list(spike_trains.keys())
@@ -799,7 +854,7 @@ if __name__ == "__main__":
         #convert the lists to np.arrays
 
         #save the rearranged dlc
-        labels_rolling_window, var_list, trial_list  =cat_behav_data_3d_rolling_window(rearranged_dlc, length_size=100)
+        labels_rolling_window, var_list, trial_list = cat_behav_data_3d_rolling_window(rearranged_dlc, length_size=100)
 
 
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
