@@ -659,7 +659,6 @@ def cat_spike_trains_3d_with_behav(spike_trains, dlc_data_formatted):
     for i, k in enumerate(spike_trains[unit_list[0]].keys()):
         # create an empty np.array of the correct size
         temp_array = np.zeros((n_units, max_cols))
-
         for j, u in enumerate(unit_list):
             # add the spike trains to the array
             temp_array[j, :len(spike_trains[u][k])] = spike_trains[u][k]
@@ -670,10 +669,9 @@ def cat_spike_trains_3d_with_behav(spike_trains, dlc_data_formatted):
     for i2, k2 in enumerate(dlc_data_formatted[behav_list[0]]):
         # create an empty np.array of the correct size
         temp_array_dlc = np.zeros((n_behav, max_cols))
-
         for j2, u2 in enumerate(behav_list):
             # add the spike trains to the array
-            temp_array_dlc[j2, :len(dlc_data_formatted[u2][k2])] = dlc_data_formatted[u2][k2]
+            temp_array_dlc[j2, :len(dlc_data_formatted[u2][j2])] = dlc_data_formatted[u2][j2]
 
         # add the array for this trial to the list
         trial_arrays_dlc.append(temp_array_dlc)
@@ -682,7 +680,10 @@ def cat_spike_trains_3d_with_behav(spike_trains, dlc_data_formatted):
 
     spike_array = np.round(spike_array, 3)
 
-    return spike_array, unit_list
+    behav_array = np.stack(trial_arrays_dlc, axis=0)
+
+
+    return spike_array, unit_list, behav_array
 
 
 def cat_dlc_3d(dlc_data):
