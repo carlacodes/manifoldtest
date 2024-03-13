@@ -55,6 +55,9 @@ def create_positional_trains_no_overlap(dlc_data, window_size=100):  # we'll def
         for c in cols_to_rad_interp:
             windowed_dlc[k][c] = np.round(interpolate_rads(dlc_data[k].video_samples, \
                                                            dlc_data[k][c], window_centres), 2)
+        #take the sin and cos of the head direction
+        windowed_dlc[k]['hd_sin'] = np.sin(windowed_dlc[k]['hd'])
+        windowed_dlc[k]['hd_cos'] = np.cos(windowed_dlc[k]['hd'])
 
     return windowed_dlc, window_edges, window_size
 
@@ -910,13 +913,15 @@ if __name__ == "__main__":
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
         # convert labels to float32
         labels = labels.astype(np.float32)
-        np.save(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}.npy', labels)
+        np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}.npy', labels)
 
         # concatenate spike trains into np.arrays for training
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
         #make rearranged_dlc into a collection of dictionaries with the same keys
 
-        cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
+        spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
+
+
         ##3D ROLLING WINDOW:
         model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
         trial_number_tracker_example = trial_number_tracker[:,0,:]
