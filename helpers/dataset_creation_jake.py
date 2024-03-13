@@ -919,7 +919,13 @@ if __name__ == "__main__":
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
         #make rearranged_dlc into a collection of dictionaries with the same keys
 
+        ##ZERO PADDING:
         spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
+        #save the spike array and behav array
+        spike_array = spike_array.astype(np.float32)
+        behav_array = behav_array.astype(np.float32)
+        np.save(f'{spike_dir}/spike_array_overlap_zero_padding.npy', spike_array)
+        np.save(f'{spike_dir}/behav_array_overlap_zero_padding.npy', behav_array)
 
 
         ##3D ROLLING WINDOW:
