@@ -492,7 +492,8 @@ def cat_spike_trains_3d_rolling_window(spike_trains, length_size = 100):
     unit_list = list(spike_trains.keys())
     n_units = len(unit_list)
 
-    trial_arrays = []# list to hold arrays for each trial
+    trial_arrays = []  # list to hold arrays for each trial
+    trial_numbers = []  # list to hold trial numbers for each spike bin
 
     # Flatten all trials into a single long array for each unit
     flat_spike_trains = {u: np.concatenate([spike_trains[u][k] for k in spike_trains[u]]) for u in unit_list}
@@ -501,6 +502,7 @@ def cat_spike_trains_3d_rolling_window(spike_trains, length_size = 100):
     total_length = len(next(iter(flat_spike_trains.values())))
 
     # Create rolling windows for each unit
+    trial_number = 0  # Initialize trial number
     for start in range(0, total_length, length_size):
         end = start + length_size
         temp_array = np.zeros((n_units, length_size))
@@ -514,13 +516,15 @@ def cat_spike_trains_3d_rolling_window(spike_trains, length_size = 100):
             temp_array[j, :] = temp_spike_train
 
         trial_arrays.append(temp_array)
+        trial_numbers.extend([trial_number] * length_size)  # Add the trial number for each spike bin
+        trial_number += 1  # Increment trial number
 
     # Stack all trial arrays into a 3D array
     spike_array = np.stack(trial_arrays, axis=0)
 
     spike_array = np.round(spike_array, 3)
 
-    return spike_array, unit_list
+    return spike_array, unit_list, trial_numbers
 def reshape_model_inputs_and_labels(model_inputs, labels):
     labels = labels[:, 0:3]
     #reshape the the model input to be time interval x time bin x neuron
