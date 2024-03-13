@@ -183,6 +183,153 @@ def create_spike_trains_no_overlap(units, window_edges, window_size):
 
     return spike_trains
 
+# def create_spike_trains_with_array(units, window_size = 20, overlap = 10):
+#     # window_size and overlap in ms - just hard coded, not checked, so be careful!!!!!
+#     # Create a list to hold the spike trains
+#     spike_trains = []
+#
+#     # Iterate over trials
+#     for spike_times_dict in units.values():
+#         trial_spike_trains = []
+#
+#         # Iterate over neurons
+#         for spike_times in spike_times_dict.values():
+#             # get the spike times for the unit
+#
+#             if not isinstance(spike_times, np.ndarray):
+#                 spike_times = spike_times['samples']
+#
+#             # Calculate the number of windows with overlap
+#             num_windows = int((len(spike_times) - window_size) / overlap) + 1
+#
+#             # Bin spike times into overlapping windows
+#             binned_spikes = [np.histogram(spike_times[i:i+window_size], bins=window_size)[0]
+#                              for i in range(0, len(spike_times) - window_size + 1, overlap)]
+#
+#             if len(binned_spikes) > 0:
+#                 unit_spike_rate = np.vstack(binned_spikes) / (window_size / 1000)
+#                 trial_spike_trains.append(unit_spike_rate)
+#
+#         # Ensure all arrays have the same shape before stacking
+#         if len(trial_spike_trains) > 0:
+#             max_shape = max(arr.shape for arr in trial_spike_trains)
+#             trial_spike_trains_padded = [np.pad(arr, ((0, max_shape[0] - arr.shape[0]), (0, max_shape[1] - arr.shape[1])))
+#                                          for arr in trial_spike_trains]
+#             spike_trains.append(np.stack(trial_spike_trains_padded, axis=-1))
+#
+#     if len(spike_trains) == 0:
+#         raise ValueError("No spike data available for the specified window size and overlap.")
+#     result = np.stack(spike_trains, axis=0)
+#     return np.stack(spike_trains, axis=0)
+
+
+
+# def create_spike_trains_merge_into_trial(units, window_size):
+#     #declare a 3D array of trials x time x neurons
+#     #create a dictionary to hold the spike trains
+#     #get the number of units for the thrid dimension
+#     num_units = len(units)
+#     cumulative_list = []
+#     # for key in units:
+#     #     example_unit = units[key]
+#     #     for trial in example_unit:
+#     #         spike_times = example_unit[trial]
+#     #         if not isinstance(spike_times, np.ndarray):
+#     #             spike_times = spike_times['samples']
+#     #         # bin spike times into the windows
+#     #         binned_spikes = np.histogram(spike_times, window_size)[0]
+#     #         spike_rate = binned_spikes / (window_size / 1000)
+#     #         cumulative_list.append(spike_rate)
+#     #     # windows overlap by 50%
+#     #     # window_size in ms - just hard coded, not checked, so be careful!!!!!
+#
+#         # create a dictionary to hold the spike trains
+#     spike_trains = {}
+#     # remove the sample_rate from the units dictionary
+#
+#     for i, k in enumerate(window_edges.keys()):
+#
+#         # create the time bins. Starting times for each bin are from the first to the
+#         # third to last window edge, with the last window edge excluded. The end times
+#         # start from the third window edge and go to the last window edge, with the first
+#         # two edges exluded.
+#
+#         for u in units.keys():
+#
+#             if i == 0:
+#                 spike_trains[u] = {}
+#
+#             # get the spike times for the unit
+#             spike_times = units[u][k]
+#
+#             if not isinstance(spike_times, np.ndarray):
+#                 spike_times = spike_times['samples']
+#
+#                 # bin spike times into the windows
+#             binned_spikes = np.histogram(spike_times, window_edges[k])[0]
+#             # make a copy of binned spikes
+#             binned_spikes_copy = binned_spikes.copy()
+#
+#             # the two copies are offset by half the window size
+#             # and added together to produce the ovelapping windows
+#             # (i.e. the new first bin is bin1 + bin2, the new second
+#             # bin is bin2 + bin3, etc.) without resorting to a slow
+#             # for loop
+#             # remove the last bin of binned spike
+#             binned_spikes = binned_spikes[:-1]
+#             # remove the first bin of the copy
+#             binned_spikes_copy = binned_spikes_copy[1:]
+#             # add the two together
+#             binned_spikes = binned_spikes + binned_spikes_copy
+#
+#             spike_rate = binned_spikes / (window_size / 1000)
+#             spike_trains[u][k] = spike_rate
+#
+#     return example_unit
+
+
+def create_spike_trains_trial_binning(units, window_edges, window_size):
+    # Overlap.
+    # window_size in ms - just hard coded, not checked, so be careful!!!!!
+
+    # create a dictionary to hold the spike trains
+    spike_trains = {}
+
+    for i, k in enumerate(window_edges.keys()):
+
+        for u in units.keys():
+
+            if i == 0:
+                spike_trains[u] = {}
+
+            # get the spike times for the unit
+            spike_times = units[u][k]
+
+            if not isinstance(spike_times, np.ndarray):
+                spike_times = spike_times['samples']
+
+            # bin spike times into the windows
+            binned_spikes = np.histogram(spike_times, window_edges[k])[0]
+            # make a copy of binned spikes
+            binned_spikes_copy = binned_spikes.copy()
+
+            # the two copies are offset by half the window size
+            # and added together to produce the overlapping windows
+            # (i.e. the new first bin is bin1 + bin2, the new second
+            # bin is bin2 + bin3, etc.) without resorting to a slow
+            # for loop
+            # remove the last bin of binned spike
+            binned_spikes = binned_spikes[:-1]
+            # remove the first bin of the copy
+            binned_spikes_copy = binned_spikes_copy[1:]
+            # add the two together
+            binned_spikes = binned_spikes + binned_spikes_copy
+
+            spike_rate = binned_spikes / (window_size / 1000)
+            spike_trains[u][k] = spike_rate
+
+    return spike_trains
+
 def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_data = True):
     # concatenate data from all trials into np.arrays for training
     # we will keep columns x, y, and the 2 distance to goal columns.
@@ -284,7 +431,91 @@ def cat_spike_trains(spike_trains):
 
     return spike_array, unit_list
 
+def cat_spike_trains(spike_trains):
+    # get list of units
+    unit_list = list(spike_trains.keys())
+    n_units = len(unit_list)
 
+    for i, k in enumerate(spike_trains[unit_list[0]].keys()):
+        for j, u in enumerate(unit_list):
+            if j == 0:
+                # get the number of rows in the dataframe
+                num_cols = len(spike_trains[u][k])
+
+                # create an empty np.array of the correct size
+                temp_array = np.zeros((n_units, num_cols))
+
+            # add the spike trains to the array
+            temp_array[j, :] = spike_trains[u][k]
+
+        if i == 0:
+            spike_array = temp_array.copy()
+
+        else:
+            spike_array = np.concatenate((spike_array, temp_array), axis=1)
+
+    spike_array = np.round(spike_array, 3)
+    spike_array = np.transpose(spike_array)
+
+    return spike_array, unit_list
+
+def cat_spike_trains_3d(spike_trains):
+    '''using padding to make the spike trains the same length'''
+    # get list of units
+    unit_list = list(spike_trains.keys())
+    n_units = len(unit_list)
+
+    trial_arrays = []  # list to hold arrays for each trial
+
+    max_cols = max(len(spike_trains[u][k]) for u in unit_list for k in spike_trains[unit_list[0]].keys())
+
+    for i, k in enumerate(spike_trains[unit_list[0]].keys()):
+        # create an empty np.array of the correct size
+        temp_array = np.zeros((n_units, max_cols))
+
+        for j, u in enumerate(unit_list):
+            # add the spike trains to the array
+            temp_array[j, :len(spike_trains[u][k])] = spike_trains[u][k]
+
+        # add the array for this trial to the list
+        trial_arrays.append(temp_array)
+
+    # concatenate along a new trial axis to get a 3D array
+    spike_array = np.stack(trial_arrays, axis=0)
+
+    spike_array = np.round(spike_array, 3)
+
+    return spike_array, unit_list
+
+def cat_spike_trains_3d_rolling_window(spike_trains, window_size):
+    # get list of units
+    unit_list = list(spike_trains.keys())
+    n_units = len(unit_list)
+
+    trial_arrays = []  # list to hold arrays for each trial
+
+    # Flatten all trials into a single long array for each unit
+    flat_spike_trains = {u: np.concatenate([spike_trains[u][k] for k in spike_trains[u]]) for u in unit_list}
+
+    # Determine the total length of the flattened spike trains
+    total_length = len(next(iter(flat_spike_trains.values())))
+
+    # Create rolling windows for each unit
+    for start in range(0, total_length, window_size):
+        end = start + window_size
+        temp_array = np.zeros((n_units, window_size))
+
+        for j, u in enumerate(unit_list):
+            temp_array[j, :] = flat_spike_trains[u][start:end]
+
+        trial_arrays.append(temp_array)
+
+    # Stack all trial arrays into a 3D array
+    spike_array = np.stack(trial_arrays, axis=0)
+
+    spike_array = np.round(spike_array, 3)
+
+    return spike_array, unit_list
 def reshape_model_inputs_and_labels(model_inputs, labels):
     labels = labels[:, 0:3]
     #reshape the the model input to be time interval x time bin x neuron
@@ -353,6 +584,8 @@ if __name__ == "__main__":
             spike_trains = create_spike_trains(units, window_edges, window_size=window_size)
         else:
             spike_trains = create_spike_trains_no_overlap(units, window_edges, window_size=window_size)
+            # spike_trains_binned = create_spike_trains_trial_binning(units, window_edges, window_size=window_size)
+            # spike_trains_3d = create_spike_trains_merge_into_trial(units, window_size=window_size)
         save_pickle(spike_trains, f'spike_trains_overlap_{use_overlap}', spike_dir)
         spike_trains = load_pickle(f'spike_trains_overlap_{use_overlap}', spike_dir)
 
@@ -365,7 +598,11 @@ if __name__ == "__main__":
         np.save(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}.npy', labels)
 
         # concatenate spike trains into np.arrays for training
+        model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
+        model_inputs_roving, unit_list_roving = cat_spike_trains_3d_rolling_window(spike_trains, window_size)
         model_inputs, unit_list = cat_spike_trains(spike_trains)
+
+
         #
 
         # convert model_inputs to float32
