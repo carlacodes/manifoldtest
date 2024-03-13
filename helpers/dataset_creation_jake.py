@@ -356,6 +356,7 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_dat
             column_names = ['x', 'y']
             column_names.extend(distance_cols)
             column_names.extend(['hd'])
+            #column names already predefined so doesn't interfere with EARLIER UPSTREAM CODE where I calculate hd_sin and hd_scos as part of window_dlc
             column_names.extend(relative_direction_cols)
 
             total_num_cols = 10  # x, y, distance_to_goal x2, hd x2, relative_direction x 4
