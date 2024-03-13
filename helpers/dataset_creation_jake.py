@@ -445,10 +445,12 @@ def cat_dlc_rolling_window_shape(windowed_dlc, include_raw_hd=True, scale_data=F
     dlc_array = np.stack(trial_arrays, axis=0)
     dlc_array = np.round(dlc_array, 3)
 
+    # Transpose the array to get the dimensions trial x time x variable
+    dlc_array = np.transpose(dlc_array, (0, 2, 1))
+
     trial_array = np.stack(trial_numbers, axis=0)
 
     return dlc_array, key_list, trial_array
-
 def cat_spike_trains(spike_trains):
     # get list of units
     unit_list = list(spike_trains.keys())
