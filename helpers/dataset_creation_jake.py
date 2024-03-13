@@ -487,12 +487,12 @@ def cat_spike_trains_3d(spike_trains):
 
     return spike_array, unit_list
 
-def cat_spike_trains_3d_rolling_window(spike_trains, window_size):
+def cat_spike_trains_3d_rolling_window(spike_trains, length_size = 100):
     # get list of units
     unit_list = list(spike_trains.keys())
     n_units = len(unit_list)
 
-    trial_arrays = []  # list to hold arrays for each trial
+    trial_arrays = []# list to hold arrays for each trial
 
     # Flatten all trials into a single long array for each unit
     flat_spike_trains = {u: np.concatenate([spike_trains[u][k] for k in spike_trains[u]]) for u in unit_list}
@@ -501,12 +501,17 @@ def cat_spike_trains_3d_rolling_window(spike_trains, window_size):
     total_length = len(next(iter(flat_spike_trains.values())))
 
     # Create rolling windows for each unit
-    for start in range(0, total_length, window_size):
-        end = start + window_size
-        temp_array = np.zeros((n_units, window_size))
+    for start in range(0, total_length, length_size):
+        end = start + length_size
+        temp_array = np.zeros((n_units, length_size))
 
         for j, u in enumerate(unit_list):
-            temp_array[j, :] = flat_spike_trains[u][start:end]
+            # Create a temporary array filled with zeros
+            temp_spike_train = np.zeros(length_size)
+            # Fill the temporary array with the spike train data
+            temp_spike_train[:min(end, len(flat_spike_trains[u])) - start] = flat_spike_trains[u][start:min(end, len(flat_spike_trains[u]))]
+            # Assign the temporary array to the temp_array
+            temp_array[j, :] = temp_spike_train
 
         trial_arrays.append(temp_array)
 
@@ -599,7 +604,8 @@ if __name__ == "__main__":
 
         # concatenate spike trains into np.arrays for training
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
-        model_inputs_roving, unit_list_roving = cat_spike_trains_3d_rolling_window(spike_trains, window_size)
+
+        model_inputs_roving, unit_list_roving = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
         model_inputs, unit_list = cat_spike_trains(spike_trains)
 
 
