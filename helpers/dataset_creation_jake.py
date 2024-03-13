@@ -609,7 +609,7 @@ if __name__ == "__main__":
         # concatenate spike trains into np.arrays for training
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
 
-        model_inputs_roving, unit_list_roving = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
+        model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
         model_inputs, unit_list = cat_spike_trains(spike_trains)
 
 
