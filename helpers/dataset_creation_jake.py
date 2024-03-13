@@ -426,14 +426,16 @@ def cat_dlc_rolling_window_shape(windowed_dlc, include_raw_hd=True, scale_data=F
         for j, k in enumerate(key_list):
             # Create a temporary array filled with zeros
             temp_dlc = np.zeros(length_size)
-            # Fill the temporary array with the data
-            temp_dlc[:min(end, len(flat_dlc[k])) - start] = flat_dlc[k][start:min(end, len(flat_dlc[k]))]
+            # Fill the temporary array with the data if it is not empty
+            if len(flat_dlc[k][start:min(end, len(flat_dlc[k]))]) > 0:
+                temp_dlc[:min(end, len(flat_dlc[k])) - start] = flat_dlc[k][start:min(end, len(flat_dlc[k]))]
             # Assign the temporary array to the temp_array
             temp_array[j, :] = temp_dlc
 
             temp_trial = np.zeros(length_size)
-
-            temp_trial[:min(end, len(flat_dlc[k])) - start] = flat_trial_numbers[k][start:min(end, len(flat_dlc[k]))]
+            # Ensure that flat_trial_numbers[k] only contains numeric values
+            trial_numbers = [num for num in flat_trial_numbers[k] if isinstance(num, (int, float))]
+            temp_trial[:min(end, len(trial_numbers)) - start] = trial_numbers[start:min(end, len(trial_numbers))]
             temp_trial_array[j, :] = temp_trial
 
         trial_arrays.append(temp_array)
