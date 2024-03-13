@@ -643,13 +643,16 @@ def cat_spike_trains_3d(spike_trains):
 
     return spike_array, unit_list
 
-def cat_spike_trains_3d_with_behav(spike_trains, dlc_data):
+def cat_spike_trains_3d_with_behav(spike_trains, dlc_data_formatted):
     '''using padding to make the spike trains the same length'''
     # get list of units
     unit_list = list(spike_trains.keys())
     n_units = len(unit_list)
+    behav_list = list(dlc_data_formatted.keys())
+    n_behav = len(behav_list)
 
-    trial_arrays = []  # list to hold arrays for each trial
+    trial_arrays = [] # list to hold arrays for each trial
+    trial_arrays_dlc = [] # list to hold arrays for each trial, behav
 
     max_cols = max(len(spike_trains[u][k]) for u in unit_list for k in spike_trains[unit_list[0]].keys())
 
@@ -661,9 +664,19 @@ def cat_spike_trains_3d_with_behav(spike_trains, dlc_data):
             # add the spike trains to the array
             temp_array[j, :len(spike_trains[u][k])] = spike_trains[u][k]
 
+
         # add the array for this trial to the list
         trial_arrays.append(temp_array)
+    for i2, k2 in enumerate(dlc_data_formatted[behav_list[0]]):
+        # create an empty np.array of the correct size
+        temp_array_dlc = np.zeros((n_behav, max_cols))
 
+        for j2, u2 in enumerate(behav_list):
+            # add the spike trains to the array
+            temp_array_dlc[j2, :len(dlc_data_formatted[u2][k2])] = dlc_data_formatted[u2][k2]
+
+        # add the array for this trial to the list
+        trial_arrays_dlc.append(temp_array_dlc)
     # concatenate along a new trial axis to get a 3D array
     spike_array = np.stack(trial_arrays, axis=0)
 
@@ -900,6 +913,9 @@ if __name__ == "__main__":
 
         # concatenate spike trains into np.arrays for training
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
+        #make rearranged_dlc into a collection of dictionaries with the same keys
+
+        cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
         ##3D ROLLING WINDOW:
         model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
         trial_number_tracker_example = trial_number_tracker[:,0,:]
