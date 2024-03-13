@@ -671,9 +671,6 @@ if __name__ == "__main__":
         model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
         model_inputs, unit_list = cat_spike_trains(spike_trains)
 
-
-        #
-
         # convert model_inputs to float32
         model_inputs = model_inputs.astype(np.float32)
         np.save(f'{spike_dir}/inputs_overlap_{use_overlap}.npy', model_inputs)
