@@ -924,8 +924,8 @@ if __name__ == "__main__":
         #save the spike array and behav array
         spike_array = spike_array.astype(np.float32)
         behav_array = behav_array.astype(np.float32)
-        np.save(f'{spike_dir}/spike_array_overlap_zero_padding.npy', spike_array)
-        np.save(f'{spike_dir}/behav_array_overlap_zero_padding.npy', behav_array)
+        np.save(f'{spike_dir}/spike_array_overlap_zero_padding_rat_{rat}.npy', spike_array)
+        np.save(f'{spike_dir}/behav_array_overlap_zero_padding_rat_{rat}.npy', behav_array)
 
 
         ##3D ROLLING WINDOW:
