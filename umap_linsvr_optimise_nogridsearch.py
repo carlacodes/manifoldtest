@@ -230,7 +230,8 @@ def main():
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
     #load labels
-    labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
+    # labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
+    labels = np.load(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_False_zscore_data_False_overlap_False.npy')
 
     spike_data = np.load(f'{spike_dir}/inputs.npy')
     #find the times where the head angle is stationary
