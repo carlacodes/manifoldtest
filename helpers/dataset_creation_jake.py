@@ -403,6 +403,50 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_dat
     return dlc_array, column_names
 
 
+def cat_dlc_rolling_window_shape(windowed_dlc, include_raw_hd=True, scale_data=False, z_score_data=True, length_size=100):
+    # get list of keys
+    key_list = list(windowed_dlc.keys())
+    n_keys = len(key_list)
+
+    trial_arrays = []  # list to hold arrays for each trial
+    trial_numbers = []  # list to hold trial numbers for each data point
+
+    # Flatten all trials into a single long array for each key
+    flat_dlc = {k: np.concatenate([windowed_dlc[k][i].values for i in windowed_dlc[k]]) for k in key_list}
+    flat_trial_numbers = {k: np.concatenate([np.full(len(windowed_dlc[k][i].values), i) for i in windowed_dlc[k]]) for k in key_list}
+
+    # Determine the total length of the flattened data
+    total_length = len(next(iter(flat_dlc.values())))
+
+    # Create rolling windows for each key
+    for start in range(0, total_length, length_size):
+        end = start + length_size
+        temp_array = np.zeros((n_keys, length_size))
+        temp_trial_array = np.zeros((n_keys, length_size))
+        for j, k in enumerate(key_list):
+            # Create a temporary array filled with zeros
+            temp_dlc = np.zeros(length_size)
+            # Fill the temporary array with the data
+            temp_dlc[:min(end, len(flat_dlc[k])) - start] = flat_dlc[k][start:min(end, len(flat_dlc[k]))]
+            # Assign the temporary array to the temp_array
+            temp_array[j, :] = temp_dlc
+
+            temp_trial = np.zeros(length_size)
+
+            temp_trial[:min(end, len(flat_dlc[k])) - start] = flat_trial_numbers[k][start:min(end, len(flat_dlc[k]))]
+            temp_trial_array[j, :] = temp_trial
+
+        trial_arrays.append(temp_array)
+        trial_numbers.append(temp_trial_array)
+
+    # Stack all trial arrays into a 3D array
+    dlc_array = np.stack(trial_arrays, axis=0)
+    dlc_array = np.round(dlc_array, 3)
+
+    trial_array = np.stack(trial_numbers, axis=0)
+
+    return dlc_array, key_list, trial_array
+
 def cat_spike_trains(spike_trains):
     # get list of units
     unit_list = list(spike_trains.keys())
@@ -609,6 +653,9 @@ if __name__ == "__main__":
         # concatenate data from all trials into np.arrays for training
         norm_data = False
         zscore_option = False
+
+        labels_rolling_window, column_names_rolling_window, trial_number_tracker = cat_dlc_rolling_window_shape(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option, length_size=100)
+
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
         # convert labels to float32
         labels = labels.astype(np.float32)
