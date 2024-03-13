@@ -651,7 +651,11 @@ def cat_dlc_3d(dlc_data):
 
     trial_arrays = []  # list to hold arrays for each trial
 
-    max_cols = max(len(dlc_data[u][k]) for u in var_list for k in dlc_data[var_list[0]].keys())
+    # max_cols = max(len(dlc_data[u][k]) for u in var_list for k in dlc_data[var_list[0]].keys())
+    max_cols = max(
+        len(dlc_data[u][k]) for u in var_list for d in dlc_data[var_list[0]] if len(dlc_data[var_list[0]]) > 0 for k in
+        range(d.shape[0]))
+
 
     for i, k in enumerate(dlc_data[var_list[0]].keys()):
         # create an empty np.array of the correct size
@@ -855,7 +859,10 @@ if __name__ == "__main__":
 
         #save the rearranged dlc
         labels_rolling_window, var_list, trial_list = cat_behav_data_3d_rolling_window(rearranged_dlc, length_size=100)
+        #take an example trial_list from the second dimension
 
+        trial_list_example = trial_list[:,0,:]
+        # behav_array, var_list_padded = cat_dlc_3d(rearranged_dlc)
 
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
         # convert labels to float32
@@ -866,6 +873,11 @@ if __name__ == "__main__":
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
 
         model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
+        trial_number_tracker_example = trial_number_tracker[:,0,:]
+
+        #check if the trial number tracker is the same as the trial_list
+        assert np.all(trial_number_tracker_example == trial_list_example)
+
         model_inputs, unit_list = cat_spike_trains(spike_trains)
 
         # convert model_inputs to float32
