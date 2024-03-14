@@ -232,9 +232,9 @@ def main():
 
     #load labels
     # labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
-    labels = np.load(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_False_zscore_data_False_overlap_False.npy')
+    labels = np.load(f'{dlc_dir}/behav_array_overlap_zero_padding_rat_7.npy')
 
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False.npy')
+    spike_data = np.load(f'{spike_dir}/spike_array_overlap_zero_padding_rat_7.npy')
     #find the times where the head angle is stationary
     angle_labels = labels[:, 2]
     stationary_indices = np.where(np.diff(angle_labels) == 0)[0]
