@@ -239,9 +239,9 @@ def main():
 
     #load labels
     # labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
-    labels = np.load(f'{dlc_dir}/behav_array_overlap_zero_padding_rat_7.npy')
+    labels = np.load(f'{dlc_dir}/rearranged_dlc_overlap_False.npy')
 
-    spike_data = np.load(f'{spike_dir}/spike_array_overlap_zero_padding_rat_7.npy')
+    spike_data = np.load(f'{spike_dir}/spike_array_list_overlap_False.npy')
     #switch the axes of the spike data
     spike_data = np.swapaxes(spike_data, 1, 2)
     labels = np.swapaxes(labels, 1, 2)

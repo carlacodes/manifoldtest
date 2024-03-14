@@ -902,8 +902,8 @@ if __name__ == "__main__":
         spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
         spike_array_list, unit_list = cat_spike_trains_3d_with_behav_variable_length(spike_trains, rearranged_dlc)
         #save the spike_array_list and unit_list
-        save_pickle(spike_array_list, f'spike_array_list_overlap_{use_overlap}', spike_dir)
-        save_pickle(rearranged_dlc, f'rearranged_dlc_overlap_{use_overlap}', spike_dir)
+        save_pickle(spike_array_list, f'{spike_dir}/spike_array_list_overlap_{use_overlap}', spike_dir)
+        save_pickle(rearranged_dlc, f'{dlc_dir}/rearranged_dlc_overlap_{use_overlap}', spike_dir)
 
 
         #save the spike array and behav array
