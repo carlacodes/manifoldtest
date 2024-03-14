@@ -107,8 +107,8 @@ def process_window_within_split(
     mse_score_train = mean_squared_error(y_train, y_pred_train)
     r2_score_train = r2_score(y_train, y_pred_train)
 
-    mse_score = mean_squared_error(y_test, y_pred)
-    r2_score_val = r2_score(y_test, y_pred)
+    mse_score = mean_squared_error(window_y_test, y_pred)
+    r2_score_val = r2_score(window_y_test, y_pred)
 
     results = {
         'mse_score_train': mse_score_train,
