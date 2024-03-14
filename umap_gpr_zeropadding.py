@@ -59,18 +59,20 @@ def process_window_within_split(
 ):
     base_reg = regressor(**regressor_kwargs)
     reg = MultiOutputRegressor(base_reg)
-    # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
-    window_train = spks_train[:, w:w + window_size]
-    # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
-    window_test = spks_test[:, w:w + window_size]
+    window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
+    window_y_train = y_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
+    window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    window_y_test = y_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+
+
     # scaler = StandardScaler()
     # # scaler.fit(window_train)
     # window_train = scaler.transform(window_train)
     # window_test = scaler.transform(window_test)
     # print("Before any transformation:", window_train.shape)
     #make into coordinates for umap
-    sin_values = y_train[:, 0]
-    cos_values = y_train[:, 1]
+    sin_values = window_y_train[:, 0]
+    cos_values = window_y_train[:, 1]
 
     combined_values = np.array([(sin, cos) for sin, cos in zip(sin_values, cos_values)])
     coord_list = []
@@ -94,7 +96,7 @@ def process_window_within_split(
     window_nref_reduced = reducer_pipeline.transform(window_test)
 
     # Fit the classifier on the reference space
-    reg.fit(window_ref_reduced, y_train)
+    reg.fit(window_ref_reduced, window_y_train)
 
     # Predict on the testing data
     y_pred = reg.predict(window_nref_reduced)
