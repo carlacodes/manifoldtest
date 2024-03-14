@@ -148,7 +148,7 @@ def train_and_test_on_reduced(
     # Initialize the best hyperparameters and the largest difference
     best_params = None
     largest_diff = float('-inf')
-    y = bhv[regress].values
+    y = bhv
 
     # Create a TimeSeriesSplit object for 5-fold cross-validation
     tscv = TimeSeriesSplit(n_splits=2)
