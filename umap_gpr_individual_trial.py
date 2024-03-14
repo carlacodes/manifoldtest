@@ -34,6 +34,7 @@ from sklearn.model_selection import ParameterGrid
 from sklearn.gaussian_process.kernels import WhiteKernel, ConstantKernel, RBF
 import os
 import scipy
+import pickle as pkl
 import matplotlib.pyplot as plt
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 #TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
@@ -60,22 +61,17 @@ def process_window_within_split(
     base_reg = regressor(**regressor_kwargs)
     reg = MultiOutputRegressor(base_reg)
     # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
-    window_train = spks_train[:, w:w+window_size, :].reshape(spks_train.shape[0], -1)
-
-
-    window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
-    window_y_train = y_train[:, w:w + window_size, :].reshape(y_train.shape[0], -1)
-    window_y_test = y_test[:, w:w + window_size, :].reshape(y_test.shape[0], -1)
-
-
+    window_train = spks_train[:, w:w + window_size]
+    # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    window_test = spks_test[:, w:w + window_size]
     # scaler = StandardScaler()
     # # scaler.fit(window_train)
     # window_train = scaler.transform(window_train)
     # window_test = scaler.transform(window_test)
     # print("Before any transformation:", window_train.shape)
     #make into coordinates for umap
-    sin_values = window_y_train[:, 0]
-    cos_values = window_y_train[:, 1]
+    sin_values = y_train[:, 0]
+    cos_values = y_train[:, 1]
 
     combined_values = np.array([(sin, cos) for sin, cos in zip(sin_values, cos_values)])
     coord_list = []
@@ -93,13 +89,13 @@ def process_window_within_split(
 
     #combine coord_list into one number per row
 
-    reducer_pipeline.fit(window_train, y=coord_list)
+    reducer_pipeline.fit(window_train, y = coord_list)
     # Transform the reference and non-reference space
     window_ref_reduced = reducer_pipeline.transform(window_train)
     window_nref_reduced = reducer_pipeline.transform(window_test)
 
     # Fit the classifier on the reference space
-    reg.fit(window_ref_reduced, window_y_train)
+    reg.fit(window_ref_reduced, y_train)
 
     # Predict on the testing data
     y_pred = reg.predict(window_nref_reduced)
@@ -110,8 +106,8 @@ def process_window_within_split(
     mse_score_train = mean_squared_error(y_train, y_pred_train)
     r2_score_train = r2_score(y_train, y_pred_train)
 
-    mse_score = mean_squared_error(window_y_test, y_pred)
-    r2_score_val = r2_score(window_y_test, y_pred)
+    mse_score = mean_squared_error(y_test, y_pred)
+    r2_score_val = r2_score(y_test, y_pred)
 
     results = {
         'mse_score_train': mse_score_train,
@@ -153,7 +149,7 @@ def train_and_test_on_reduced(
     # Initialize the best hyperparameters and the largest difference
     best_params = None
     largest_diff = float('-inf')
-    y = bhv
+    y = bhv[regress].values
 
     # Create a TimeSeriesSplit object for 5-fold cross-validation
     tscv = TimeSeriesSplit(n_splits=2)
@@ -189,8 +185,6 @@ def train_and_test_on_reduced(
                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
                                                      regressor, regressor_kwargs) for w in
                 tqdm(range(spks.shape[1] - window_size)))
-            # results_cv = process_window_within_split(X_train, X_test, window_size, y_train, y_test, reducer_pipeline,)
-
             results_cv_list.append(results_cv)
 
             # Compute permutation_results
@@ -239,13 +233,18 @@ def main():
 
     #load labels
     # labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
-    labels = np.load(f'{dlc_dir}/rearranged_dlc_overlap_False.npy')
 
-    spike_data = np.load(f'{spike_dir}/spike_array_list_overlap_False.npy')
-    #switch the axes of the spike data
-    spike_data = np.swapaxes(spike_data, 1, 2)
-    labels = np.swapaxes(labels, 1, 2)
-    # commenting out the stationary cutting out for now to see if it makes a difference
+    spike_data = pkl.load(open(f'{spike_dir}/spike_array_list_overlap_False.pickle', 'rb'))
+    labels = pkl.load(open(f'{dlc_dir}/rearranged_dlc_overlap_False.pickle', 'rb'))
+    #extract the 10th trial
+    hd_sin_trial = labels['hd_sin'][9]
+    hd_cos_trial = labels['hd_cos'][9]
+    #stack them
+    hd_trial = np.column_stack((hd_sin_trial, hd_cos_trial))
+    spike_data_trial = spike_data[9]
+    #transpose the spike data
+    spike_data_trial = np.transpose(spike_data_trial, (1, 0))
+
     # #find the times where the head angle is stationary
     # angle_labels = labels[:, 2]
     # stationary_indices = np.where(np.diff(angle_labels) == 0)[0]
@@ -275,9 +274,9 @@ def main():
         # labels_for_umap = labels[bins_before:-bins_before]
         #apply gaussian filtering, omega = 2
         #take the square root of the firing rates
-        X_for_umap = np.sqrt(spike_data)
+        X_for_umap = np.sqrt(spike_data_trial)
 
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=2)
+        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=1)
 
         #as a check, plot the firing rates for a single neuron before and after smoothing
         # fig, ax = plt.subplots(1, 2)
@@ -287,18 +286,18 @@ def main():
         # ax[1].set_title('After smoothing')
         # plt.show()
 
+        labels_for_umap = hd_trial
         #apply the same gaussian smoothing to the labels
-        labels = scipy.ndimage.gaussian_filter(labels, 2, axes=2)
+        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=1)
 
 
-        # label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+        label_df = pd.DataFrame(labels_for_umap, columns=['angle_sin', 'angle_cos',])
         # label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
         window_for_decoding = params['window_for_decoding']  # in s
         window_size = int(window_for_decoding / bin_width)  # in bins
 
         regressor = GaussianProcessRegressor
-        label_array = labels[:,:, 5:7]
 
         # regressor_kwargs = {'kernel': 'linear', 'C': 1}
         regressor_kwargs = {'alpha': 1}
@@ -322,8 +321,8 @@ def main():
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
-        filename = f'params_sinandcos_{now}.npy'
-        filename_intermediate_params = f'intermediate_params_sin_and_cos_v2_{now_day}.npy'
+        filename = f'params_trial9_sinandcos_{now}.npy'
+        filename_intermediate_params = f'intermediate_params_trial9_sin_and_cos_v2_{now_day}.npy'
 
         if window_size >= X_for_umap.shape[1]:
             print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[1]} in the neural data')
@@ -332,7 +331,7 @@ def main():
 
         best_params, diff_result = train_and_test_on_reduced(
             X_for_umap,
-            label_array,
+            label_df,
             regress,
             regressor,
             regressor_kwargs,
