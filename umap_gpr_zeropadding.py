@@ -59,10 +59,13 @@ def process_window_within_split(
 ):
     base_reg = regressor(**regressor_kwargs)
     reg = MultiOutputRegressor(base_reg)
-    window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
-    window_y_train = y_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
+    # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
+    window_train = spks_train[:, w:w+window_size, :].reshape(spks_train.shape[0], -1)
+
+
+    window_y_train = y_train[:, w:w + window_size, :].reshape(y_train.shape[0], -1)
     window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
-    window_y_test = y_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    window_y_test = y_test[:, w:w + window_size, :].reshape(y_test.shape[0], -1)
 
 
     # scaler = StandardScaler()
@@ -90,7 +93,7 @@ def process_window_within_split(
 
     #combine coord_list into one number per row
 
-    reducer_pipeline.fit(window_train, y = coord_list)
+    reducer_pipeline.fit(window_train, y=coord_list)
     # Transform the reference and non-reference space
     window_ref_reduced = reducer_pipeline.transform(window_train)
     window_nref_reduced = reducer_pipeline.transform(window_test)
@@ -186,6 +189,8 @@ def train_and_test_on_reduced(
                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
                                                      regressor, regressor_kwargs) for w in
                 tqdm(range(spks.shape[1] - window_size)))
+            # results_cv = process_window_within_split(X_train, X_test, window_size, y_train, y_test, reducer_pipeline,)
+
             results_cv_list.append(results_cv)
 
             # Compute permutation_results
