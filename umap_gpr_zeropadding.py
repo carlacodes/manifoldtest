@@ -63,8 +63,8 @@ def process_window_within_split(
     window_train = spks_train[:, w:w+window_size, :].reshape(spks_train.shape[0], -1)
 
 
-    window_y_train = y_train[:, w:w + window_size, :].reshape(y_train.shape[0], -1)
     window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    window_y_train = y_train[:, w:w + window_size, :].reshape(y_train.shape[0], -1)
     window_y_test = y_test[:, w:w + window_size, :].reshape(y_test.shape[0], -1)
 
 

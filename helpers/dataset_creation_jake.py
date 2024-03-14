@@ -489,33 +489,30 @@ def cat_spike_trains(spike_trains):
 
     return spike_array, unit_list
 
-def cat_spike_trains_3d(spike_trains):
-    '''using padding to make the spike trains the same length'''
-    # get list of units
-    unit_list = list(spike_trains.keys())
-    n_units = len(unit_list)
 
-    trial_arrays = []  # list to hold arrays for each trial
+# def cat_spike_trains_return_list(spike_trains):
+#     # get list of units
+#     unit_list = list(spike_trains.keys())
+#     n_units = len(unit_list)
+#     spike_list = []
+#     for i, k in enumerate(spike_trains[unit_list[0]].keys()):
+#         for j, u in enumerate(unit_list):
+#             if j == 0:
+#                 # get the number of rows in the dataframe
+#                 num_cols = len(spike_trains[u][k])
+#
+#                 # create an empty np.array of the correct size
+#                 temp_array = np.zeros((n_units, num_cols))
+#
+#             # add the spike trains to the array
+#             temp_array[j, :] = spike_trains[u][k]
+#
+#
+#             spike_list.append(temp_array)
+#
+#
+#     return spike_array, unit_list
 
-    max_cols = max(len(spike_trains[u][k]) for u in unit_list for k in spike_trains[unit_list[0]].keys())
-
-    for i, k in enumerate(spike_trains[unit_list[0]].keys()):
-        # create an empty np.array of the correct size
-        temp_array = np.zeros((n_units, max_cols))
-
-        for j, u in enumerate(unit_list):
-            # add the spike trains to the array
-            temp_array[j, :len(spike_trains[u][k])] = spike_trains[u][k]
-
-        # add the array for this trial to the list
-        trial_arrays.append(temp_array)
-
-    # concatenate along a new trial axis to get a 3D array
-    spike_array = np.stack(trial_arrays, axis=0)
-
-    spike_array = np.round(spike_array, 3)
-
-    return spike_array, unit_list
 
 def cat_spike_trains_3d(spike_trains):
     '''using padding to make the spike trains the same length'''
@@ -544,6 +541,56 @@ def cat_spike_trains_3d(spike_trains):
     spike_array = np.round(spike_array, 3)
 
     return spike_array, unit_list
+
+def cat_spike_trains_3d(spike_trains):
+    '''using padding to make the spike trains the same length'''
+    # get list of units
+    unit_list = list(spike_trains.keys())
+    n_units = len(unit_list)
+
+    trial_arrays = []  # list to hold arrays for each trial
+
+    max_cols = max(len(spike_trains[u][k]) for u in unit_list for k in spike_trains[unit_list[0]].keys())
+
+    for i, k in enumerate(spike_trains[unit_list[0]].keys()):
+        # create an empty np.array of the correct size
+        temp_array = np.zeros((n_units, max_cols))
+
+        for j, u in enumerate(unit_list):
+            # add the spike trains to the array
+            temp_array[j, :len(spike_trains[u][k])] = spike_trains[u][k]
+
+        # add the array for this trial to the list
+        trial_arrays.append(temp_array)
+
+    # concatenate along a new trial axis to get a 3D array
+    spike_array = np.stack(trial_arrays, axis=0)
+
+    spike_array = np.round(spike_array, 3)
+
+    return spike_array, unit_list
+def cat_spike_trains_3d_with_behav_no_padding_list(spike_trains, dlc_data_formatted):
+    '''using padding to make the spike trains the same length'''
+    # get list of units
+    unit_list = list(spike_trains.keys())
+    behav_list = list(dlc_data_formatted.keys())
+
+    trial_arrays = [] # list to hold arrays for each trial
+    trial_arrays_dlc = [] # list to hold arrays for each trial, behav
+
+    for i, k in enumerate(spike_trains[unit_list[0]].keys()):
+        for j, u in enumerate(unit_list):
+            # add the spike trains to the list
+            trial_arrays.append(spike_trains[u][k])
+
+    for i2, k2 in enumerate(dlc_data_formatted[behav_list[0]]):
+        for j2, u2 in enumerate(behav_list):
+            # add the spike trains to the list
+            trial_arrays_dlc.append(dlc_data_formatted[u2][j2])
+
+    return trial_arrays, unit_list, trial_arrays_dlc
+
+
 
 def cat_spike_trains_3d_with_behav(spike_trains, dlc_data_formatted):
     '''using padding to make the spike trains the same length'''
@@ -586,6 +633,36 @@ def cat_spike_trains_3d_with_behav(spike_trains, dlc_data_formatted):
 
 
     return spike_array, unit_list, behav_array
+
+def cat_spike_trains_3d_with_behav_variable_length(spike_trains, dlc_data_formatted):
+    '''Handle spike trains and behavioral data with different lengths'''
+    # get list of units
+    unit_list = list(spike_trains.keys())
+    behav_list = list(dlc_data_formatted.keys())
+
+    trial_arrays_spike = []  # list to hold arrays for each trial
+    trial_arrays_dlc = []  # list to hold arrays for each trial, behav
+
+    for i, k in enumerate(spike_trains[unit_list[0]].keys()):
+        temp_array_spike = []
+        for j, u in enumerate(unit_list):
+            # add the spike trains to the list
+            temp_array_spike.append(spike_trains[u][k])
+
+        # add the array for this trial to the list
+        trial_arrays_spike.append(np.array(temp_array_spike))
+
+    for i2, k2 in enumerate(dlc_data_formatted[behav_list[0]]):
+        temp_array_dlc = []
+        for j2, u2 in enumerate(behav_list):
+            # add the behavioral data to the list
+            temp_array_dlc.append(dlc_data_formatted[u2][j2])
+
+        # add the array for this trial to the list
+        trial_arrays_dlc.append(np.array(temp_array_dlc))
+
+    return trial_arrays_spike, unit_list, trial_arrays_dlc
+
 
 
 def cat_dlc_3d(dlc_data):
@@ -820,6 +897,9 @@ if __name__ == "__main__":
 
         ##ZERO PADDING:
         spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
+        spike_array_list, unit_list, behav_array_list = cat_spike_trains_3d_with_behav_variable_length(spike_trains, rearranged_dlc)
+
+
         #save the spike array and behav array
         spike_array = spike_array.astype(np.float32)
         behav_array = behav_array.astype(np.float32)
