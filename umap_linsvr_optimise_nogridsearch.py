@@ -267,6 +267,8 @@ def main():
 
         X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=1)
         labels_for_umap = labels[:, 0:6]
+        #apply the same gaussian smoothing to the labels
+        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
 
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
