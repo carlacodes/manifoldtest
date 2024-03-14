@@ -235,12 +235,16 @@ def main():
     labels = np.load(f'{dlc_dir}/behav_array_overlap_zero_padding_rat_7.npy')
 
     spike_data = np.load(f'{spike_dir}/spike_array_overlap_zero_padding_rat_7.npy')
-    #find the times where the head angle is stationary
-    angle_labels = labels[:, 2]
-    stationary_indices = np.where(np.diff(angle_labels) == 0)[0]
-    #remove the stationary indices
-    labels = np.delete(labels, stationary_indices, axis=0)
-    spike_data = np.delete(spike_data, stationary_indices, axis=0)
+    #switch the axes of the spike data
+    spike_data = np.swapaxes(spike_data, 1, 2)
+    labels = np.swapaxes(labels, 1, 2)
+    # commenting out the stationary cutting out for now to see if it makes a difference
+    # #find the times where the head angle is stationary
+    # angle_labels = labels[:, 2]
+    # stationary_indices = np.where(np.diff(angle_labels) == 0)[0]
+    # #remove the stationary indices
+    # labels = np.delete(labels, stationary_indices, axis=0)
+    # spike_data = np.delete(spike_data, stationary_indices, axis=0)
 
     data_dir_path = Path(data_dir)
 
@@ -266,7 +270,7 @@ def main():
         #take the square root of the firing rates
         X_for_umap = np.sqrt(spike_data)
 
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=1)
+        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=2)
 
         #as a check, plot the firing rates for a single neuron before and after smoothing
         # fig, ax = plt.subplots(1, 2)
@@ -276,18 +280,18 @@ def main():
         # ax[1].set_title('After smoothing')
         # plt.show()
 
-        labels_for_umap = labels[:, 0:6]
         #apply the same gaussian smoothing to the labels
-        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+        labels = scipy.ndimage.gaussian_filter(labels, 2, axes=2)
 
 
-        label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
-        label_df['time_index'] = np.arange(0, label_df.shape[0])
+        # label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+        # label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
         window_for_decoding = params['window_for_decoding']  # in s
         window_size = int(window_for_decoding / bin_width)  # in bins
 
         regressor = GaussianProcessRegressor
+        label_array = labels[:,:, 5:7]
 
         # regressor_kwargs = {'kernel': 'linear', 'C': 1}
         regressor_kwargs = {'alpha': 1}
@@ -321,7 +325,7 @@ def main():
 
         best_params, diff_result = train_and_test_on_reduced(
             X_for_umap,
-            label_df,
+            label_array,
             regress,
             regressor,
             regressor_kwargs,
