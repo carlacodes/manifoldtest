@@ -652,16 +652,19 @@ def cat_spike_trains_3d_with_behav_variable_length(spike_trains, dlc_data_format
         # add the array for this trial to the list
         trial_arrays_spike.append(np.array(temp_array_spike))
 
-    for i2, k2 in enumerate(dlc_data_formatted[behav_list[0]]):
-        temp_array_dlc = []
-        for j2, u2 in enumerate(behav_list):
-            # add the behavioral data to the list
-            temp_array_dlc.append(dlc_data_formatted[u2][j2])
+    # for i2, k2 in enumerate(dlc_data_formatted[behav_list[0]]):
+    #     temp_array_dlc = []
+    #     for j2, u2 in enumerate(behav_list):
+    #         # add the behavioral data to the list
+    #         example_dlc_data = dlc_data_formatted[u2][j2]
+    #         #add an extra dimension so it's not inhomogeneous?
+    #         example_dlc_data = np.expand_dims(example_dlc_data, axis=0)
+    #         temp_array_dlc.append(dlc_data_formatted[u2][j2])
+    #
+    #     # add the array for this trial to the list
+    #     trial_arrays_dlc.append(np.array(temp_array_dlc))
 
-        # add the array for this trial to the list
-        trial_arrays_dlc.append(np.array(temp_array_dlc))
-
-    return trial_arrays_spike, unit_list, trial_arrays_dlc
+    return trial_arrays_spike, unit_list
 
 
 
@@ -897,7 +900,10 @@ if __name__ == "__main__":
 
         ##ZERO PADDING:
         spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
-        spike_array_list, unit_list, behav_array_list = cat_spike_trains_3d_with_behav_variable_length(spike_trains, rearranged_dlc)
+        spike_array_list, unit_list = cat_spike_trains_3d_with_behav_variable_length(spike_trains, rearranged_dlc)
+        #save the spike_array_list and unit_list
+        save_pickle(spike_array_list, f'spike_array_list_overlap_{use_overlap}', spike_dir)
+        save_pickle(rearranged_dlc, f'rearranged_dlc_overlap_{use_overlap}', spike_dir)
 
 
         #save the spike array and behav array
