@@ -236,16 +236,15 @@ def main():
     #load labels
     # labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
 
-    spike_data = pkl.load(open(f'{spike_dir}/spike_array_list_overlap_False.pickle', 'rb'))
-    labels = pkl.load(open(f'{dlc_dir}/rearranged_dlc_overlap_False.pickle', 'rb'))
+
+    labels = np.load(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_False_zscore_data_False_overlap_False.npy')
+
+    spike_data = np.load(f'{spike_dir}/inputs_overlap_False.npy')
     #extract the 10th trial
-    hd_sin_trial = labels['hd_sin'][9]
-    hd_cos_trial = labels['hd_cos'][9]
-    #stack them
-    hd_trial = np.column_stack((hd_sin_trial, hd_cos_trial))
-    spike_data_trial = spike_data[9]
+
+    spike_data_trial = spike_data
     #transpose the spike data
-    spike_data_trial = np.transpose(spike_data_trial, (1, 0))
+
 
     # #find the times where the head angle is stationary
     # angle_labels = labels[:, 2]
@@ -258,7 +257,7 @@ def main():
 
     param_grid_upper = {
         'bin_width': [0.5],
-        'window_for_decoding': [100],
+        'window_for_decoding': [250],
     }
     largest_diff = float('-inf')
     param_results = {}
@@ -273,6 +272,7 @@ def main():
             spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
         #THEN DO THE Z SCORE
         X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+
 
         if np.isnan(X_for_umap).any():
             print('There are nans in the data')
@@ -289,12 +289,16 @@ def main():
         # ax[1].set_title('After smoothing')
         # plt.show()
 
-        labels_for_umap = hd_trial
-        #apply the same gaussian smoothing to the labels
+        labels_for_umap = labels[:, 0:6]
+        # apply the same gaussian smoothing to the labels
         labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
+        label_df = pd.DataFrame(labels_for_umap,
+                                columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+        label_df['time_index'] = np.arange(0, label_df.shape[0])
+        #apply the same gaussian smoothing to the labels
 
-        label_df = pd.DataFrame(labels_for_umap, columns=['angle_sin', 'angle_cos',])
+
         # label_df['time_index'] = np.arange(0, label_df.shape[0])
         bin_width = params['bin_width']
         window_for_decoding = params['window_for_decoding']  # in s
@@ -322,8 +326,8 @@ def main():
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
-        filename = f'params_trial9_sinandcos_{now}.npy'
-        filename_intermediate_params = f'intermediate_params_trial9_sin_and_cos_v2_{now_day}.npy'
+        filename = f'params_all_trials_sinandcos_{now}.npy'
+        filename_intermediate_params = f'intermediate_params_all_trials_sin_and_cos_v2_{now_day}.npy'
 
         if window_size >= X_for_umap.shape[0]:
             print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[0]} in the neural data')
