@@ -141,7 +141,7 @@ def train_and_test_on_reduced(
         # 'regressor__C': [0.1, 1, 10],
         'regresssor__normalize_y': [True],
         'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-        'reducer__n_components': [3],
+        'reducer__n_components': [7],
         'reducer__n_neighbors': [20],
         'regressor__n_restarts_optimizer': [1],
         # 'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
@@ -258,7 +258,7 @@ def main():
 
     param_grid_upper = {
         'bin_width': [0.5],
-        'window_for_decoding': [200],
+        'window_for_decoding': [100],
     }
     largest_diff = float('-inf')
     param_results = {}
