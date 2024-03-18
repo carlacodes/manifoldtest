@@ -61,9 +61,9 @@ def process_window_within_split(
     base_reg = regressor(**regressor_kwargs)
     reg = MultiOutputRegressor(base_reg)
     # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
-    window_train = spks_train[:, w:w + window_size]
+    window_train = spks_train[w:w + window_size, :]
     # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
-    window_test = spks_test[:, w:w + window_size]
+    window_test = spks_test[w:w + window_size, :]
     # scaler = StandardScaler()
     # # scaler.fit(window_train)
     # window_train = scaler.transform(window_train)
@@ -274,9 +274,23 @@ def main():
         # labels_for_umap = labels[bins_before:-bins_before]
         #apply gaussian filtering, omega = 2
         #take the square root of the firing rates
-        X_for_umap = np.sqrt(spike_data_trial)
+        #manually do a z-score and add a small value to avoid nans
+        # X_for_umap = (spike_data_trial - np.mean(spike_data_trial, axis=0)) / np.std(spike_data_trial, axis=0) + 1e-6
+        #check for neurons with constant firing rates
+        tolerance = 1e-10  # or any small number that suits your needs
+        if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
+            print('There are neurons with constant firing rates')
+            # remove those neurons
+            spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
+        #THEN DO THE Z SCORE
+        X_for_umap = (spike_data_trial - np.mean(spike_data_trial, axis=0)) / np.std(spike_data_trial, axis=0) + 1e-6
 
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=1)
+        if np.isnan(X_for_umap).any():
+            print('There are nans in the data')
+
+
+
+        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
         #as a check, plot the firing rates for a single neuron before and after smoothing
         # fig, ax = plt.subplots(1, 2)
@@ -288,7 +302,7 @@ def main():
 
         labels_for_umap = hd_trial
         #apply the same gaussian smoothing to the labels
-        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=1)
+        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
 
         label_df = pd.DataFrame(labels_for_umap, columns=['angle_sin', 'angle_cos',])
@@ -338,7 +352,7 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_jobs_parallel=5,
+            n_jobs_parallel=1,
         )
         #save at intermediate stage of grid search
         # intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)

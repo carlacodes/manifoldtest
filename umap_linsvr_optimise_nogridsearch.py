@@ -264,21 +264,31 @@ def main():
         # labels_for_umap = labels[bins_before:-bins_before]
         #apply gaussian filtering, omega = 2
         #take the square root of the firing rates
-        X_for_umap = np.sqrt(spike_data)
+        # X_for_umap = np.sqrt(spike_data)
+        #z-score the data
+        X_for_umap = scipy.stats.zscore(spike_data, axis=0)
+        #as a check, plot the firing rates for a single neuron before and after z-scoring
+        fig, ax = plt.subplots(1, 2)
+        ax[0].plot(spike_data[:,0])
+        ax[0].set_title('Before z-scoring')
+        ax[1].plot(X_for_umap[:,0])
+        ax[1].set_title('After z-scoring')
+        plt.show()
 
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=1)
+
+        X_for_umap_smooth = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
         #as a check, plot the firing rates for a single neuron before and after smoothing
-        # fig, ax = plt.subplots(1, 2)
-        # ax[0].plot(X_for_umap[:, 0])
-        # ax[0].set_title('Before smoothing')
-        # ax[1].plot(X_for_umap_smooth[ :, 0])
-        # ax[1].set_title('After smoothing')
-        # plt.show()
+        fig, ax = plt.subplots(1, 2)
+        ax[0].plot(X_for_umap[:, 0])
+        ax[0].set_title('Before smoothing')
+        ax[1].plot(X_for_umap_smooth[ :, 0])
+        ax[1].set_title('After smoothing')
+        plt.show()
 
         labels_for_umap = labels[:, 0:6]
         #apply the same gaussian smoothing to the labels
-        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=1)
+        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
 
         label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
