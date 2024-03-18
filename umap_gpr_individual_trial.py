@@ -62,16 +62,18 @@ def process_window_within_split(
     reg = MultiOutputRegressor(base_reg)
     # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
     window_train = spks_train[w:w + window_size, :]
+    window_train_y = y_train[w:w + window_size, :]
     # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
     window_test = spks_test[w:w + window_size, :]
+    window_test_y = y_test[w:w + window_size, :]
     # scaler = StandardScaler()
     # # scaler.fit(window_train)
     # window_train = scaler.transform(window_train)
     # window_test = scaler.transform(window_test)
     # print("Before any transformation:", window_train.shape)
     #make into coordinates for umap
-    sin_values = y_train[:, 0]
-    cos_values = y_train[:, 1]
+    sin_values = window_train_y[:, 0]
+    cos_values = window_train_y[:, 1]
 
     combined_values = np.array([(sin, cos) for sin, cos in zip(sin_values, cos_values)])
     coord_list = []
@@ -95,7 +97,7 @@ def process_window_within_split(
     window_nref_reduced = reducer_pipeline.transform(window_test)
 
     # Fit the classifier on the reference space
-    reg.fit(window_ref_reduced, y_train)
+    reg.fit(window_ref_reduced, window_train_y)
 
     # Predict on the testing data
     y_pred = reg.predict(window_nref_reduced)
@@ -103,11 +105,11 @@ def process_window_within_split(
 
 
     # Compute the mean squared error and R2 score
-    mse_score_train = mean_squared_error(y_train, y_pred_train)
-    r2_score_train = r2_score(y_train, y_pred_train)
+    mse_score_train = mean_squared_error(window_train_y, y_pred_train)
+    r2_score_train = r2_score(window_train_y, y_pred_train)
 
-    mse_score = mean_squared_error(y_test, y_pred)
-    r2_score_val = r2_score(y_test, y_pred)
+    mse_score = mean_squared_error(window_test_y, y_pred)
+    r2_score_val = r2_score(window_test_y, y_pred)
 
     results = {
         'mse_score_train': mse_score_train,
@@ -131,7 +133,7 @@ def train_and_test_on_reduced(
         reducer,
         reducer_kwargs,
         window_size,
-        n_jobs_parallel=1,
+        n_jobs_parallel=2,
 ):
     # Define the grid of hyperparameters
     param_grid = {
@@ -184,7 +186,7 @@ def train_and_test_on_reduced(
             results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
                 delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
                                                      regressor, regressor_kwargs) for w in
-                tqdm(range(spks.shape[1] - window_size)))
+                tqdm(range(spks.shape[0] - window_size)))
             results_cv_list.append(results_cv)
 
             # Compute permutation_results
@@ -257,7 +259,7 @@ def main():
     param_grid_upper = {
         'bins_before': [6, 7, 8, 10, 20, 30, 50, 100],
         'bin_width': [0.5],
-        'window_for_decoding': [0.5, 1, 2, 3, 4, 5, 6],
+        'window_for_decoding': [200],
 
     }
     largest_diff = float('-inf')
@@ -330,16 +332,14 @@ def main():
         #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
         regress = ['angle_sin', 'angle_cos']# changing to two target variables
 
-        # Use KFold for regression
-        # kf = KFold(n_splits=5, shuffle=True)
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_trial9_sinandcos_{now}.npy'
         filename_intermediate_params = f'intermediate_params_trial9_sin_and_cos_v2_{now_day}.npy'
 
-        if window_size >= X_for_umap.shape[1]:
-            print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[1]} in the neural data')
+        if window_size >= X_for_umap.shape[0]:
+            print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[0]} in the neural data')
             continue
 
 
