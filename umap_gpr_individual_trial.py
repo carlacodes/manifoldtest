@@ -257,27 +257,14 @@ def main():
     data_dir_path = Path(data_dir)
 
     param_grid_upper = {
-        'bins_before': [6, 7, 8, 10, 20, 30, 50, 100],
         'bin_width': [0.5],
         'window_for_decoding': [200],
-
     }
     largest_diff = float('-inf')
     param_results = {}
-    intermediate_results = pd.DataFrame(columns=['difference', 'best_params', 'upper_params'])
     n_iter = 1
     for params in ParameterSampler(param_grid_upper, n_iter=n_iter):
-        bins_before = params['bins_before']  # How many bins of neural data prior to the output are used for decoding
-        bins_current = 1  # Whether to use concurrent time bin of neural data
-        bins_after = bins_before  # How many bins of neural data after the output are used for decoding
-        # X = DataHandler.get_spikes_with_history(spike_data, bins_before, bins_after, bins_current)
-        # #remove the first six and last six bins
-        # X_for_umap = X[bins_before:-bins_before]
-        # labels_for_umap = labels[bins_before:-bins_before]
-        #apply gaussian filtering, omega = 2
-        #take the square root of the firing rates
-        #manually do a z-score and add a small value to avoid nans
-        # X_for_umap = (spike_data_trial - np.mean(spike_data_trial, axis=0)) / np.std(spike_data_trial, axis=0) + 1e-6
+
         #check for neurons with constant firing rates
         tolerance = 1e-10  # or any small number that suits your needs
         if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
