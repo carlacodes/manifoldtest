@@ -221,7 +221,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
             plt.colorbar(scatter)
             ax.set_xlabel('UMAP1')
             ax.set_ylabel('UMAP2')
-            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
+            plt.title(f'UMAP projection of the dataset, \n color-coded by: {var}', fontsize=15)
             if filter_neurons:
                 plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png',
                             bbox_inches='tight', dpi=300)
@@ -257,16 +257,26 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
             fig = plt.figure(figsize=(20, 20))
             ax = fig.add_subplot(111, projection='3d')
             scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c = color_data)
-            plt.colorbar(scatter)
+            #add a separate figure that shows the colour map
+
+
+            # plt.colorbar(scatter)
             ax.set_xlabel('UMAP1')
             ax.set_ylabel('UMAP2')
             ax.set_zlabel('UMAP3')
-            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=30)
+            plt.title(f'UMAP projection of the dataset, \n color-coded by: {var}', fontsize=30)
             if filter_neurons:
                 plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}_190324.png', bbox_inches='tight', dpi=500)
             else:
                 plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_all_neurons_num_components_{n_components}.png', bbox_inches='tight', dpi=300)
             plt.show()
+        #save the colour map in a separate figure
+            fig, ax = plt.subplots()
+            ax.imshow(colormap, extent=(0, 1, 0, 1))
+            ax.set_xlabel(var[0])
+            ax.set_ylabel(var[1])
+            plt.title(f'Colour map for {var[0]} and {var[1]}')
+            plt.savefig(f'figures/latent_projections/colour_map_{var[0]}_and_{var[1]}.png', bbox_inches='tight', dpi=300)
 
 
         fig = plt.figure(figsize=(20, 20))
