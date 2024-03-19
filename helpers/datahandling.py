@@ -60,7 +60,7 @@ class DataHandler():
         sample = hcomb_data['sample']
 
         # Calculate sample rate
-        fs = ((sample[0][0] / ts[0][0]) * 10000)[0]
+        fs = ((sample[0][0] / ts[0][0]) * 1000)[0]
 
         dlc_angle = hcomb_data['dlc_angle']
         dlc_xy = hcomb_data['dlc_XYsmooth']
@@ -69,6 +69,9 @@ class DataHandler():
 
         for j in range(len(units)):
             unit = units[j]
+            #filter based on
+            spike_times = unit['spikeSamples'][0].astype(float)
+
             spike_times = unit['spikeSamples'][0].astype(float) / fs
 
             head_angle_times = np.array([])
@@ -79,13 +82,19 @@ class DataHandler():
             xy_pos_array = np.array([])
             dlc_xy_array = np.empty((1, 2), dtype=float)
 
+            #initial a trial identity array that is the same length as the spike times
+            trial_number_full = np.full(len(spike_times), -1)
 
             for i2 in range(len(dlc_angle)):
                 trial_dlc, trial_ts, trial_sample = dlc_angle[i2], ts[i2], sample[i2]
-                time_in_seconds = trial_sample / fs
+                time_in_seconds = trial_sample / 30000
 
-                trial_number_full = np.full(len(trial_ts), i2)
-                trial_number_array = np.append(trial_number_array, trial_number_full)
+                # trial_number_full = np.full(len(trial_ts), i2)
+                # trial_number_array = np.append(trial_number_array, trial_number_full)
+                #figure out which trials the spike times belong to
+                mask = (spike_times > time_in_seconds[0]) & (spike_times < time_in_seconds[-1])
+                mask = mask.ravel()
+                trial_number_full[mask] = i2
 
                 head_angle_times = np.append(head_angle_times, time_in_seconds)
                 head_angle_times_ms = np.append(head_angle_times_ms, trial_ts)
@@ -93,9 +102,9 @@ class DataHandler():
                 dlc_xy_array = np.vstack((dlc_xy_array, dlc_xy[i2]))
 
 
-                if np.max(time_in_seconds) > np.max(spike_times):
-                    print('Trial time is greater than spike time, aborting...')
-                    break
+                # if np.max(time_in_seconds) > np.max(spike_times):
+                #     print('Trial time is greater than spike time, aborting...')
+                #     break
 
             # Interpolate spike times and dlc_angle to a common sample rate
             #remove the first null row from the dlc_xy_array
@@ -103,8 +112,17 @@ class DataHandler():
             flattened_spike_times_seconds = np.concatenate(spike_times).ravel()
             flattened_spike_times = np.concatenate(unit['spikeSamples']).ravel()
             dlc_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_angle_array)
-            trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
+            # trial_new = np.interp(flattened_spike_times_seconds*1000, head_angle_times_ms, trial_number_array)
             xy_pos_new = MathHelper.multiInterp2(flattened_spike_times_seconds*1000, head_angle_times_ms, dlc_xy_array)
+            #plot the trial_number_full
+            # import matplotlib.pyplot as plt
+            # fig, ax = plt.subplots()
+            # ax.plot(flattened_spike_times_seconds, trial_number_full)
+            # ax.set(xlabel='time (s)', ylabel='trial number',
+            #        title='trial number')
+            # ax.grid()
+            # plt.show()
+
             # xy_pos_new = scipy.interpolate.griddata(flattened_spike_times_seconds * 1000, head_angle_times_ms, dlc_xy_array, method='linear')
 
 
@@ -124,10 +142,74 @@ class DataHandler():
                 'unit_id': unit_id,
                 'phy_cluster': phy_cluster,
                 'neuron_type': neuron_type,
-                'trial_number': trial_new
+                'trial_number': trial_number_full
 
             })
 
             # Append to the larger dataframe
             df_all = pd.concat([df_all, df], ignore_index=True)
+        #remove all rows where the trial number is -1, as this indicates the recording was not during a trial
+        df_all = df_all[df_all['trial_number'] != -1]
+        #get the max unqiue trial number
+        max_trial_number = np.max(df_all['trial_number'])
         return df_all
+    @staticmethod
+    ###$$ GET_SPIKES_WITH_HISTORY #####
+    def get_spikes_with_history(neural_data, bins_before, bins_after, bins_current=1):
+        """
+        Function that creates the covariate matrix of neural activity, taken from the Kording Lab at UPenn
+
+        Parameters
+        ----------
+        neural_data: a matrix of size "number of time bins" x "number of neurons"
+            the number of spikes in each time bin for each neuron
+        bins_before: integer
+            How many bins of neural data prior to the output are used for decoding
+        bins_after: integer
+            How many bins of neural data after the output are used for decoding
+        bins_current: 0 or 1, optional, default=1
+            Whether to use the concurrent time bin of neural data for decoding
+
+        Returns
+        -------
+        X: a matrix of size "number of total time bins" x "number of surrounding time bins used for prediction" x "number of neurons"
+            For every time bin, there are the firing rates of all neurons from the specified number of time bins before (and after)
+        """
+
+        num_examples = neural_data.shape[0]  # Number of total time bins we have neural data for
+        num_neurons = neural_data.shape[1]  # Number of neurons
+        surrounding_bins = bins_before + bins_after + bins_current  # Number of surrounding time bins used for prediction
+        X = np.empty([num_examples, surrounding_bins, num_neurons])  # Initialize covariate matrix with NaNs
+        X[:] = np.NaN
+        # Loop through each time bin, and collect the spikes occurring in surrounding time bins
+        # Note that the first "bins_before" and last "bins_after" rows of X will remain filled with NaNs, since they don't get filled in below.
+        # This is because, for example, we cannot collect 10 time bins of spikes before time bin 8
+        start_idx = 0
+        for i in range(
+                num_examples - bins_before - bins_after):  # The first bins_before and last bins_after bins don't get filled in
+            end_idx = start_idx + surrounding_bins;  # The bins of neural data we will be including are between start_idx and end_idx (which will have length "surrounding_bins")
+            X[i + bins_before, :, :] = neural_data[start_idx:end_idx,
+                                       :]  # Put neural data from surrounding bins in X, starting at row "bins_before"
+            start_idx = start_idx + 1
+        return X
+    @staticmethod
+    def create_folds(n_timesteps, num_folds=5, num_windows=4):
+        '''Create the folds for the cross validation that subsamples trials from overlapping segments, author: Jake Ormond 2024
+        '''
+        n_windows_total = num_folds * num_windows
+        window_size = n_timesteps // n_windows_total
+        window_start_ind = np.arange(0, n_timesteps, window_size)
+
+        folds = []
+
+        for i in range(num_folds):
+            test_windows = np.arange(i, n_windows_total, num_folds)
+            test_ind = []
+            for j in test_windows:
+                test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+            train_ind = list(set(range(n_timesteps)) - set(test_ind))
+
+            folds.append((train_ind, test_ind))
+
+        return folds
+

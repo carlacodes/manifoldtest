@@ -93,7 +93,7 @@ def unsupervised_pca(spks, bhv):
     plt.xlabel('PCA1', fontsize=20)
     plt.yticks(fontsize=16)
     plt.ylabel('PCA3', fontsize=20)
-    plt.savefig('figures/latent_projections/pca_angle.png', bbox_inches='tight')
+    plt.savefig('/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/figures/latent_projections/pca1.png', bbox_inches='tight')
     plt.show()
     #do a 3D plot of the pca
     fig = plt.figure()
@@ -104,7 +104,7 @@ def unsupervised_pca(spks, bhv):
     ax.set_ylabel('PCA2')
     ax.set_zlabel('PCA3')
     plt.title('PCA projection of the dataset', fontsize=24)
-    plt.savefig('figures/latent_projections/pca_angle_3d.png', bbox_inches='tight')
+    plt.savefig('/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/figures/latent_projections/pca2.png', bbox_inches='tight')
     plt.show()
 
     return
@@ -158,7 +158,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     # spks_high_variance = spks_normalized[high_variance_neurons]
     # # Now bin the data
     # spks_binned = np.array([np.mean(spks_high_variance[:, bin:bin + bin_size], axis=1) for bin in bins]).T
-    reducer = umap.UMAP(n_components=3, n_neighbors=50, min_dist=0.2, metric='mahalanobis')
+    reducer = umap.UMAP(n_components=3, n_neighbors=70, min_dist=0.2, metric='mahalanobis')
 
     # spks_reshaped = spks.reshape(spks_binned.shape[0], -1)
 
@@ -186,7 +186,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     plt.ylabel('UMAP3', fontsize=20)
 
     # plt.colorbar()
-    plt.savefig('figures/latent_projections/umap_angle.png', bbox_inches='tight')
+    plt.savefig('/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/figures/latent_projections/umap_angle.png', bbox_inches='tight')
     plt.show()
     #do a 3D plot of the umap
     fig = plt.figure()
@@ -197,7 +197,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
     ax.set_ylabel('UMAP2')
     ax.set_zlabel('UMAP3')
     plt.title('UMAP projection of the dataset', fontsize=24)
-    plt.savefig('figures/latent_projections/umap_angle_3d.png', bbox_inches='tight', dpi=300)
+    plt.savefig('/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/figures/latent_projections/umap_angle_3d.png', bbox_inches='tight', dpi=300)
     plt.show()
 
     list_of_vars = ['dlc_angle', 'dlc_xy', 'dlc_angle_phase', 'dist_to_goal', 'velocity', 'dlc_body_angle', 'dir_to_goal', 'dlc_angle_phase_body', 'dlc_phase_dir_to_goal']
@@ -211,7 +211,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True):
         ax.set_ylabel('UMAP2')
         ax.set_zlabel('UMAP3')
         plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
-        plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}.png', bbox_inches='tight', dpi=300)
+        plt.savefig(f'/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/figures/latent_projections/umap_angle_3d_colored_by_{var}.png', bbox_inches='tight', dpi=300)
         plt.show()
 
 
@@ -232,7 +232,7 @@ def process_window(
     window = spks[:, w:w + window_size, :].reshape(spks.shape[0], -1)
 
     # Split the data into training and testing sets
-    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42)
+    window_train, window_test, y_train, y_test = train_test_split(window, y, test_size=0.2, random_state=42, shuffle = False)
     # y_train = np.ravel(y_train)
     # y_test = np.ravel(y_test)
     # Fit the reducer on the training data
@@ -279,7 +279,7 @@ def train_ref_classify_rest(
         reducer_kwargs,
         window_size,
         n_permutations=100,
-        n_jobs=-1,
+        n_jobs=10,
 ):
     """
     Analyzes spike data using dimensionality reduction and regression.
@@ -357,8 +357,8 @@ def train_ref_classify_rest(
 def main():
     # Load and preprocess data here
     # df_all = load_data_from_paths(Path('C:/neural_data/'))
-    data_path = Path('C:/neural_data/rat_7/')
-    save_path = Path('C:/neural_data/results')
+    data_path = Path('/ceph/scratch/carlag/honeycomb_neural_data/rat_7/')
+    save_path = Path('/ceph/scratch/carlag/honeycomb_neural_data/rat_7/')
     if not save_path.exists():
         save_path.mkdir()
     #import the datahandler class
@@ -505,74 +505,74 @@ def main():
     # unsupervised_pca(spks, bhv_umap)
     unsupervised_umap(spks, bhv_umap, remove_low_variance_neurons=False)
 
-    # time_window = [-0.2, 0.9]
-    window_for_decoding = 6  # in s
-    window_size = int(window_for_decoding / bin_width)  # in bins
-    smooth_spikes = True
-    # t = np.arange(time_window[0], time_window[1], bin_width)
-    # t = np.round(t, 3)
-    n_runs = 5
+    # # time_window = [-0.2, 0.9]
+    # window_for_decoding = 6  # in s
+    # window_size = int(window_for_decoding / bin_width)  # in bins
+    # smooth_spikes = True
+    # # t = np.arange(time_window[0], time_window[1], bin_width)
+    # # t = np.round(t, 3)
+    # n_runs = 5
 
-    regressor = SVR
-    regressor_kwargs = {'kernel': 'poly', 'C': 1}
+    # regressor = SVR
+    # regressor_kwargs = {'kernel': 'poly', 'C': 1}
 
-    # regressor = GradientBoostingRegressor
-    # regressor_kwargs = {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 3}
+    # # regressor = GradientBoostingRegressor
+    # # regressor_kwargs = {'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 3}
 
-    reducer = UMAP
-    reducer_kwargs = {
-        'n_components': 2,
-        'n_neighbors': 10,
-        'min_dist': 0.001,
-        'metric': 'cosine',
-        'n_jobs': 1,
-    }
+    # reducer = UMAP
+    # reducer_kwargs = {
+    #     'n_components': 2,
+    #     'n_neighbors': 10,
+    #     'min_dist': 0.001,
+    #     'metric': 'cosine',
+    #     'n_jobs': 1,
+    # }
 
-    # space_ref = ['No Noise', 'Noise']
-    #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
-    regress = 'dlc_angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
+    # # space_ref = ['No Noise', 'Noise']
+    # #temporarily remove the space_ref variable, I don't want to incorporate separate data yet
+    # regress = 'dlc_angle'  # Assuming 'head_angle' is the column in your DataFrame for regression
 
-    # Use KFold for regression
-    kf = KFold(n_splits=5, shuffle=True)
+    # # Use KFold for regression
+    # kf = KFold(n_splits=5, shuffle=True)
 
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f'results_{now}.npy'
-    results_between = {}
-    results_within = {}
-    n_permutations = 100
-    for run in range(n_runs):
-        results_between[run] = {}
-        results_within[run] = {}
-        # for space in space_ref:
-        results_between[run] = train_ref_classify_rest(
-            spks,
-            bhv,
-            regress,
-            regressor,
-            regressor_kwargs,
-            reducer,
-            reducer_kwargs,
-            window_size,
-            n_permutations=n_permutations,
-        )
+    # now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    # filename = f'results_{now}.npy'
+    # results_between = {}
+    # results_within = {}
+    # n_permutations = 100
+    # for run in range(n_runs):
+    #     results_between[run] = {}
+    #     results_within[run] = {}
+    #     # for space in space_ref:
+    #     results_between[run] = train_ref_classify_rest(
+    #         spks,
+    #         bhv,
+    #         regress,
+    #         regressor,
+    #         regressor_kwargs,
+    #         reducer,
+    #         reducer_kwargs,
+    #         window_size,
+    #         n_permutations=n_permutations,
+    #     )
 
-        # results_within[run] = train_within(
-        #     spks,
-        #     bhv,
-        #     kf,
-        #     regress,
-        #     regressor,
-        #     regressor_kwargs,
-        #     reducer,
-        #     reducer_kwargs,
-        #     window_size,
-        #     n_permutations=n_permutations,
-        # )
+    #     # results_within[run] = train_within(
+    #     #     spks,
+    #     #     bhv,
+    #     #     kf,
+    #     #     regress,
+    #     #     regressor,
+    #     #     regressor_kwargs,
+    #     #     reducer,
+    #     #     reducer_kwargs,
+    #     #     window_size,
+    #     #     n_permutations=n_permutations,
+    #     # )
 
-        # Save results
-    results = {'between': results_between, 'within': results_within}
-    save_path.mkdir(exist_ok=True)
-    np.save(save_path / filename, results)
+    #     # Save results
+    # results = {'between': results_between, 'within': results_within}
+    # save_path.mkdir(exist_ok=True)
+    # np.save(save_path / filename, results)
 
 
 if __name__ == '__main__':
