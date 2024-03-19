@@ -63,6 +63,11 @@ def process_window_within_split(
     # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
     window_train = spks_train[w:w + window_size, :]
     window_train_y = y_train[w:w + window_size, :]
+
+    #if window_train is less than window_size, then skip
+    if window_train.shape[0] < window_size:
+        print(f'Window train shape is {window_train.shape[0]} and window size is {window_size}')
+        return
     # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
     window_test = spks_test[w:w + window_size, :]
     window_test_y = y_test[w:w + window_size, :]
@@ -133,7 +138,7 @@ def train_and_test_on_reduced(
         reducer,
         reducer_kwargs,
         window_size,
-        n_jobs_parallel=2,
+        n_jobs_parallel=5,
 ):
     # Define the grid of hyperparameters
     param_grid = {
@@ -141,7 +146,7 @@ def train_and_test_on_reduced(
         # 'regressor__C': [0.1, 1, 10],
         'regresssor__normalize_y': [True],
         'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-        'reducer__n_components': [7],
+        'reducer__n_components': [3],
         'reducer__n_neighbors': [20],
         'regressor__n_restarts_optimizer': [1],
         # 'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
