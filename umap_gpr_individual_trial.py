@@ -46,6 +46,23 @@ os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 #7. bin duration = 512 ms, so about the same as what I have
 #8. target position was smoothed using a gaussian filter
 
+def create_folds(n_timesteps, num_folds=5, num_windows=4):
+    n_windows_total = num_folds * num_windows
+    window_size = n_timesteps // n_windows_total
+    window_start_ind = np.arange(0, n_timesteps, window_size)
+
+    folds = []
+
+    for i in range(num_folds):
+        test_windows = np.arange(i, n_windows_total, num_folds)
+        test_ind = []
+        for j in test_windows:
+            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+        train_ind = list(set(range(n_timesteps)) - set(test_ind))
+
+        folds.append((train_ind, test_ind))
+
+    return folds
 
 def process_window_within_split(
         w,
@@ -160,6 +177,8 @@ def train_and_test_on_reduced(
 
     # Create a TimeSeriesSplit object for 5-fold cross-validation
     tscv = TimeSeriesSplit(n_splits=2)
+
+
     #TODO:check if the n_splits is too big and the sample size is too small?1??!?
 
     # Iterate over all combinations of hyperparameters
@@ -177,10 +196,11 @@ def train_and_test_on_reduced(
             ('reducer', reducer(**reducer_kwargs)),
         ])
 
-
+        n_timesteps = spks.shape[0]
+        folds = create_folds(n_timesteps, num_folds=5, num_windows=4)
 
         # Perform 5-fold cross-validation
-        for train_index, test_index in tscv.split(spks):
+        for train_index, test_index in folds:
             # Split the data into training and testing sets
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
