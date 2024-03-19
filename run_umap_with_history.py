@@ -232,6 +232,8 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
 
     elif n_components == 3:
         colormap = colormap_2d()
+
+
         plt.scatter(embedding[:, 0], embedding[:, 1])
         plt.gca().set_aspect('equal', 'datalim')
         plt.title('UMAP projection of the dataset', fontsize=24)
@@ -247,7 +249,10 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         for var in list_of_vars:
             data_1 = bhv[var[0]]
             data_2 = bhv[var[1]]
-            color_data = colormap[data_1, data_2]
+            data_1_c = np.interp(data_1, (data_1.min(), data_1.max()), (0, 255)).astype(int)
+            data_2_c = np.interp(data_2, (data_2.min(), data_2.max()), (0, 255)).astype(int)
+
+            color_data = colormap[data_1_c, data_2_c]
 
             fig = plt.figure(figsize=(20, 20))
             ax = fig.add_subplot(111, projection='3d')
