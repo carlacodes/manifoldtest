@@ -1,31 +1,3 @@
-#from pathlib import Path
-import copy
-from datetime import datetime
-from tqdm import tqdm
-from joblib import Parallel, delayed
-# from extractlfpandspikedata import load_theta_data
-from helpers.load_and_save_data import load_pickle, save_pickle
-from helpers.datahandling import DataHandler
-from sklearn.model_selection import ParameterSampler
-from sklearn.multioutput import MultiOutputRegressor
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.svm import SVR
-from sklearn.pipeline import make_pipeline
-from sklearn.pipeline import Pipeline
-from scipy.stats import randint
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV, \
-    RandomizedSearchCV, cross_val_score
-from sklearn.svm import SVC
-from sklearn.metrics import balanced_accuracy_score, f1_score
-from sklearn.dummy import DummyClassifier
-from pathlib import Path
-from sklearn.metrics import mean_squared_error, r2_score
-from umap import UMAP
-from sklearn.model_selection import train_test_split
-import umap
-import numpy as np
-import pandas as pd
-# mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 from sklearn.decomposition import PCA
