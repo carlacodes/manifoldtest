@@ -194,6 +194,8 @@ class DataHandler():
         return X
     @staticmethod
     def create_folds(n_timesteps, num_folds=5, num_windows=4):
+        '''Create the folds for the cross validation that subsamples trials from overlapping segments, author: Jake Ormond 2024
+        '''
         n_windows_total = num_folds * num_windows
         window_size = n_timesteps // n_windows_total
         window_start_ind = np.arange(0, n_timesteps, window_size)
