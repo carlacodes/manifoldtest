@@ -192,3 +192,22 @@ class DataHandler():
                                        :]  # Put neural data from surrounding bins in X, starting at row "bins_before"
             start_idx = start_idx + 1
         return X
+    @staticmethod
+    def create_folds(n_timesteps, num_folds=5, num_windows=4):
+        n_windows_total = num_folds * num_windows
+        window_size = n_timesteps // n_windows_total
+        window_start_ind = np.arange(0, n_timesteps, window_size)
+
+        folds = []
+
+        for i in range(num_folds):
+            test_windows = np.arange(i, n_windows_total, num_folds)
+            test_ind = []
+            for j in test_windows:
+                test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+            train_ind = list(set(range(n_timesteps)) - set(test_ind))
+
+            folds.append((train_ind, test_ind))
+
+        return folds
+
