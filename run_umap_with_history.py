@@ -37,6 +37,31 @@ import numpy as np
 spks is a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 from sklearn.decomposition import PCA
 
+def colormap_2d():
+    # get the viridis colormap
+    v_cmap = plt.get_cmap('viridis')
+    v_colormap_values = v_cmap(np.linspace(0, 1, 256))
+
+    # get the cool colormap
+    c_cmap = plt.get_cmap('cool')
+    c_colormap_values = c_cmap(np.linspace(0, 1, 256))
+
+    # get the indices of each colormap for the 2d map
+    v_v, c_v = np.meshgrid(np.arange(256), np.arange(256))
+
+    # create a new 2d array with the values of the colormap
+    colormap = np.zeros((256, 256, 4))
+
+    for x in range(256):
+        for y in range(256):
+            v_val = v_colormap_values[v_v[x, y], :]
+            c_val = c_colormap_values[c_v[x, y], :]
+
+            # take the average of the two colormaps
+            colormap[x, y, :] = (v_val + c_val) / 2
+
+    return colormap
+
 def unsupervised_pca(spks, bhv):
     # Assuming `spks` is your data
     print(spks[0])
@@ -118,6 +143,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
     spks_std = np.nanstd(spks, axis=0)
     spks_std[spks_std == 0] = np.finfo(float).eps
     spks = (spks - spks_mean) / spks_std
+
 
     # spks_smoothed = gaussian_filter1d(spks, 4, axis=1)
     epsilon = 1e-10
@@ -205,6 +231,7 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
             plt.show()
 
     elif n_components == 3:
+        colormap = colormap_2d()
         plt.scatter(embedding[:, 0], embedding[:, 1])
         plt.gca().set_aspect('equal', 'datalim')
         plt.title('UMAP projection of the dataset', fontsize=24)
@@ -215,19 +242,23 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         # Concatenate the UMAP DataFrame with the behavioral data
         bhv_with_umap = pd.concat([bhv, umap_df], axis=1)
 
-        list_of_vars = ['x', 'y', 'angle', 'time_index']
+        list_of_vars = [('x', 'y'), ('angle_sin', 'angle_cos')]
 
         for var in list_of_vars:
+            data_1 = bhv[var[0]]
+            data_2 = bhv[var[1]]
+            color_data = colormap[data_1, data_2]
+
             fig = plt.figure(figsize=(20, 20))
             ax = fig.add_subplot(111, projection='3d')
-            scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c=bhv[var])
+            scatter = ax.scatter( bhv_with_umap['UMAP1'], bhv_with_umap['UMAP2'], bhv_with_umap['UMAP3'],  c = color_data)
             plt.colorbar(scatter)
             ax.set_xlabel('UMAP1')
             ax.set_ylabel('UMAP2')
             ax.set_zlabel('UMAP3')
-            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
+            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=30)
             if filter_neurons:
-                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}.png', bbox_inches='tight', dpi=300)
+                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_neuron_type_{neuron_type}_190324.png', bbox_inches='tight', dpi=500)
             else:
                 plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_by_{var}_all_neurons_num_components_{n_components}.png', bbox_inches='tight', dpi=300)
             plt.show()
@@ -242,26 +273,26 @@ def unsupervised_umap(spks, bhv, remove_low_variance_neurons = True, neuron_type
         # Create a colormap
         cmap = plt.get_cmap('viridis')
 
-        for var in list_of_vars:
-            # Normalize your data to 0-1 for matching with the colormap
-            norm = plt.Normalize(bhv_with_umap_sorted[var].min(), bhv_with_umap_sorted[var].max())
-
-            for i in range(1, len(bhv_with_umap_sorted)):
-                ax.plot(bhv_with_umap_sorted['UMAP1'][i - 1:i + 1], bhv_with_umap_sorted['UMAP2'][i - 1:i + 1],
-                        bhv_with_umap_sorted['UMAP3'][i - 1:i + 1], color=cmap(norm(bhv_with_umap_sorted[var].iloc[i])))
-
-            ax.set_xlabel('UMAP1')
-            ax.set_ylabel('UMAP2')
-            ax.set_zlabel('UMAP3')
-            plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
-            if filter_neurons:
-                plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_line_plot_by_{var}_neuron_type_{neuron_type}.png',
-                            bbox_inches='tight', dpi=300)
-            else:
-                plt.savefig(
-                    f'figures/latent_projections/umap_angle_3d_colored_line_plot_by_{var}_all_neurons_num_components_{n_components}.png',
-                    bbox_inches='tight', dpi=300)
-            plt.show()
+        # for var in list_of_vars:
+        #     # Normalize your data to 0-1 for matching with the colormap
+        #     norm = plt.Normalize(bhv_with_umap_sorted[var].min(), bhv_with_umap_sorted[var].max())
+        #
+        #     for i in range(1, len(bhv_with_umap_sorted)):
+        #         ax.plot(bhv_with_umap_sorted['UMAP1'][i - 1:i + 1], bhv_with_umap_sorted['UMAP2'][i - 1:i + 1],
+        #                 bhv_with_umap_sorted['UMAP3'][i - 1:i + 1], color=cmap(norm(bhv_with_umap_sorted[var].iloc[i])))
+        #
+        #     ax.set_xlabel('UMAP1')
+        #     ax.set_ylabel('UMAP2')
+        #     ax.set_zlabel('UMAP3')
+        #     plt.title(f'UMAP projection of the dataset, color-coded by: {var}', fontsize=15)
+        #     if filter_neurons:
+        #         plt.savefig(f'figures/latent_projections/umap_angle_3d_colored_line_plot_by_{var}_neuron_type_{neuron_type}.png',
+        #                     bbox_inches='tight', dpi=300)
+        #     else:
+        #         plt.savefig(
+        #             f'figures/latent_projections/umap_angle_3d_colored_line_plot_by_{var}_all_neurons_num_components_{n_components}.png',
+        #             bbox_inches='tight', dpi=300)
+        #     plt.show()
 
 
     return
@@ -625,7 +656,7 @@ def run_umap_with_history(data_dir):
     # labels_for_umap = labels[:, 0:3]
     label_df = pd.DataFrame(labels_for_umap, columns=['x', 'y', 'angle_sin', 'angle_cos', 'dlc_angle_norm'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    # unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
+    unsupervised_umap(X_for_umap, label_df, remove_low_variance_neurons=False, n_components=3)
 
     bin_width = 0.5
     window_for_decoding = 6  # in s

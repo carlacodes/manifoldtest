@@ -1,23 +1,12 @@
 #from pathlib import Path
 import copy
 from datetime import datetime
-from tqdm import tqdm
-from joblib import Parallel, delayed
-# from extractlfpandspikedata import load_theta_data
-from helpers.load_and_save_data import load_pickle, save_pickle
-from helpers.datahandling import DataHandler
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.svm import SVR
-from sklearn.pipeline import make_pipeline
+
 from sklearn.pipeline import Pipeline
 from scipy.stats import randint
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV, \
-    RandomizedSearchCV, cross_val_score
-from sklearn.svm import SVC
-from sklearn.metrics import balanced_accuracy_score, f1_score
-from sklearn.dummy import DummyClassifier
 from pathlib import Path
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
@@ -45,7 +34,41 @@ os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 #6. they used the gaussian-filtered (omega = 2-time bins) square root of instantenous firing rates for the isomap decomposition
 #7. bin duration = 512 ms, so about the same as what I have
 #8. target position was smoothed using a gaussian filter
+def process_data_within_split(
+        spks_train,
+        spks_test,
+        y_train,
+        y_test,
+        reducer_pipeline,
+        regressor,
+        regressor_kwargs,
+):
+    base_reg = regressor(**regressor_kwargs)
+    reg = MultiOutputRegressor(base_reg)
 
+    reducer_pipeline.fit(spks_train)
+    spks_train_reduced = reducer_pipeline.transform(spks_train)
+    spks_test_reduced = reducer_pipeline.transform(spks_test)
+
+    reg.fit(spks_train_reduced, y_train)
+
+    y_pred = reg.predict(spks_test_reduced)
+    y_pred_train = reg.predict(spks_train_reduced)
+
+    mse_score_train = mean_squared_error(y_train, y_pred_train)
+    r2_score_train = r2_score(y_train, y_pred_train)
+
+    mse_score = mean_squared_error(y_test, y_pred)
+    r2_score_val = r2_score(y_test, y_pred)
+
+    results = {
+        'mse_score_train': mse_score_train,
+        'r2_score_train': r2_score_train,
+        'mse_score': mse_score,
+        'r2_score': r2_score_val,
+    }
+
+    return results
 
 def create_folds(n_timesteps, num_folds=5, num_windows=4):
     n_windows_total = num_folds * num_windows
@@ -199,6 +222,10 @@ def train_and_test_on_reduced(
 
         n_timesteps = spks.shape[0]
         folds = create_folds(n_timesteps, num_folds=5, num_windows=4)
+        #double check there is no data contamination
+        # for train_index, test_index in folds:
+        #     if np.intersect1d(train_index, test_index).size > 0:
+        #         print('Data contamination')
 
         # Perform 5-fold cross-validation
         for train_index, test_index in folds:
@@ -209,10 +236,9 @@ def train_and_test_on_reduced(
             # Train the model and compute results_cv
 
 
-            results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
-                delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
-                                                     regressor, regressor_kwargs) for w in
-                tqdm(range(spks.shape[0] - window_size)))
+            results_cv = process_data_within_split(X_train, X_test, y_train, y_test, reducer_pipeline, regressor,
+                                                   regressor_kwargs)
+
             results_cv_list.append(results_cv)
 
             # Compute permutation_results
@@ -230,10 +256,9 @@ def train_and_test_on_reduced(
             if np.array_equal(y_train_perm, y_train):
                 print('y_train_perm is equal to y_train')
 
-            results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
-                delayed(process_window_within_split)(w, X_train_perm, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
-                                                     regressor, regressor_kwargs) for w in
-                tqdm(range(spks.shape[1] - window_size)))
+            results_perm = process_data_within_split(X_train, X_test, y_train, y_test, reducer_pipeline, regressor,
+                                                   regressor_kwargs)
+
             permutation_results_list.append(results_perm)
 
         # Calculate the difference between the mean of results_cv and permutation_results
