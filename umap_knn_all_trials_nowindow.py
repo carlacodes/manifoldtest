@@ -200,14 +200,12 @@ def train_and_test_on_reduced(
         regressor_kwargs,
         reducer,
         reducer_kwargs,
-        window_size,
-        n_jobs_parallel=-1,
 ):
     # Define the grid of hyperparameters
     param_grid = {
         # 'regressor__kernel': ['linear'],
         # 'regressor__C': [0.1, 1, 10],
-        'regressor__n_neighbors': [70],
+        'regressor__n_neighbors': [2, 5, 10, 30, 40, 50],
         # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
         'reducer__n_components': [3, 5, 6, 7, 8 , 9],
         'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
@@ -411,8 +409,6 @@ def main():
             regressor_kwargs,
             reducer,
             reducer_kwargs,
-            window_size,
-            n_jobs_parallel=-1,
         )
         # save at intermediate stage of grid search
         # intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)
