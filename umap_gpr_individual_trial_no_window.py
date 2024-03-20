@@ -51,7 +51,7 @@ def process_data_within_split(
     spks_train_reduced = reducer_pipeline.transform(spks_train)
     spks_test_reduced = reducer_pipeline.transform(spks_test)
 
-    reg.fit(spks_train_reduced)
+    reg.fit(spks_train_reduced, y_train)
 
     y_pred = reg.predict(spks_test_reduced)
     y_pred_train = reg.predict(spks_train_reduced)
