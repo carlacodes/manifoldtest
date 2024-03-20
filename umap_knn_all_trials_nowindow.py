@@ -76,6 +76,12 @@ def process_data_within_split(
 
     mse_score = mean_squared_error(y_test, y_pred)
     r2_score_val = r2_score(y_test, y_pred)
+    #make sure they are all float32
+    mse_score_train = np.float32(mse_score_train)
+    r2_score_train = np.float32(r2_score_train)
+    mse_score = np.float32(mse_score)
+    r2_score_val = np.float32(r2_score_val)
+
 
     results = {
         'mse_score_train': mse_score_train,
@@ -286,6 +292,7 @@ def train_and_test_on_reduced(
         # Calculate the difference between the mean of results_cv and permutation_results
         diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean(
             [res['mse_score'] for sublist in permutation_results_list for res in sublist])
+
         print(f'parameters are:{params} and the difference is {diff}')
 
         # If this difference is larger than the current largest difference, update the best hyperparameters and the largest difference
