@@ -4,6 +4,7 @@ from datetime import datetime
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.neighbors import KNeighborsRegressor
 
 from sklearn.pipeline import Pipeline
 from scipy.stats import randint
@@ -351,7 +352,7 @@ def main():
         window_for_decoding = params['window_for_decoding']  # in s
         window_size = int(window_for_decoding / bin_width)  # in bins
 
-        regressor = GaussianProcessRegressor
+        regressor = KNeighborsRegressor
 
         # regressor_kwargs = {'kernel': 'linear', 'C': 1}
         regressor_kwargs = {'alpha': 1}
