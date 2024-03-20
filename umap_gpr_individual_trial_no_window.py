@@ -51,7 +51,7 @@ def process_data_within_split(
     spks_train_reduced = reducer_pipeline.transform(spks_train)
     spks_test_reduced = reducer_pipeline.transform(spks_test)
 
-    reg.fit(spks_train_reduced, y_train)
+    reg.fit(spks_train_reduced)
 
     y_pred = reg.predict(spks_test_reduced)
     y_pred_train = reg.predict(spks_train_reduced)
@@ -186,11 +186,11 @@ def train_and_test_on_reduced(
     param_grid = {
         # 'regressor__kernel': ['linear'],
         # 'regressor__C': [0.1, 1, 10],
-        'regresssor__normalize_y': [True],
-        'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
+        'regressor__n_neighbors': [70],
+        # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
         'reducer__n_components': [3],
         'reducer__n_neighbors': [20],
-        'regressor__n_restarts_optimizer': [1],
+        # 'regressor__n_restarts_optimizer': [1],
         # 'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
         # 'reducer__metric': ['euclidean'],
     }
@@ -355,7 +355,7 @@ def main():
         regressor = KNeighborsRegressor
 
         # regressor_kwargs = {'kernel': 'linear', 'C': 1}
-        regressor_kwargs = {'alpha': 1}
+        regressor_kwargs = {'n_neighbors': 70}
 
         reducer = UMAP
 
