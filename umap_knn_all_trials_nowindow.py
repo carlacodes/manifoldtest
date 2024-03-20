@@ -9,6 +9,7 @@ from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.svm import SVR
+import matplotlib.pyplot as plt
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
 from scipy.stats import randint
@@ -108,8 +109,31 @@ def create_folds(n_timesteps, num_folds=5, num_windows=4):
         train_ind = list(set(range(n_timesteps)) - set(test_ind))
 
         folds.append((train_ind, test_ind))
+    #as a sanity check, plot the distribution of the test indices
 
+    fig, ax = plt.subplots()
+    ax.hist(train_ind, label = 'train')
+    ax.hist(test_ind, label = 'test')
+    ax.legend()
+    plt.show()
     return folds
+
+# def create_folds_v2(n_timesteps, num_folds=5, num_windows=4):
+#     '''create folds for time series data where each fold is a window of time bins, and the test fold is the next window of time bins.
+#     which are subsampled from the entire time series data. The number of windows is the number of windows in each fold, and the number of folds is the number of folds'''
+#     n_windows_total = num_folds * num_windows
+#     window_size = n_timesteps // n_windows_total
+#     window_start_ind = np.arange(0, n_timesteps, window_size)
+#
+#     fold_list = []
+#     for i in range(num_folds):
+#         test_windows = np.arange(i, n_windows_total, num_folds)
+#         test_ind = []
+#         for j in test_windows:
+#             test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+#         train_ind = list(set(range(n_timesteps)) - set(test_ind))
+#         fold_list.append((train_ind, test_ind))
+#     return fold_list
 
 
 def process_window_within_split(

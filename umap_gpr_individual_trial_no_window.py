@@ -222,7 +222,7 @@ def train_and_test_on_reduced(
         ])
 
         n_timesteps = spks.shape[0]
-        folds = create_folds(n_timesteps, num_folds=5, num_windows=4)
+        folds = create_folds(n_timesteps, num_folds=20, num_windows=19)
         #double check there is no data contamination
         # for train_index, test_index in folds:
         #     if np.intersect1d(train_index, test_index).size > 0:
