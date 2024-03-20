@@ -245,19 +245,20 @@ def train_and_test_on_reduced(
             # Compute permutation_results
             y_train_perm = copy.deepcopy(y_train)
             X_train_perm = copy.deepcopy(X_train)
-            for i in range(100):
-                row_indices = np.arange(X_train_perm.shape[0])
-                np.random.shuffle(row_indices)
-                X_train_perm = X_train_perm[row_indices]
+            # for i in range(100):
+            #     row_indices = np.arange(X_train_perm.shape[0])
+            #     np.random.shuffle(row_indices)
+            #     X_train_perm = X_train_perm[row_indices]
 
             #shuffle along the second axis
             # X_train_perm = X_train_perm[:, np.random.permutation(X_train_perm.shape[1]), :]
             y_train_perm = y_train_perm[np.random.permutation(y_train_perm.shape[0])]
+            #randomly permute the y_train_perm
             #check if y_train_perm is equal to y_train
             if np.array_equal(y_train_perm, y_train):
                 print('y_train_perm is equal to y_train')
 
-            results_perm = process_data_within_split(X_train, X_test, y_train, y_test, reducer_pipeline, regressor,
+            results_perm = process_data_within_split(X_train_perm, X_test, y_train_perm, y_test, reducer_pipeline, regressor,
                                                    regressor_kwargs)
 
             permutation_results_list.append(results_perm)
