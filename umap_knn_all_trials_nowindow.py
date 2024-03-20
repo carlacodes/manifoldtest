@@ -209,8 +209,8 @@ def train_and_test_on_reduced(
         # 'regressor__C': [0.1, 1, 10],
         'regressor__n_neighbors': [70],
         # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-        'reducer__n_components': [3],
-        'reducer__n_neighbors': [20],
+        'reducer__n_components': [3, 5, 6, 7, 8 , 9],
+        'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
         # 'regressor__n_restarts_optimizer': [1],
         # 'reducer__min_dist': [0.01, 0.1, 0.2, 0.3],
         # 'reducer__metric': ['euclidean'],
@@ -290,8 +290,8 @@ def train_and_test_on_reduced(
             permutation_results_list.append(results_perm)
 
         # Calculate the difference between the mean of results_cv and permutation_results
-        diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean(
-            [res['mse_score'] for sublist in permutation_results_list for res in sublist])
+        diff =np.mean([sublist['r2_score'] for sublist in results_cv_list]) - np.mean(
+            [sublist['r2_score'] for sublist in permutation_results_list])
 
         print(f'parameters are:{params} and the difference is {diff}')
 
