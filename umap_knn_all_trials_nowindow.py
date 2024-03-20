@@ -226,7 +226,7 @@ def train_and_test_on_reduced(
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
-    n_iter = 1
+    n_iter = 20
     for params in ParameterSampler(param_grid, n_iter=n_iter):
         # Update the kwargs with the current parameters
         regressor_kwargs.update(
