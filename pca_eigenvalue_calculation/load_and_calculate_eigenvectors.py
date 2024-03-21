@@ -50,10 +50,6 @@ def main():
     spike_data_trial = spike_data
 
 
-    data_dir_path = Path(data_dir)
-
-
-
     # check for neurons with constant firing rates
     tolerance = 1e-10  # or any small number that suits your needs
     if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
@@ -130,6 +126,15 @@ def main():
     plt.plot(np.arange(1, 113), explained_variance_ratio_gradient)
     plt.title('Gradient of explained variance ratio')
     plt.show()
+    #calculate the second derivative
+    explained_variance_ratio_gradient2 = np.gradient(explained_variance_ratio_gradient)
+    fig, ax = plt.subplots()
+    plt.plot(np.arange(1, 113), explained_variance_ratio_gradient2)
+    plt.xticks(np.arange(1, 113, 5))
+    plt.title('Second derivative of explained variance ratio')
+    plt.show()
+    #find the inflection point
+    inflection_point = np.argmax(explained_variance_ratio_gradient2)
 
 
 
