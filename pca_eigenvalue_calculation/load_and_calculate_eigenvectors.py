@@ -98,8 +98,6 @@ def main():
     pca = PCA(n_components=112)
     pca.fit(X_for_umap)
     explained_variance = pca.explained_variance_
-    explained_variance_ratio = pca.explained_variance_ratio_
-
     print(explained_variance)
     print(np.sum(explained_variance))
     fig, ax = plt.subplots()
