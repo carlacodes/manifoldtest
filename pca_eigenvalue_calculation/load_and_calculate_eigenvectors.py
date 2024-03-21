@@ -115,26 +115,43 @@ def main():
         }
         explained_variance_list = []
         explained_variance_ratio_list = []
-        for n_components in range(1, 11):
-            pca = PCA(n_components=n_components)
-            pca.fit(X_for_umap)
-            explained_variance = pca.explained_variance_
-            explained_variance_ratio = pca.explained_variance_ratio_
+        # for n_components in range(1, 100):
+        #     pca = PCA(n_components=n_components)
+        #     pca.fit(X_for_umap)
+        #     explained_variance = pca.explained_variance_
+        #     explained_variance_ratio = pca.explained_variance_ratio_
+        #
+        #     print(explained_variance)
+        #     print(np.sum(explained_variance))
+        #     print(n_components)
+        #     explained_variance_list.append(np.sum(explained_variance))
+        #     explained_variance_ratio_list.append(np.sum(explained_variance_ratio))
+        # fig, ax = plt.subplots()
+        # plt.plot(np.arange(1, 100), explained_variance_list)
+        # plt.title('Explained variance vs number of components')
+        # plt.savefig('figures/explained_variance_vs_num_components.png')
+        # plt.show()
+        # fig, ax = plt.subplots()
+        # plt.plot(np.arange(1, 100), explained_variance_ratio_list)
+        # plt.title('Explained variance ratio vs number of components')
+        # plt.savefig('figures/explained_variance_ratio_vs_num_components.png')
+        # plt.show()
+        # pca = PCA(n_components=3)
 
-            print(explained_variance)
-            print(np.sum(explained_variance))
-            print(n_components)
-            explained_variance_list.append(np.sum(explained_variance))
-            explained_variance_ratio_list.append(np.sum(explained_variance_ratio))
+        pca = PCA(n_components=100)
+        pca.fit(X_for_umap)
+        explained_variance = pca.explained_variance_
+        explained_variance_ratio = pca.explained_variance_ratio_
+
+        print(explained_variance)
+        print(np.sum(explained_variance))
         fig, ax = plt.subplots()
-        plt.plot(np.arange(1, 11), explained_variance_list)
-        plt.title('Explained variance vs number of components')
-        plt.savefig('figures/explained_variance_vs_num_components.png')
-        plt.show()
-        fig, ax = plt.subplots()
-        plt.plot(np.arange(1, 11), explained_variance_ratio_list)
-        plt.title('Explained variance ratio vs number of components')
-        plt.savefig('figures/explained_variance_ratio_vs_num_components.png')
+        PC_values = np.arange(pca.n_components_) + 1
+        plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2, color='blue')
+        plt.title('Scree Plot')
+        plt.xticks(np.arange(1, 101, 5))
+        plt.xlabel('Principal Component')
+        plt.ylabel('Variance Explained')
         plt.show()
 
 
