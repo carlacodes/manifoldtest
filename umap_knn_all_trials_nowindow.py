@@ -292,27 +292,22 @@ def train_and_test_on_reduced(
     }
     #parameters are:{'regressor__n_neighbors': 2, 'reducer__n_neighbors': 60, 'reducer__n_components': 5, 'reducer__min_dist': 0.01} and the difference is 0.19455528259277344
 
-    param_grid = {
-        # 'regressor__kernel': ['linear'],
-        # 'regressor__C': [0.1, 1, 10],
-        'regressor__n_neighbors': [2],
-        # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-        'reducer__n_components': [5],
-        'reducer__n_neighbors': [60],
-        # 'regressor__n_restarts_optimizer': [1],
-        'reducer__min_dist': [0.01],
-        # 'reducer__metric': ['euclidean'],
-    }
+    # param_grid = {
+    #     # 'regressor__kernel': ['linear'],
+    #     # 'regressor__C': [0.1, 1, 10],
+    #     'regressor__n_neighbors': [2],
+    #     # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
+    #     'reducer__n_components': [5],
+    #     'reducer__n_neighbors': [60],
+    #     # 'regressor__n_restarts_optimizer': [1],
+    #     'reducer__min_dist': [0.01],
+    #     # 'reducer__metric': ['euclidean'],
+    # }
 
     # Initialize the best hyperparameters and the largest difference
     best_params = None
     largest_diff = float('-inf')
     y = bhv[regress].values
-
-    # Create a TimeSeriesSplit object for 5-fold cross-validation
-    tscv = TimeSeriesSplit(n_splits=2)
-
-    # TODO:check if the n_splits is too big and the sample size is too small?1??!?
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
@@ -378,18 +373,20 @@ def train_and_test_on_reduced(
             permutation_results_list.append(results_perm)
 
         # Calculate the difference between the mean of results_cv and permutation_results
-        diff =np.mean([sublist['r2_score'] for sublist in results_cv_list]) - np.mean(
+        diff = np.mean([sublist['r2_score'] for sublist in results_cv_list]) - np.mean(
             [sublist['r2_score'] for sublist in permutation_results_list])
 
         print(f'parameters are:{params} and the difference is {diff}')
+        #check if the r2 score for the cv_list is not negative
+
 
         # If this difference is larger than the current largest difference, update the best hyperparameters and the largest difference
-        if diff > largest_diff:
+        if diff > largest_diff and np.mean([sublist['r2_score'] for sublist in results_cv_list]) > 0:
             largest_diff = diff
             best_params = params
 
     # After the loop, the best hyperparameters are those that yield the largest difference
-    return best_params, largest_diff
+    return best_params, largest_diff, results_cv_list, permutation_results_list
 
 
 def main():
