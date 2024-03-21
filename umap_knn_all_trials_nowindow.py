@@ -458,7 +458,8 @@ def main():
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_jake_fold_sinandcos_{now}.npy'
-        filename_intermediate_params = f'intermediate_params_all_trials_jakefold_sincos_{now_day}.npy'
+        filename_intermediate_params = f'intermediate_params_all_trials_jakefold_sincos_{now}.npy'
+        filename_intermediate_results = f'intermediate_results_all_trials_jakefold_sincos_{now}.npy'
 
         if window_size >= X_for_umap.shape[0]:
             print(
@@ -478,10 +479,15 @@ def main():
         # intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)
         intermediate_results = pd.DataFrame(
             {'difference': [diff_result], 'best_params': [best_params], 'upper_params': [params]})
+        intermediate_results_cv_and_perm = pd.DataFrame(
+            {'results_cv': [results_cv], 'perm_results_list': [perm_results_list]})
+
         np.save(data_dir_path / filename_intermediate_params, intermediate_results)
         #save the results_cv and perm_results_list
         np.save(data_dir_path / f'results_cv_{now}.npy', results_cv)
         np.save(data_dir_path / f'perm_results_list_{now}.npy', perm_results_list)
+        intermediate_results_cv_and_perm.to_csv(data_dir_path / f'intermediate_results_cv_and_perm_{now}.csv')
+
 
         if diff_result > largest_diff:
             largest_diff = diff_result
