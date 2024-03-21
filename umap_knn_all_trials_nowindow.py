@@ -93,7 +93,7 @@ def process_data_within_split(
 
     return results
 
-def create_folds_v2(n_timesteps, num_folds=5, num_windows=5):
+def create_folds_v2(n_timesteps, num_folds=5, num_windows=10):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
     window_start_ind = np.arange(0, n_timesteps, window_size)
