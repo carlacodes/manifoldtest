@@ -38,18 +38,10 @@ def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-
-    # load labels
-    # labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
-
     labels = np.load(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_False_zscore_data_False_overlap_False.npy')
-
     spike_data = np.load(f'{spike_dir}/inputs_overlap_False.npy')
     # extract the 10th trial
-
     spike_data_trial = spike_data
-
-
     # check for neurons with constant firing rates
     tolerance = 1e-10  # or any small number that suits your needs
     if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
@@ -60,7 +52,6 @@ def main():
     X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
     if np.isnan(X_for_umap).any():
         print('There are nans in the data')
-
     X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
     # as a check, plot the firing rates for a single neuron before and after smoothing
