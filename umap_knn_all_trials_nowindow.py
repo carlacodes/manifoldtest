@@ -290,6 +290,19 @@ def train_and_test_on_reduced(
         'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
         # 'reducer__metric': ['euclidean'],
     }
+    #parameters are:{'regressor__n_neighbors': 2, 'reducer__n_neighbors': 60, 'reducer__n_components': 5, 'reducer__min_dist': 0.01} and the difference is 0.19455528259277344
+
+    param_grid = {
+        # 'regressor__kernel': ['linear'],
+        # 'regressor__C': [0.1, 1, 10],
+        'regressor__n_neighbors': [2],
+        # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
+        'reducer__n_components': [5],
+        'reducer__n_neighbors': [60],
+        # 'regressor__n_restarts_optimizer': [1],
+        'reducer__min_dist': [0.01],
+        # 'reducer__metric': ['euclidean'],
+    }
 
     # Initialize the best hyperparameters and the largest difference
     best_params = None
@@ -303,7 +316,7 @@ def train_and_test_on_reduced(
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
-    n_iter = 20
+    n_iter = 1
     for params in ParameterSampler(param_grid, n_iter=n_iter):
         # Update the kwargs with the current parameters
         regressor_kwargs.update(
