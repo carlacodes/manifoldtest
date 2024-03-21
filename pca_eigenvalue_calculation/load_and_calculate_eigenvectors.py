@@ -108,7 +108,7 @@ def main():
     # plt.show()
     # pca = PCA(n_components=3)
 
-    pca = PCA(n_components=100)
+    pca = PCA(n_components=112)
     pca.fit(X_for_umap)
     explained_variance = pca.explained_variance_
     explained_variance_ratio = pca.explained_variance_ratio_
@@ -123,6 +123,14 @@ def main():
     plt.xlabel('Principal Component')
     plt.ylabel('Variance Explained')
     plt.show()
+    #calculatie the inflection point
+    #calculate the gradient of the explained variance ratio
+    explained_variance_ratio_gradient = np.gradient(pca.explained_variance_ratio_)
+    fig, ax = plt.subplots()
+    plt.plot(np.arange(1, 113), explained_variance_ratio_gradient)
+    plt.title('Gradient of explained variance ratio')
+    plt.show()
+
 
 
 
