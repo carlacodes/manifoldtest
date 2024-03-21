@@ -94,6 +94,59 @@ def process_data_within_split(
     return results
 
 
+# def create_folds_v2(n_timesteps, num_folds=5, num_windows=4):
+#     n_windows_total = num_folds * num_windows
+#     window_size = n_timesteps // n_windows_total
+#     window_start_ind = np.arange(0, n_timesteps, window_size)
+#
+#     folds = []
+#
+#     for i in range(num_folds):
+#         # Randomly select test windows from the total windows
+#         test_windows = np.random.choice(n_windows_total, size=num_windows, replace=False)
+#         test_ind = []
+#         for j in test_windows:
+#             test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+#         train_ind = list(set(range(n_timesteps)) - set(test_ind))
+#
+#         folds.append((train_ind, test_ind))
+#
+#     # As a sanity check, plot the distribution of the test indices
+#     fig, ax = plt.subplots()
+#     ax.hist(train_ind, label = 'train')
+#     ax.hist(test_ind, label = 'test')
+#     ax.legend()
+#     plt.show()
+#
+#     return folds
+
+
+def create_folds_v2(n_timesteps, num_folds=5, num_windows=5):
+    n_windows_total = num_folds * num_windows
+    window_size = n_timesteps // n_windows_total
+    window_start_ind = np.arange(0, n_timesteps, window_size)
+
+    folds = []
+
+    for i in range(num_folds):
+        # Uniformly select test windows from the total windows
+        step_size = n_windows_total // num_windows
+        test_windows = np.arange(i, n_windows_total, step_size)
+        test_ind = []
+        for j in test_windows:
+            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+        train_ind = list(set(range(n_timesteps)) - set(test_ind))
+
+        folds.append((train_ind, test_ind))
+
+    # As a sanity check, plot the distribution of the test indices
+    fig, ax = plt.subplots()
+    ax.hist(train_ind, label = 'train')
+    ax.hist(test_ind, label = 'test')
+    ax.legend()
+    plt.show()
+
+    return folds
 def create_folds(n_timesteps, num_folds=5, num_windows=4):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
@@ -266,7 +319,7 @@ def train_and_test_on_reduced(
 
         # Perform 5-fold cross-validation
         n_timesteps = spks.shape[0]
-        folds = create_folds(n_timesteps, num_folds=5, num_windows=4)
+        folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=4)
 
         for train_index, test_index in folds:
             # Split the data into training and testing sets
