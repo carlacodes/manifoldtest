@@ -93,34 +93,6 @@ def process_data_within_split(
 
     return results
 
-
-# def create_folds_v2(n_timesteps, num_folds=5, num_windows=4):
-#     n_windows_total = num_folds * num_windows
-#     window_size = n_timesteps // n_windows_total
-#     window_start_ind = np.arange(0, n_timesteps, window_size)
-#
-#     folds = []
-#
-#     for i in range(num_folds):
-#         # Randomly select test windows from the total windows
-#         test_windows = np.random.choice(n_windows_total, size=num_windows, replace=False)
-#         test_ind = []
-#         for j in test_windows:
-#             test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
-#         train_ind = list(set(range(n_timesteps)) - set(test_ind))
-#
-#         folds.append((train_ind, test_ind))
-#
-#     # As a sanity check, plot the distribution of the test indices
-#     fig, ax = plt.subplots()
-#     ax.hist(train_ind, label = 'train')
-#     ax.hist(test_ind, label = 'test')
-#     ax.legend()
-#     plt.show()
-#
-#     return folds
-
-
 def create_folds_v2(n_timesteps, num_folds=5, num_windows=5):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
@@ -134,15 +106,16 @@ def create_folds_v2(n_timesteps, num_folds=5, num_windows=5):
         test_windows = np.arange(i, n_windows_total, step_size)
         test_ind = []
         for j in test_windows:
-            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+            # Select every nth index for testing, where n is the step size
+            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size, step_size))
         train_ind = list(set(range(n_timesteps)) - set(test_ind))
 
         folds.append((train_ind, test_ind))
 
     # As a sanity check, plot the distribution of the test indices
     fig, ax = plt.subplots()
-    ax.hist(train_ind, label = 'train')
-    ax.hist(test_ind, label = 'test')
+    ax.hist(train_ind, label='train')
+    ax.hist(test_ind, label='test')
     ax.legend()
     plt.show()
 
@@ -311,7 +284,7 @@ def train_and_test_on_reduced(
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
-    n_iter = 1
+    n_iter = 20
     for params in ParameterSampler(param_grid, n_iter=n_iter):
         # Update the kwargs with the current parameters
         regressor_kwargs.update(
@@ -327,7 +300,11 @@ def train_and_test_on_reduced(
 
         # Perform 5-fold cross-validation
         n_timesteps = spks.shape[0]
-        folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=4)
+        folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+        #sanity check there is no overlap between the train and test indices
+        for train_index, test_index in folds:
+            if len(set(train_index).intersection(set(test_index))) > 0:
+                print('There is overlap between the train and test indices')
 
         for train_index, test_index in folds:
             # Split the data into training and testing sets
@@ -488,7 +465,7 @@ def main():
                 f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[0]} in the neural data')
             continue
 
-        best_params, diff_result = train_and_test_on_reduced(
+        best_params, diff_result, results_cv, perm_results_list = train_and_test_on_reduced(
             X_for_umap,
             label_df,
             regress,
@@ -502,6 +479,9 @@ def main():
         intermediate_results = pd.DataFrame(
             {'difference': [diff_result], 'best_params': [best_params], 'upper_params': [params]})
         np.save(data_dir_path / filename_intermediate_params, intermediate_results)
+        #save the results_cv and perm_results_list
+        np.save(data_dir_path / f'results_cv_{now}.npy', results_cv)
+        np.save(data_dir_path / f'perm_results_list_{now}.npy', perm_results_list)
 
         if diff_result > largest_diff:
             largest_diff = diff_result
