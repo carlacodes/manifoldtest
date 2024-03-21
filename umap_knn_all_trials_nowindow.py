@@ -317,6 +317,10 @@ def train_and_test_on_reduced(
             #     delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
             #                                          regressor, regressor_kwargs) for w in
             #     tqdm(range(spks.shape[0] - window_size)))
+            # parameters
+            # are: {'regressor__n_neighbors': 2, 'reducer__n_neighbors': 20, 'reducer__n_components': 5,
+            #       'reducer__min_dist': 0.1} and the
+            # difference is 0.7929356098175049
 
             # results_cv  = Parallel(n_jobs=n_jobs_parallel)(delayed(process_data_within_split)(X_train, X_test, y_train, y_test, reducer_pipeline, regressor, regressor_kwargs) for train_index, test_index in folds)
             results_cv = process_data_within_split(X_train, X_test, y_train, y_test, reducer_pipeline, regressor,
