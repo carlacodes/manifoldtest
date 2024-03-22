@@ -252,30 +252,30 @@ def train_and_test_on_reduced(
         reducer_kwargs,
 ):
     # Define the grid of hyperparameters
-    param_grid = {
-        # 'regressor__kernel': ['linear'],
-        # 'regressor__C': [0.1, 1, 10],
-        'regressor__n_neighbors': [2, 5, 10, 30, 40, 50],
-        # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-        'reducer__n_components': [3, 5, 6, 7, 8, 9],
-        'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
-        # 'regressor__n_restarts_optimizer': [1],
-        'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
-        # 'reducer__metric': ['euclidean'],
-    }
-    #parameters are:{'regressor__n_neighbors': 2, 'reducer__n_neighbors': 60, 'reducer__n_components': 5, 'reducer__min_dist': 0.01} and the difference is 0.19455528259277344
-
     # param_grid = {
     #     # 'regressor__kernel': ['linear'],
     #     # 'regressor__C': [0.1, 1, 10],
-    #     'regressor__n_neighbors': [2],
+    #     'regressor__n_neighbors': [2, 5, 10, 30, 40, 50],
     #     # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-    #     'reducer__n_components': [5],
-    #     'reducer__n_neighbors': [60],
+    #     'reducer__n_components': [3, 5, 6, 7, 8, 9],
+    #     'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
     #     # 'regressor__n_restarts_optimizer': [1],
-    #     'reducer__min_dist': [0.01],
+    #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     #     # 'reducer__metric': ['euclidean'],
     # }
+    #parameters are: {'regressor__n_neighbors': 2, 'reducer__n_neighbors': 20, 'reducer__n_components': 5, 'reducer__min_dist': 0.1},
+
+    param_grid = {
+        # 'regressor__kernel': ['linear'],
+        # 'regressor__C': [0.1, 1, 10],
+        'regressor__n_neighbors': [2],
+        # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
+        'reducer__n_components': [5],
+        'reducer__n_neighbors': [20],
+        # 'regressor__n_restarts_optimizer': [1],
+        'reducer__min_dist': [0.1],
+        # 'reducer__metric': ['euclidean'],
+    }
 
     # Initialize the best hyperparameters and the largest difference
     best_params = None
@@ -284,7 +284,7 @@ def train_and_test_on_reduced(
 
     # Iterate over all combinations of hyperparameters
     # for params in ParameterGrid(param_grid):
-    n_iter = 20
+    n_iter = 1
     for params in ParameterSampler(param_grid, n_iter=n_iter):
         # Update the kwargs with the current parameters
         regressor_kwargs.update(
@@ -370,8 +370,17 @@ def train_and_test_on_reduced(
     return best_params, largest_diff, results_cv_list, permutation_results_list
 
 
+def load_previous_results(data_dir):
+    previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
+    previous_best_params = np.load(f'{data_dir}/params_all_trials_jake_fold_sinandcos_2024-03-21_12-31-37.npy', allow_pickle=True)
+    previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
+    print(previous_best_params)
+    return previous_results, previous_best_params
+
 def main():
+
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
+    prev_results, prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
 
