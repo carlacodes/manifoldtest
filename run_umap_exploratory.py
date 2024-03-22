@@ -1,32 +1,18 @@
 from pathlib import Path
 from datetime import datetime
-from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.dummy import DummyRegressor
-from mpl_toolkits import mplot3d
 
-from sklearn.ensemble import GradientBoostingRegressor
-import json
 import matplotlib as mpl
-import matplotlib.pyplot as plt
-import pandas as pd
 import scipy
-import numpy as np
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from extractlfpandspikedata import load_theta_data
-from helpers import datahandling
+from manifold_neural.granger_causality.extractlfpandspikedata import load_theta_data
 from helpers.datahandling import DataHandler
 from sklearn.svm import SVR
 from sklearn.model_selection import KFold
 from scipy.ndimage import gaussian_filter1d
-from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, permutation_test_score, GridSearchCV, \
-    RandomizedSearchCV, cross_val_score
-from sklearn.svm import SVC
-from sklearn.metrics import balanced_accuracy_score, f1_score
-from sklearn.dummy import DummyClassifier
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 # import vowel_in_noise.electrophysiology.population_analysis as vowel_pop
