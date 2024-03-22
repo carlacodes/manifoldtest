@@ -846,10 +846,10 @@ if __name__ == "__main__":
         # and save as a pickle file
         if use_overlap:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains(dlc_data, window_size=25)
+                create_positional_trains(dlc_data, window_size=250)
         else:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains_no_overlap(dlc_data, window_size=25)
+                create_positional_trains_no_overlap(dlc_data, window_size=250)
         windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
         save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
@@ -864,8 +864,8 @@ if __name__ == "__main__":
             spike_trains = create_spike_trains_no_overlap(units, window_edges, window_size=window_size)
             # spike_trains_binned = create_spike_trains_trial_binning(units, window_edges, window_size=window_size)
             # spike_trains_3d = create_spike_trains_merge_into_trial(units, window_size=window_size)
-        save_pickle(spike_trains, f'spike_trains_overlap_{use_overlap}', spike_dir)
-        spike_trains = load_pickle(f'spike_trains_overlap_{use_overlap}', spike_dir)
+        save_pickle(spike_trains, f'spike_trains_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+        spike_trains = load_pickle(f'spike_trains_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
 
         # concatenate data from all trials into np.arrays for training
         norm_data = False
@@ -892,7 +892,7 @@ if __name__ == "__main__":
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
         # convert labels to float32
         labels = labels.astype(np.float32)
-        np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}.npy', labels)
+        np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', labels)
 
         # concatenate spike trains into np.arrays for training
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
@@ -902,15 +902,15 @@ if __name__ == "__main__":
         spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
         spike_array_list, unit_list = cat_spike_trains_3d_with_behav_variable_length(spike_trains, rearranged_dlc)
         #save the spike_array_list and unit_list
-        save_pickle(spike_array_list, f'{spike_dir}/spike_array_list_overlap_{use_overlap}', spike_dir)
-        save_pickle(rearranged_dlc, f'{dlc_dir}/rearranged_dlc_overlap_{use_overlap}', spike_dir)
+        save_pickle(spike_array_list, f'{spike_dir}/spike_array_list_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+        save_pickle(rearranged_dlc, f'{dlc_dir}/rearranged_dlc_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
 
 
         #save the spike array and behav array
         spike_array = spike_array.astype(np.float32)
         behav_array = behav_array.astype(np.float32)
-        np.save(f'{spike_dir}/spike_array_overlap_zero_padding_rat_{rat}.npy', spike_array)
-        np.save(f'{spike_dir}/behav_array_overlap_zero_padding_rat_{rat}.npy', behav_array)
+        np.save(f'{spike_dir}/spike_array_overlap_zero_padding_rat_{rat}_window_size_{window_size}.npy', spike_array)
+        np.save(f'{spike_dir}/behav_array_overlap_zero_padding_rat_{rat}_window_size_{window_size}.npy', behav_array)
 
 
         ##3D ROLLING WINDOW:
@@ -924,8 +924,8 @@ if __name__ == "__main__":
 
         # convert model_inputs to float32
         model_inputs = model_inputs.astype(np.float32)
-        np.save(f'{spike_dir}/inputs_overlap_{use_overlap}.npy', model_inputs)
-        save_pickle(unit_list, f'unit_list_overlap_{use_overlap}', spike_dir)
+        np.save(f'{spike_dir}/inputs_overlap_{use_overlap}_window_size_{window_size}.npy', model_inputs)
+        save_pickle(unit_list, f'unit_list_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
 
         reshape_model_inputs_and_labels(model_inputs, labels)
     pass

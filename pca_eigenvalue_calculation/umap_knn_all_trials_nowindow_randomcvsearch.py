@@ -375,7 +375,7 @@ def train_and_test_on_umap_randcv(
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
 
-            # Evaluate the regressor
+            # Evaluate the regressor: using the default for regressors which is r2
             score = current_regressor.score(X_test_reduced, y_test)
             scores.append(score)
 
