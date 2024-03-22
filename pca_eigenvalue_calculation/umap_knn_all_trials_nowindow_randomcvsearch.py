@@ -1,35 +1,20 @@
 # from pathlib import Path
 import copy
 from datetime import datetime
-from manifold_neural.helpers.datahandling import DataHandler
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
 from sklearn.pipeline import Pipeline
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
-
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, \
-    GridSearchCV, \
-    RandomizedSearchCV, cross_val_score
-from sklearn.svm import SVC
-from sklearn.metrics import balanced_accuracy_score, f1_score
-from sklearn.dummy import DummyClassifier
 from pathlib import Path
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
-from sklearn.model_selection import train_test_split
-import umap
 import numpy as np
 import pandas as pd
-
-# mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
-from sklearn.decomposition import PCA
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.model_selection import ParameterGrid
-from sklearn.gaussian_process.kernels import WhiteKernel, ConstantKernel, RBF
+
 import os
 import scipy
 import pickle as pkl
