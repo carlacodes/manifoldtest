@@ -336,6 +336,7 @@ def train_and_test_on_reduced(
     # After the loop, the best hyperparameters are those that yield the largest difference
     return best_params, largest_diff, results_cv_list, permutation_results_list
 
+
 def train_and_test_on_umap_bayescv(
         spks,
         bhv,
@@ -346,37 +347,53 @@ def train_and_test_on_umap_bayescv(
         reducer_kwargs,
 ):
     param_grid = {
-        'regressor__estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
+        'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
         'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
-        'regressor__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+        'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
         'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
         'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     }
 
-    y = bhv[regress].values  # Assuming 'regress' contains the names of your target variables
-    X = spks # Assuming 'spks' is your feature matrix
-    #check for nans in the data
-    if np.isnan(X).any():
-        print('There are nans in the data')
-    if np.isnan(y).any():
-        print('There are nans in the target data')
-    # Initialize the best hyperparameters and the largest difference
-    best_params = None
+    y = bhv[regress].values
 
-    reducer_pipeline = Pipeline([
-        ('reducer', reducer(**reducer_kwargs)),
-        ('regressor', MultiOutputRegressor(regressor(**regressor_kwargs)))
-    ])
+    random_search_results = []
 
     # Create your custom folds
-    n_timesteps = X.shape[0]
-    custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+    n_timesteps = spks.shape[0]
+    custom_folds = KFold(n_splits=5)  # Example, you can use your custom folds here
 
-    # Perform RandomizedSearchCV
-    random_search = RandomizedSearchCV(reducer_pipeline, param_distributions=param_grid, scoring='r2', n_iter=1, cv=2, verbose=2, random_state=42, n_jobs=20)
-    random_search.fit(X, y)
+    for _ in range(100):  # 100 iterations for RandomizedSearchCV
+        params = {key: np.random.choice(values) for key, values in param_grid.items()}
 
-    best_params = random_search.best_params_
+        # Initialize the regressor with current parameters
+        current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
+
+        # Initialize the reducer with current parameters
+        current_reducer = reducer(**reducer_kwargs)
+
+        scores = []
+        for train_index, test_index in custom_folds.split(spks):
+            X_train, X_test = spks[train_index], spks[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            # Apply dimensionality reduction
+            X_train_reduced = current_reducer.fit_transform(X_train, y_train)
+            X_test_reduced = current_reducer.transform(X_test)
+
+            # Fit the regressor
+            current_regressor.fit(X_train_reduced, y_train)
+
+            # Evaluate the regressor
+            score = current_regressor.score(X_test_reduced, y_test)
+            scores.append(score)
+
+        # Calculate mean score for the current parameter combination
+        mean_score = np.mean(scores)
+
+        random_search_results.append((params, mean_score))
+
+    # Select the best parameters based on mean score
+    best_params, _ = max(random_search_results, key=lambda x: x[1])
 
     return best_params
 
