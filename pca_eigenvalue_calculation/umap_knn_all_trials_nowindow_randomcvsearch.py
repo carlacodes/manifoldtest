@@ -336,7 +336,7 @@ def train_and_test_on_reduced(
     # After the loop, the best hyperparameters are those that yield the largest difference
     return best_params, largest_diff, results_cv_list, permutation_results_list
 
-def train_and_test_on_umap_randomgridsearch(
+def train_and_test_on_umap_bayescv(
         spks,
         bhv,
         regress,
@@ -345,13 +345,13 @@ def train_and_test_on_umap_randomgridsearch(
         reducer,
         reducer_kwargs,
 ):
-    param_grid = {
-        'regressor__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
-        'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
-        'regressor__metric': ['euclidean', 'cosine', 'minkowski'],
-        'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
-        'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
-    }
+    # param_grid = {
+    #     'regressor__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
+    #     'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
+    #     'regressor__metric': ['euclidean', 'cosine', 'minkowski'],
+    #     'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
+    #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
+    # }
 
     y = bhv[regress].values
 
@@ -364,10 +364,21 @@ def train_and_test_on_umap_randomgridsearch(
     n_timesteps = spks.shape[0]
     custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
 
-    random_search = RandomizedSearchCV(reducer_pipeline, param_distributions=param_grid, scoring='r2', n_iter=100, cv=custom_folds, verbose=2, random_state=42, n_jobs=-1)
-    random_search.fit(spks, y)
 
-    best_params = random_search.best_params_
+    # parameter ranges are specified by one of below
+    bayes_grid = {
+        'regressor__n_neighbors': (2, 70),  # values of n_neighbors between 2 and 70
+        'reducer__n_components': (3, 9),  # values of n_components between 3 and 9
+        'reducer__n_neighbors': (20, 70),  # values of n_neighbors between 20 and 70
+        'reducer__min_dist': (0.001, 0.3, 'uniform'),  # values of min_dist between 0.001 and 0.3 sampled uniformly
+    }
+
+    # this will take some time
+    bayes_search = BayesSearchCV(reducer_pipeline, search_spaces=bayes_grid, n_iter=100, cv=custom_folds, n_jobs=-1)
+
+    bayes_search.fit(spks, y)
+
+    best_params = bayes_search.best_params_
 
     return best_params
 
@@ -440,7 +451,7 @@ def main():
     filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
 
 
-    best_params = train_and_test_on_umap_randomgridsearch(
+    best_params = train_and_test_on_umap_bayescv(
         X_for_umap,
         label_df,
         regress,
