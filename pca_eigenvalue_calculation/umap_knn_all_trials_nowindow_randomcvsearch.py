@@ -358,6 +358,8 @@ def train_and_test_on_umap_bayescv(
     #check for nans in the data
     if np.isnan(X).any():
         print('There are nans in the data')
+    if np.isnan(y).any():
+        print('There are nans in the target data')
     # Initialize the best hyperparameters and the largest difference
     best_params = None
 
