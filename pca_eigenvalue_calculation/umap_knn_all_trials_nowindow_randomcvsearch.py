@@ -345,7 +345,8 @@ def train_and_test_on_umap_randomgridsearch(
 ):
     param_grid = {
         'regressor__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
-        'reducer__n_components': [3, 5, 6, 7, 8, 9],
+        'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
+        'regressor__metric': ['euclidean', 'cosine', 'minkowski'],
         'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
         'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     }
