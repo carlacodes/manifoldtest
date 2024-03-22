@@ -7,10 +7,7 @@ from joblib import Parallel, delayed
 from helpers.datahandling import DataHandler
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.svm import SVR
 import matplotlib.pyplot as plt
-from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
