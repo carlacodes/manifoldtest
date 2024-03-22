@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
+from skopt import BayesSearchCV
+
 
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
