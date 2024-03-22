@@ -12,9 +12,11 @@ from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.pipeline import Pipeline
+
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
-
 import os
 import scipy
 import pickle as pkl
@@ -229,28 +231,15 @@ def train_and_test_on_reduced(
         reducer_kwargs,
 ):
     # Define the grid of hyperparameters
-    # param_grid = {
-    #     # 'regressor__kernel': ['linear'],
-    #     # 'regressor__C': [0.1, 1, 10],
-    #     'regressor__n_neighbors': [2, 5, 10, 30, 40, 50],
-    #     # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-    #     'reducer__n_components': [3, 5, 6, 7, 8, 9],
-    #     'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
-    #     # 'regressor__n_restarts_optimizer': [1],
-    #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
-    #     # 'reducer__metric': ['euclidean'],
-    # }
-    #parameters are: {'regressor__n_neighbors': 2, 'reducer__n_neighbors': 20, 'reducer__n_components': 5, 'reducer__min_dist': 0.1},
-
     param_grid = {
         # 'regressor__kernel': ['linear'],
         # 'regressor__C': [0.1, 1, 10],
-        'regressor__n_neighbors': [2],
+        'regressor__n_neighbors': [2, 5, 10, 30, 40, 50],
         # 'regressor__kernel': [ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level_bounds=(1e-07, 1.0))],
-        'reducer__n_components': [5],
-        'reducer__n_neighbors': [20],
+        'reducer__n_components': [3, 5, 6, 7, 8, 9],
+        'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
         # 'regressor__n_restarts_optimizer': [1],
-        'reducer__min_dist': [0.1],
+        'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
         # 'reducer__metric': ['euclidean'],
     }
 
@@ -282,7 +271,6 @@ def train_and_test_on_reduced(
         for train_index, test_index in folds:
             if len(set(train_index).intersection(set(test_index))) > 0:
                 print('There is overlap between the train and test indices')
-
         for train_index, test_index in folds:
             # Split the data into training and testing sets
             X_train, X_test = spks[train_index], spks[test_index]
@@ -308,10 +296,10 @@ def train_and_test_on_reduced(
             # Compute permutation_results
             y_train_perm = copy.deepcopy(y_train)
             X_train_perm = copy.deepcopy(X_train)
-            for i in range(100):
-                row_indices = np.arange(X_train_perm.shape[0])
-                np.random.shuffle(row_indices)
-                X_train_perm = X_train_perm[row_indices]
+            # for i in range(100):
+            #     row_indices = np.arange(X_train_perm.shape[0])
+            #     np.random.shuffle(row_indices)
+            #     X_train_perm = X_train_perm[row_indices]
 
             # shuffle along the second axis
             # X_train_perm = X_train_perm[:, np.random.permutation(X_train_perm.shape[1]), :]
@@ -346,6 +334,40 @@ def train_and_test_on_reduced(
     # After the loop, the best hyperparameters are those that yield the largest difference
     return best_params, largest_diff, results_cv_list, permutation_results_list
 
+def train_and_test_on_umap_randomgridsearch(
+        spks,
+        bhv,
+        regress,
+        regressor,
+        regressor_kwargs,
+        reducer,
+        reducer_kwargs,
+):
+    param_grid = {
+        'regressor__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
+        'reducer__n_components': [3, 5, 6, 7, 8, 9],
+        'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
+        'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
+    }
+
+    y = bhv[regress].values
+
+    reducer_pipeline = Pipeline([
+        ('reducer', reducer(**reducer_kwargs)),
+        ('regressor', regressor(**regressor_kwargs))
+    ])
+
+    # Create your custom folds
+    n_timesteps = spks.shape[0]
+    custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+
+    random_search = RandomizedSearchCV(reducer_pipeline, param_distributions=param_grid, scoring='r2', n_iter=100, cv=custom_folds, verbose=2, random_state=42, n_jobs=-1)
+    random_search.fit(spks, y)
+
+    best_params = random_search.best_params_
+
+    return best_params
+
 
 def load_previous_results(data_dir):
     previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
@@ -355,139 +377,76 @@ def load_previous_results(data_dir):
     return previous_results, previous_best_params
 
 def main():
-
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     prev_results, prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-
-    # load labels
-    # labels = np.load(f'{dlc_dir}/labels_0403_with_dist2goal_scale_data_False_zscore_data_False.npy')
-
     labels = np.load(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_False_zscore_data_False_overlap_False.npy')
-
     spike_data = np.load(f'{spike_dir}/inputs_overlap_False.npy')
-    # extract the 10th trial
 
     spike_data_trial = spike_data
-    # transpose the spike data
-
-    # #find the times where the head angle is stationary
-    # angle_labels = labels[:, 2]
-    # stationary_indices = np.where(np.diff(angle_labels) == 0)[0]
-    # #remove the stationary indices
-    # labels = np.delete(labels, stationary_indices, axis=0)
-    # spike_data = np.delete(spike_data, stationary_indices, axis=0)
-
     data_dir_path = Path(data_dir)
 
-    param_grid_upper = {
-        'bin_width': [0.5],
-        'window_for_decoding': [250],
+
+    # check for neurons with constant firing rates
+    tolerance = 1e-10  # or any small number that suits your needs
+    if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
+        print('There are neurons with constant firing rates')
+        # remove those neurons
+        spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
+    # THEN DO THE Z SCORE
+    X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+
+    if np.isnan(X_for_umap).any():
+        print('There are nans in the data')
+
+    X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+
+    # as a check, plot the firing rates for a single neuron before and after smoothing
+    # fig, ax = plt.subplots(1, 2)
+    # ax[0].plot(X_for_umap[:, 0])
+    # ax[0].set_title('Before smoothing')
+    # ax[1].plot(X_for_umap_smooth[ :, 0])
+    # ax[1].set_title('After smoothing')
+    # plt.show()
+
+    labels_for_umap = labels[:, 0:6]
+    labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+
+    label_df = pd.DataFrame(labels_for_umap,
+                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+    label_df['time_index'] = np.arange(0, label_df.shape[0])
+
+    regressor = KNeighborsRegressor
+    regressor_kwargs = {'n_neighbors': 70}
+
+    reducer = UMAP
+
+    reducer_kwargs = {
+        'n_components': 3,
+        # 'n_neighbors': 70,
+        # 'min_dist': 0.3,
+        'metric': 'euclidean',
+        'n_jobs': 1,
     }
-    largest_diff = float('-inf')
-    param_results = {}
-    n_iter = 1
-    for params in ParameterSampler(param_grid_upper, n_iter=n_iter):
 
-        # check for neurons with constant firing rates
-        tolerance = 1e-10  # or any small number that suits your needs
-        if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
-            print('There are neurons with constant firing rates')
-            # remove those neurons
-            spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
-        # THEN DO THE Z SCORE
-        X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+    regress = ['angle_sin', 'angle_cos']  # changing to two target variables
 
-        if np.isnan(X_for_umap).any():
-            print('There are nans in the data')
-
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
-
-        # as a check, plot the firing rates for a single neuron before and after smoothing
-        # fig, ax = plt.subplots(1, 2)
-        # ax[0].plot(X_for_umap[:, 0])
-        # ax[0].set_title('Before smoothing')
-        # ax[1].plot(X_for_umap_smooth[ :, 0])
-        # ax[1].set_title('After smoothing')
-        # plt.show()
-
-        labels_for_umap = labels[:, 0:6]
-        # apply the same gaussian smoothing to the labels
-        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
-
-        label_df = pd.DataFrame(labels_for_umap,
-                                columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
-        label_df['time_index'] = np.arange(0, label_df.shape[0])
-        # apply the same gaussian smoothing to the labels
-
-        # label_df['time_index'] = np.arange(0, label_df.shape[0])
-        bin_width = params['bin_width']
-        window_for_decoding = params['window_for_decoding']  # in s
-        window_size = int(window_for_decoding / bin_width)  # in bins
-
-        regressor = KNeighborsRegressor
-
-        # regressor_kwargs = {'kernel': 'linear', 'C': 1}
-        regressor_kwargs = {'n_neighbors': 70}
-
-        reducer = UMAP
-
-        reducer_kwargs = {
-            'n_components': 3,
-            # 'n_neighbors': 70,
-            # 'min_dist': 0.3,
-            'metric': 'euclidean',
-            'n_jobs': 1,
-        }
-
-        # space_ref = ['No Noise', 'Noise']
-        # temporarily remove the space_ref variable, I don't want to incorporate separate data yet
-        regress = ['angle_sin', 'angle_cos']  # changing to two target variables
-
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        now_day = datetime.now().strftime("%Y-%m-%d")
-        filename = f'params_all_trials_jake_fold_sinandcos_{now}.npy'
-        filename_intermediate_params = f'intermediate_params_all_trials_jakefold_sincos_{now}.npy'
-        filename_intermediate_results = f'intermediate_results_all_trials_jakefold_sincos_{now}.npy'
-
-        if window_size >= X_for_umap.shape[0]:
-            print(
-                f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[0]} in the neural data')
-            continue
-
-        best_params, diff_result, results_cv, perm_results_list = train_and_test_on_reduced(
-            X_for_umap,
-            label_df,
-            regress,
-            regressor,
-            regressor_kwargs,
-            reducer,
-            reducer_kwargs,
-        )
-        # save at intermediate stage of grid search
-        # intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)
-        intermediate_results = pd.DataFrame(
-            {'difference': [diff_result], 'best_params': [best_params], 'upper_params': [params]})
-        intermediate_results_cv_and_perm = pd.DataFrame(
-            {'results_cv': [results_cv], 'perm_results_list': [perm_results_list]})
-
-        np.save(data_dir_path / filename_intermediate_params, intermediate_results)
-        #save the results_cv and perm_results_list
-        np.save(data_dir_path / f'results_cv_{now}.npy', results_cv)
-        np.save(data_dir_path / f'perm_results_list_{now}.npy', perm_results_list)
-        intermediate_results_cv_and_perm.to_csv(data_dir_path / f'intermediate_results_cv_and_perm_{now}.csv')
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    now_day = datetime.now().strftime("%Y-%m-%d")
+    filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
 
 
-        if diff_result > largest_diff:
-            largest_diff = diff_result
-            best_params_final = best_params
-    param_results['difference'] = diff_result
-    param_results['best_params'] = best_params_final
-    param_results['upper_params'] = params
-    # save to data_dir
-
-    np.save(data_dir_path / filename, param_results)
+    best_params = train_and_test_on_umap_randomgridsearch(
+        X_for_umap,
+        label_df,
+        regress,
+        regressor,
+        regressor_kwargs,
+        reducer,
+        reducer_kwargs,
+    )
+    np.save(data_dir_path / filename, best_params)
 
 
 if __name__ == '__main__':
