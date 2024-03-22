@@ -15,7 +15,12 @@ import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
-
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.neighbors import KNeighborsRegressor
+from umap import UMAP
 
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
@@ -32,6 +37,8 @@ os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 # 6. they used the gaussian-filtered (omega = 2-time bins) square root of instantenous firing rates for the isomap decomposition
 # 7. bin duration = 512 ms, so about the same as what I have
 # 8. target position was smoothed using a gaussian filter
+def passthrough_func(X):
+    return X
 def process_data_within_split(
         spks_train,
         spks_test,
@@ -321,7 +328,68 @@ def train_and_test_on_reduced(
     return best_params, largest_diff, results_cv_list, permutation_results_list
 
 
-def train_and_test_on_umap_bayescv(
+# def train_and_test_on_umap_randcv(
+#         spks,
+#         bhv,
+#         regress,
+#         regressor,
+#         regressor_kwargs,
+#         reducer,
+#         reducer_kwargs,
+# ):
+#     param_grid = {
+#         'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
+#         'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
+#         'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+#         'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
+#         'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
+#     }
+#
+#     y = bhv[regress].values
+#
+#     random_search_results = []
+#
+#     # Create your custom folds
+#     n_timesteps = spks.shape[0]
+#     custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+#     # Example, you can use your custom folds here
+#
+#     for _ in range(100):  # 100 iterations for RandomizedSearchCV
+#         params = {key: np.random.choice(values) for key, values in param_grid.items()}
+#
+#         # Initialize the regressor with current parameters
+#         current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
+#
+#         # Initialize the reducer with current parameters
+#         current_reducer = reducer(**reducer_kwargs)
+#
+#         scores = []
+#         for train_index, test_index in custom_folds:
+#             X_train, X_test = spks[train_index], spks[test_index]
+#             y_train, y_test = y[train_index], y[test_index]
+#
+#             # Apply dimensionality reduction
+#             X_train_reduced = current_reducer.fit_transform(X_train)
+#             X_test_reduced = current_reducer.transform(X_test)
+#
+#             # Fit the regressor
+#             current_regressor.fit(X_train_reduced, y_train)
+#
+#             # Evaluate the regressor
+#             score = current_regressor.score(X_test_reduced, y_test)
+#             scores.append(score)
+#
+#         # Calculate mean score for the current parameter combination
+#         mean_score = np.mean(scores)
+#
+#         random_search_results.append((params, mean_score))
+#
+#     # Select the best parameters based on mean score
+#     best_params, _ = max(random_search_results, key=lambda x: x[1])
+#
+#     return best_params
+
+def train_and_test_on_umap_randcv(
         spks,
         bhv,
         regress,
@@ -330,55 +398,36 @@ def train_and_test_on_umap_bayescv(
         reducer,
         reducer_kwargs,
 ):
+    # param_grid = {
+    #     'regressor__n_neighbors': [2, 5, 10, 30, 40, 50],
+    #     'reducer__n_components': [3, 5, 6, 7, 8, 9],
+    #     'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
+    #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
+    # }
+
+    y = bhv[regress].values  # Make sure this is a 2D array
+    pipeline = Pipeline([
+        ('features', FeatureUnion([
+            ('umap', UMAP(**reducer_kwargs)),
+            ('passthrough', FunctionTransformer(passthrough_func))
+        ])),
+        ('regressor', MultiOutputRegressor(KNeighborsRegressor()))
+    ])
+
     param_grid = {
-        'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
-        'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
-        'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-        'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
-        'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
+        'features__umap__n_neighbors': [5, 10, 15],
+        'features__umap__min_dist': [0.1, 0.3, 0.5],
+        'regressor__estimator__n_neighbors': [2, 5, 10],
     }
 
-    y = bhv[regress].values
 
-    random_search_results = []
-
-    # Create your custom folds
     n_timesteps = spks.shape[0]
     custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
-    # Example, you can use your custom folds here
 
-    for _ in range(100):  # 100 iterations for RandomizedSearchCV
-        params = {key: np.random.choice(values) for key, values in param_grid.items()}
+    random_search = RandomizedSearchCV(pipeline, param_distributions=param_grid, scoring='r2', n_iter=100, cv=custom_folds, verbose=2, random_state=42, n_jobs=-1)
+    random_search.fit(spks, y)
 
-        # Initialize the regressor with current parameters
-        current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
-
-        # Initialize the reducer with current parameters
-        current_reducer = reducer(**reducer_kwargs)
-
-        scores = []
-        for train_index, test_index in custom_folds:
-            X_train, X_test = spks[train_index], spks[test_index]
-            y_train, y_test = y[train_index], y[test_index]
-
-            # Apply dimensionality reduction
-            X_train_reduced = current_reducer.fit_transform(X_train, y_train)
-            X_test_reduced = current_reducer.transform(X_test)
-
-            # Fit the regressor
-            current_regressor.fit(X_train_reduced, y_train)
-
-            # Evaluate the regressor
-            score = current_regressor.score(X_test_reduced, y_test)
-            scores.append(score)
-
-        # Calculate mean score for the current parameter combination
-        mean_score = np.mean(scores)
-
-        random_search_results.append((params, mean_score))
-
-    # Select the best parameters based on mean score
-    best_params, _ = max(random_search_results, key=lambda x: x[1])
+    best_params = random_search.best_params_
 
     return best_params
 
@@ -451,7 +500,7 @@ def main():
     filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
 
 
-    best_params = train_and_test_on_umap_bayescv(
+    best_params = train_and_test_on_umap_randcv(
         X_for_umap,
         label_df,
         regress,
@@ -460,6 +509,8 @@ def main():
         reducer,
         reducer_kwargs,
     )
+    y = label_df[regress].values
+
     np.save(data_dir_path / filename, best_params)
 
 
