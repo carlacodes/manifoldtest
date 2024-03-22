@@ -353,20 +353,26 @@ def train_and_test_on_umap_bayescv(
         'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     }
 
-    y = bhv[regress].values
+    y = bhv[regress].values  # Assuming 'regress' contains the names of your target variables
+    X = spks # Assuming 'spks' is your feature matrix
+    #check for nans in the data
+    if np.isnan(X).any():
+        print('There are nans in the data')
+    # Initialize the best hyperparameters and the largest difference
+    best_params = None
 
     reducer_pipeline = Pipeline([
         ('reducer', reducer(**reducer_kwargs)),
         ('regressor', MultiOutputRegressor(regressor(**regressor_kwargs)))
     ])
 
-
     # Create your custom folds
-    n_timesteps = spks.shape[0]
+    n_timesteps = X.shape[0]
     custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
-    #CHECK IF spks has nan or inf values
-    random_search = RandomizedSearchCV(reducer_pipeline, param_distributions=param_grid, scoring='r2', n_iter=100, cv=custom_folds, verbose=2, random_state=42, n_jobs=20)
-    random_search.fit(spks, y)
+
+    # Perform RandomizedSearchCV
+    random_search = RandomizedSearchCV(reducer_pipeline, param_distributions=param_grid, scoring='r2', n_iter=1, cv=2, verbose=2, random_state=42, n_jobs=20)
+    random_search.fit(X, y)
 
     best_params = random_search.best_params_
 
