@@ -344,7 +344,8 @@ def train_and_test_on_umap_bayescv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds_v2()  # Example, you can use your custom folds here
+    custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+    # Example, you can use your custom folds here
 
     for _ in range(100):  # 100 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
