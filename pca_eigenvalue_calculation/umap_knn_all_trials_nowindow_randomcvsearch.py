@@ -357,14 +357,15 @@ def train_and_test_on_umap_bayescv(
 
     reducer_pipeline = Pipeline([
         ('reducer', reducer(**reducer_kwargs)),
-        ('regressor', regressor(**regressor_kwargs))
+        ('regressor', MultiOutputRegressor(regressor(**regressor_kwargs)))
     ])
+
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
     custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
-
-    random_search = RandomizedSearchCV(reducer_pipeline, param_distributions=param_grid, scoring='r2', n_iter=100, cv=custom_folds, verbose=2, random_state=42, n_jobs=-1)
+    #CHECK IF spks has nan or inf values
+    random_search = RandomizedSearchCV(reducer_pipeline, param_distributions=param_grid, scoring='r2', n_iter=100, cv=custom_folds, verbose=2, random_state=42, n_jobs=20)
     random_search.fit(spks, y)
 
     best_params = random_search.best_params_
