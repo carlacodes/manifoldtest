@@ -357,7 +357,7 @@ def train_and_test_on_umap_bayescv(
         current_reducer = reducer(**reducer_kwargs)
 
         scores = []
-        for train_index, test_index in custom_folds.split(spks):
+        for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
