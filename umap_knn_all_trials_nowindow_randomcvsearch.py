@@ -345,6 +345,7 @@ def train_and_test_on_umap_randcv(
         'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     }
 
+
     y = bhv[regress].values
 
     random_search_results = []
@@ -391,15 +392,15 @@ def train_and_test_on_umap_randcv(
 
 
 def load_previous_results(data_dir):
-    previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
-    previous_best_params = np.load(f'{data_dir}/params_all_trials_jake_fold_sinandcos_2024-03-21_12-31-37.npy', allow_pickle=True)
-    previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
+    # previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
+    previous_best_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_jake_fold_sinandcos_2024-03-23_22-47-44.npy', allow_pickle=True)
+    # previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
     print(previous_best_params)
-    return previous_results, previous_best_params
+    return previous_best_params
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    prev_results, prev_best_params = load_previous_results(data_dir)
+    prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_1103_with_dist2goal_scale_data_False_zscore_data_False_overlap_False.npy')
