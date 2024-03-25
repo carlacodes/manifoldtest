@@ -345,8 +345,8 @@ def train_and_test_on_umap_randcv(
     #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     # }
 
-    param_grid = {'estimator__n_neighbors': 50, 'reducer__n_components': 7, 'estimator__metric': 'minkowski',
-     'reducer__n_neighbors': 70, 'reducer__min_dist': 0.3}
+    param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'],
+     'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
 
     y = bhv[regress].values
 
