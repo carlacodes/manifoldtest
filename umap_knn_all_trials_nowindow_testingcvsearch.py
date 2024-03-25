@@ -93,6 +93,8 @@ def create_folds_v2(n_timesteps, num_folds=5, num_windows=10):
         step_size = n_windows_total // num_windows
         test_windows = np.arange(i, n_windows_total, step_size)
         test_ind = []
+        #make sure the train and test indices are equivalent in length
+
         for j in test_windows:
             # Select every nth index for testing, where n is the step size
             test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size, step_size))
@@ -387,13 +389,14 @@ def train_and_test_on_umap_randcv(
 
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
+        mean_score_train = np.mean(scores_train)
 
         random_search_results.append((params, mean_score))
 
     # Select the best parameters based on mean score
     best_params, _ = max(random_search_results, key=lambda x: x[1])
 
-    return best_params
+    return best_params, mean_score
 
 
 def load_previous_results(data_dir):
@@ -465,7 +468,7 @@ def main():
     filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
 
 
-    best_params = train_and_test_on_umap_randcv(
+    best_params, mean_score = train_and_test_on_umap_randcv(
         X_for_umap,
         label_df,
         regress,
