@@ -367,6 +367,7 @@ def train_and_test_on_umap_randcv(
         current_reducer = reducer(**reducer_kwargs)
 
         scores = []
+        scores_train = []
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -380,7 +381,9 @@ def train_and_test_on_umap_randcv(
 
             # Evaluate the regressor: using the default for regressors which is r2
             score = current_regressor.score(X_test_reduced, y_test)
+            score_train = current_regressor.score(X_train_reduced, y_train)
             scores.append(score)
+            scores_train.append(score_train)
 
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
