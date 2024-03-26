@@ -81,7 +81,7 @@ def process_data_within_split(
 
     return results
 
-def create_folds_v2(n_timesteps, num_folds=5, num_windows=10):
+def create_folds_v2(n_timesteps, num_folds=5, num_windows=3):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
     window_start_ind = np.arange(0, n_timesteps, window_size)
@@ -91,6 +91,7 @@ def create_folds_v2(n_timesteps, num_folds=5, num_windows=10):
     for i in range(num_folds):
         # Uniformly select test windows from the total windows
         step_size = n_windows_total // num_windows
+        step_size_train = n_windows_total // (num_windows - 1)
         test_windows = np.arange(i, n_windows_total, step_size)
         test_ind = []
         #make sure the train and test indices are equivalent in length
@@ -98,9 +99,17 @@ def create_folds_v2(n_timesteps, num_folds=5, num_windows=10):
         for j in test_windows:
             # Select every nth index for testing, where n is the step size
             test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size, step_size))
+        # for j2 in range(n_windows_total):
+        #     if j2 not in test_windows:
+        #         #ensure the
+        #         train_ind = np.arange(window_start_ind[j2], window_start_ind[j2] + window_size)
         train_ind = list(set(range(n_timesteps)) - set(test_ind))
 
+
         folds.append((train_ind, test_ind))
+        ratio =  len(test_ind) / len(train_ind)
+        print(f'Ratio of train to test indices is {ratio}')
+
 
     # As a sanity check, plot the distribution of the test indices
     fig, ax = plt.subplots()
@@ -125,6 +134,8 @@ def create_folds(n_timesteps, num_folds=5, num_windows=4):
         train_ind = list(set(range(n_timesteps)) - set(test_ind))
 
         folds.append((train_ind, test_ind))
+        #check the ratio of train_ind to test_ind
+        ratio = len(train_ind) / len(test_ind)
     #as a sanity check, plot the distribution of the test indices
 
     fig, ax = plt.subplots()
@@ -261,7 +272,7 @@ def train_and_test_on_reduced(
 
         # Perform 5-fold cross-validation
         n_timesteps = spks.shape[0]
-        folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+        folds = create_folds(n_timesteps, num_folds=10, num_windows=20)
         #sanity check there is no overlap between the train and test indices
         for train_index, test_index in folds:
             if len(set(train_index).intersection(set(test_index))) > 0:
@@ -356,7 +367,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=12)
     # Example, you can use your custom folds here
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
