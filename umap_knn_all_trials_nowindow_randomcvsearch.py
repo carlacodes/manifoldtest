@@ -259,7 +259,7 @@ def train_and_test_on_reduced(
 
         # Perform 5-fold cross-validation
         n_timesteps = spks.shape[0]
-        folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
+        folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
         #sanity check there is no overlap between the train and test indices
         for train_index, test_index in folds:
             if len(set(train_index).intersection(set(test_index))) > 0:
