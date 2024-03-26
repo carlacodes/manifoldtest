@@ -119,7 +119,7 @@ def create_folds_v2(n_timesteps, num_folds=5, num_windows=3):
     plt.show()
 
     return folds
-def create_folds(n_timesteps, num_folds=20, num_windows=10):
+def create_folds(n_timesteps, num_folds=10, num_windows=200):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
     window_start_ind = np.arange(0, n_timesteps, window_size)
@@ -136,13 +136,16 @@ def create_folds(n_timesteps, num_folds=20, num_windows=10):
         folds.append((train_ind, test_ind))
         #check the ratio of train_ind to test_ind
         ratio = len(train_ind) / len(test_ind)
+
+        fig, ax = plt.subplots()
+        ax.hist(train_ind, label='train')
+        ax.hist(test_ind, label='test')
+        ax.set_title(f'Distribution of train and test indices, fold number: {i} and ratio of train to test indices is {ratio}')
+        ax.legend()
+        plt.show()
     #as a sanity check, plot the distribution of the test indices
 
-    fig, ax = plt.subplots()
-    ax.hist(train_ind, label = 'train')
-    ax.hist(test_ind, label = 'test')
-    ax.legend()
-    plt.show()
+
     return folds
 
 
@@ -272,7 +275,7 @@ def train_and_test_on_reduced(
 
         # Perform 5-fold cross-validation
         n_timesteps = spks.shape[0]
-        folds = create_folds(n_timesteps, num_folds=10, num_windows=20)
+        folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
         #sanity check there is no overlap between the train and test indices
         for train_index, test_index in folds:
             if len(set(train_index).intersection(set(test_index))) > 0:
