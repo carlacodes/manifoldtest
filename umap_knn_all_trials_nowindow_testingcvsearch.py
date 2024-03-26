@@ -119,7 +119,7 @@ def create_folds_v2(n_timesteps, num_folds=5, num_windows=3):
     plt.show()
 
     return folds
-def create_folds(n_timesteps, num_folds=5, num_windows=4):
+def create_folds(n_timesteps, num_folds=20, num_windows=10):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
     window_start_ind = np.arange(0, n_timesteps, window_size)
