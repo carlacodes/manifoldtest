@@ -23,7 +23,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from umap import UMAP
 import seaborn as sns
 from scipy.stats import ttest_ind
-from numpy import mean, std, var
+from numpy import mean, std, var, sqrt
 
 
 ''' Modified from Jules Lebert's code
@@ -413,29 +413,29 @@ def train_and_test_on_umap_randcv(
         if len(set(train_index).intersection(set(test_index))) > 0:
             print('There is overlap between the train and test indices')
         # plot the head angle for the train and test indices
-        fig, ax = plt.subplots()
-        ax.plot(bhv['angle_cos'].values[train_index], label = 'train')
-        ax.plot(bhv['angle_cos'].values[test_index], label = 'test')
-        ax.set_title(f'Head angle cosine values for train and test indices, fold number: {count}')
-        plt.legend()
-        plt.show()
-        fig, ax = plt.subplots()
-        ax.plot(bhv['angle_sin'].values[train_index], label = 'train')
-        ax.plot(bhv['angle_sin'].values[test_index], label = 'test')
-        ax.set_title(f'Head angle sine values for train and test indices, fold number: {count}')
-        plt.legend()
-        plt.show()
-        #plot just the test data
-        fig, ax = plt.subplots()
-        ax.plot(bhv['angle_cos'].values[test_index], label = 'test')
-        ax.set_title(f'Head angle cosine values for test indices, fold number: {count}')
-        plt.legend()
-        plt.show()
-        fig, ax = plt.subplots()
-        ax.plot(bhv['angle_sin'].values[test_index], label = 'test')
-        ax.set_title(f'Head angle sine values for test indices, fold number: {count}')
-        plt.legend()
-        plt.show()
+        # fig, ax = plt.subplots()
+        # ax.plot(bhv['angle_cos'].values[train_index], label = 'train')
+        # ax.plot(bhv['angle_cos'].values[test_index], label = 'test')
+        # ax.set_title(f'Head angle cosine values for train and test indices, fold number: {count}')
+        # plt.legend()
+        # plt.show()
+        # fig, ax = plt.subplots()
+        # ax.plot(bhv['angle_sin'].values[train_index], label = 'train')
+        # ax.plot(bhv['angle_sin'].values[test_index], label = 'test')
+        # ax.set_title(f'Head angle sine values for train and test indices, fold number: {count}')
+        # plt.legend()
+        # plt.show()
+        # #plot just the test data
+        # fig, ax = plt.subplots()
+        # ax.plot(bhv['angle_cos'].values[test_index], label = 'test')
+        # ax.set_title(f'Head angle cosine values for test indices, fold number: {count}')
+        # plt.legend()
+        # plt.show()
+        # fig, ax = plt.subplots()
+        # ax.plot(bhv['angle_sin'].values[test_index], label = 'test')
+        # ax.set_title(f'Head angle sine values for test indices, fold number: {count}')
+        # plt.legend()
+        # plt.show()
 
         #plot how the indexes are distributed
         fig, ax = plt.subplots()
@@ -444,6 +444,7 @@ def train_and_test_on_umap_randcv(
         #run a t-test to see if the distributions are different
 
         t_stat, p_val = ttest_ind(train_index, test_index)
+        p_val_rounded = round(p_val, 3)
         print(f'The t-statistic is {t_stat} and the p-value is {p_val}')
         #effect size calculation
         from numpy import mean, std, var
@@ -453,9 +454,42 @@ def train_and_test_on_umap_randcv(
         # calculate cohen's d
         d = cohend(train_index, test_index)
 
-        ax.set_title(f'Distribution of train and test indices, fold number: {count}, p-value: {p_val}, effect size: {d}')
+        ax.set_title(f'Distribution of train and test indices, fold number: {count}, \n'
+                     f' p-value: {p_val_rounded}, effect size: {d}')
         plt.legend()
         plt.show()
+
+        #plot the distribution of the actual test and the train data
+
+        #calculate the t statistic and p value for the head angle cosine values
+        t_stat, p_val = ttest_ind(bhv['angle_cos'].values[train_index], bhv['angle_cos'].values[test_index])
+        p_val_rounded = round(p_val, 3)
+
+        fig, ax = plt.subplots()
+        sns.distplot(bhv['angle_cos'].values[train_index], label = 'train', ax = ax)
+        sns.distplot(bhv['angle_cos'].values[test_index], label = 'test', ax = ax)
+        ax.set_title(f'Distribution of head angle cosine values for train and test indices, fold number: {count}, \n p-value: {p_val_rounded}')
+        plt.legend()
+        plt.show()
+
+        t_stat, p_val = ttest_ind(bhv['angle_sin'].values[train_index], bhv['angle_sin'].values[test_index])
+        p_val_rounded_sin = round(p_val, 3)
+
+        fig, ax = plt.subplots(
+        )
+        sns.distplot(bhv['angle_sin'].values[train_index], label = 'train', ax = ax)
+        sns.distplot(bhv['angle_sin'].values[test_index], label = 'test', ax = ax)
+        ax.set_title(f'Distribution of head angle sine values for train and test indices, fold number: {count}, \n p-value: {p_val_rounded_sin}')
+        plt.legend()
+        plt.show()
+
+
+        #effect size calculation
+        d = cohend(bhv['angle_cos'].values[train_index], bhv['angle_cos'].values[test_index])
+        print(f'The t-statistic is {t_stat} and the p-value is {p_val}')
+        print(f'The effect size is {d}')
+
+
 
 
         count += 1
