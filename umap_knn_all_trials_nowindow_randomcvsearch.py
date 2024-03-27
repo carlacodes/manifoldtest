@@ -345,6 +345,9 @@ def train_and_test_on_umap_randcv(
         'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     }
 
+    param_grid ={'estimator__n_neighbors': [70], 'reducer__n_components': [9], 'estimator__metric': ['minkowski'], 'reducer__n_neighbors': [30], 'reducer__min_dist': [0.3]}
+
+
 
     y = bhv[regress].values
 
@@ -355,7 +358,7 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds_v2(n_timesteps, num_folds=5, num_windows=12)
     # Example, you can use your custom folds here
 
-    for _ in range(100):  # 100 iterations for RandomizedSearchCV
+    for _ in range(1):  # 100 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
 
         # Initialize the regressor with current parameters
@@ -393,7 +396,7 @@ def train_and_test_on_umap_randcv(
 
 def load_previous_results(data_dir):
     # previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
-    previous_best_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_jake_fold_sinandcos_2024-03-23_22-47-44.npy', allow_pickle=True)
+    previous_best_params = np.load(f'{data_dir}/params_all_trials_randomizedsearchcv_jake_fold_sinandcos_2024-03-26_18-07-40.npy', allow_pickle=True)
     # previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
     print(previous_best_params)
     return previous_best_params
