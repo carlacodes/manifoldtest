@@ -143,6 +143,10 @@ def create_folds(n_timesteps, num_folds=10, num_windows=200):
         ax.set_title(f'Distribution of train and test indices, fold number: {i} and ratio of train to test indices is {ratio}')
         ax.legend()
         plt.show()
+
+
+
+
     #as a sanity check, plot the distribution of the test indices
 
 
@@ -277,9 +281,23 @@ def train_and_test_on_reduced(
         n_timesteps = spks.shape[0]
         folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
         #sanity check there is no overlap between the train and test indices
+        count = 0
         for train_index, test_index in folds:
             if len(set(train_index).intersection(set(test_index))) > 0:
                 print('There is overlap between the train and test indices')
+            #plot the head angle for the train and test indices
+            fig, ax = plt.subplots()
+            ax.plot(bhv['angle_cos'].values[train_index])
+            ax.plot(bhv['angle_cos'].values[test_index])
+            ax.set_title(f'Head angle cosine values for train and test indices, fold number: {count}')
+            plt.show()
+            fig, ax = plt.subplots()
+            ax.plot(bhv['angle_sin'].values[train_index])
+            ax.plot(bhv['angle_sin'].values[test_index])
+            ax.set_title(f'Head angle sine values for train and test indices, fold number: {count}')
+            plt.show()
+            count += 1
+
         for train_index, test_index in folds:
             # Split the data into training and testing sets
             X_train, X_test = spks[train_index], spks[test_index]
@@ -374,6 +392,22 @@ def train_and_test_on_umap_randcv(
     n_timesteps = spks.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
     # Example, you can use your custom folds here
+    count = 0
+    for train_index, test_index in custom_folds:
+        if len(set(train_index).intersection(set(test_index))) > 0:
+            print('There is overlap between the train and test indices')
+        # plot the head angle for the train and test indices
+        fig, ax = plt.subplots()
+        ax.plot(bhv['angle_cos'].values[train_index])
+        ax.plot(bhv['angle_cos'].values[test_index])
+        ax.set_title(f'Head angle cosine values for train and test indices, fold number: {count}')
+        plt.show()
+        fig, ax = plt.subplots()
+        ax.plot(bhv['angle_sin'].values[train_index])
+        ax.plot(bhv['angle_sin'].values[test_index])
+        ax.set_title(f'Head angle sine values for train and test indices, fold number: {count}')
+        plt.show()
+        count += 1
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
