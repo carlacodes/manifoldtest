@@ -390,7 +390,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=2000)
     # Example, you can use your custom folds here
     count = 0
     for train_index, test_index in custom_folds:
