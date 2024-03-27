@@ -398,15 +398,30 @@ def train_and_test_on_umap_randcv(
             print('There is overlap between the train and test indices')
         # plot the head angle for the train and test indices
         fig, ax = plt.subplots()
-        ax.plot(bhv['angle_cos'].values[train_index])
-        ax.plot(bhv['angle_cos'].values[test_index])
+        ax.plot(bhv['angle_cos'].values[train_index], label = 'train')
+        ax.plot(bhv['angle_cos'].values[test_index], label = 'test')
         ax.set_title(f'Head angle cosine values for train and test indices, fold number: {count}')
+        plt.legend()
         plt.show()
         fig, ax = plt.subplots()
-        ax.plot(bhv['angle_sin'].values[train_index])
-        ax.plot(bhv['angle_sin'].values[test_index])
+        ax.plot(bhv['angle_sin'].values[train_index], label = 'train')
+        ax.plot(bhv['angle_sin'].values[test_index], label = 'test')
         ax.set_title(f'Head angle sine values for train and test indices, fold number: {count}')
+        plt.legend()
         plt.show()
+        #plot just the test data
+        fig, ax = plt.subplots()
+        ax.plot(bhv['angle_cos'].values[test_index], label = 'test')
+        ax.set_title(f'Head angle cosine values for test indices, fold number: {count}')
+        plt.legend()
+        plt.show()
+        fig, ax = plt.subplots()
+        ax.plot(bhv['angle_sin'].values[test_index], label = 'test')
+        ax.set_title(f'Head angle sine values for test indices, fold number: {count}')
+        plt.legend()
+        plt.show()
+
+
         count += 1
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
