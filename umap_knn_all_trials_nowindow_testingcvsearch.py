@@ -361,8 +361,10 @@ def train_and_test_on_umap_randcv(
     #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     # }
 
-    param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'],
-     'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
+    param_grid = {'estimator__n_neighbors': [70], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
+     'reducer__n_neighbors': [60], 'reducer__min_dist': [0.01]}
+    # {'estimator__n_neighbors': 70, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
+    #  'reducer__n_neighbors': 60, 'reducer__min_dist': 0.01}
 
     y = bhv[regress].values
 
@@ -415,7 +417,7 @@ def train_and_test_on_umap_randcv(
 
 def load_previous_results(data_dir):
     # previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
-    previous_best_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_jake_fold_sinandcos_2024-03-23_22-47-44.npy', allow_pickle=True)
+    previous_best_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_200windows_jake_fold_sinandcos_2024-03-26_16-09-16.npy', allow_pickle=True)
     # previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
     print(previous_best_params)
     return previous_best_params
