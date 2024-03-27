@@ -21,6 +21,10 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.neighbors import KNeighborsRegressor
 from umap import UMAP
+import seaborn as sns
+from scipy.stats import ttest_ind
+from numpy import mean, std, var
+
 
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
@@ -137,12 +141,12 @@ def create_folds(n_timesteps, num_folds=10, num_windows=200):
         #check the ratio of train_ind to test_ind
         ratio = len(train_ind) / len(test_ind)
 
-        fig, ax = plt.subplots()
-        ax.hist(train_ind, label='train')
-        ax.hist(test_ind, label='test')
-        ax.set_title(f'Distribution of train and test indices, fold number: {i} and ratio of train to test indices is {ratio}')
-        ax.legend()
-        plt.show()
+        # fig, ax = plt.subplots()
+        # ax.hist(train_ind, label='train')
+        # ax.hist(test_ind, label='test')
+        # ax.set_title(f'Distribution of train and test indices, fold number: {i} and ratio of train to test indices is {ratio}')
+        # ax.legend()
+        # plt.show()
 
 
 
@@ -362,6 +366,18 @@ def train_and_test_on_reduced(
     return best_params, largest_diff, results_cv_list, permutation_results_list
 
 
+def cohend(d1, d2):
+    # calculate the size of samples
+    n1, n2 = len(d1), len(d2)
+    # calculate the variance of the samples
+    s1, s2 = var(d1, ddof=1), var(d2, ddof=1)
+    # calculate the pooled standard deviation
+    s = sqrt(((n1 - 1) * s1 + (n2 - 1) * s2) / (n1 + n2 - 2))
+    # calculate the means of the samples
+    u1, u2 = mean(d1), mean(d2)
+    # calculate the effect size
+    return (u1 - u2) / s
+
 def train_and_test_on_umap_randcv(
         spks,
         bhv,
@@ -390,7 +406,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=2000)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=150)
     # Example, you can use your custom folds here
     count = 0
     for train_index, test_index in custom_folds:
@@ -418,6 +434,26 @@ def train_and_test_on_umap_randcv(
         fig, ax = plt.subplots()
         ax.plot(bhv['angle_sin'].values[test_index], label = 'test')
         ax.set_title(f'Head angle sine values for test indices, fold number: {count}')
+        plt.legend()
+        plt.show()
+
+        #plot how the indexes are distributed
+        fig, ax = plt.subplots()
+        sns.distplot(train_index, label = 'train', ax = ax)
+        sns.distplot(test_index, label = 'test', ax = ax)
+        #run a t-test to see if the distributions are different
+
+        t_stat, p_val = ttest_ind(train_index, test_index)
+        print(f'The t-statistic is {t_stat} and the p-value is {p_val}')
+        #effect size calculation
+        from numpy import mean, std, var
+        from math import sqrt
+        # function to calculate Cohen's d for independent samples
+
+        # calculate cohen's d
+        d = cohend(train_index, test_index)
+
+        ax.set_title(f'Distribution of train and test indices, fold number: {count}, p-value: {p_val}, effect size: {d}')
         plt.legend()
         plt.show()
 
