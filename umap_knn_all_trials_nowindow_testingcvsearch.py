@@ -127,35 +127,40 @@ def create_folds(n_timesteps, num_folds=10, num_windows=200):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
     window_start_ind = np.arange(0, n_timesteps, window_size)
-
     folds = []
-
     for i in range(num_folds):
         test_windows = np.arange(i, n_windows_total, num_folds)
         test_ind = []
         for j in test_windows:
             test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
         train_ind = list(set(range(n_timesteps)) - set(test_ind))
+        #adjust the train indices so it doesnt oversample from the end of the distribution
+        train_ind = train_ind[0:len(test_ind)]
+        #add the leftover indices to the test indices
+        test_ind.extend(list(set(range(n_timesteps)) - set(train_ind)))
 
         folds.append((train_ind, test_ind))
         #check the ratio of train_ind to test_ind
         ratio = len(train_ind) / len(test_ind)
-
-        # fig, ax = plt.subplots()
-        # ax.hist(train_ind, label='train')
-        # ax.hist(test_ind, label='test')
-        # ax.set_title(f'Distribution of train and test indices, fold number: {i} and ratio of train to test indices is {ratio}')
-        # ax.legend()
-        # plt.show()
-
-
-
-
     #as a sanity check, plot the distribution of the test indices
+    return folds
+def create_sliding_window_folds(n_timesteps, num_folds=10):
+    window_size = n_timesteps // num_folds
+    folds = []
 
+    for i in range(num_folds):
+        start = i * window_size
+        end = start + window_size
+
+        if end > n_timesteps:
+            break
+
+        train_ind = list(range(start))
+        test_ind = list(range(start, end))
+
+        folds.append((train_ind, test_ind))
 
     return folds
-
 
 
 def process_window_within_split(
@@ -283,7 +288,8 @@ def train_and_test_on_reduced(
 
         # Perform 5-fold cross-validation
         n_timesteps = spks.shape[0]
-        folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
+        # folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
+        folds = create_sliding_window_folds(n_timesteps, num_folds=10)
         #sanity check there is no overlap between the train and test indices
         count = 0
         for train_index, test_index in folds:
@@ -407,6 +413,7 @@ def train_and_test_on_umap_randcv(
     # Create your custom folds
     n_timesteps = spks.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=150)
+    custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
     count = 0
     for train_index, test_index in custom_folds:
