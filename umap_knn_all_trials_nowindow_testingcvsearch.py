@@ -85,7 +85,45 @@ def process_data_within_split(
 
     return results
 
-def create_folds_v2(n_timesteps, num_folds=5, num_windows=3):
+
+def create_folds(n_timesteps, num_folds=5, num_windows=10):
+    n_windows_total = num_folds * num_windows
+    window_size = n_timesteps / n_windows_total
+
+    # window_start_ind = np.arange(0, n_windows_total) * window_size
+    window_start_ind = np.round(np.arange(0, n_windows_total) * window_size)
+
+    folds = []
+
+    for i in range(num_folds):
+        test_windows = np.arange(i, n_windows_total, num_folds)
+        test_ind = []
+        for j in test_windows:
+            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+        train_ind = list(set(range(n_timesteps)) - set(test_ind))
+
+        folds.append((train_ind, test_ind))
+
+    ############ PLOT FOLDS ##################
+
+    n_folds = len(folds)
+    # create figure with 10 subplots arranged in 2 rows
+    fig = plt.figure(figsize=(20, 10), dpi=100)
+
+    for f in range(2):
+        ax = fig.add_subplot(2, 1, f + 1)
+        train_index = folds[f][0]
+        test_index = folds[f][1]
+
+        # plot train index as lines from 0 to 1
+        ax.vlines(train_index, 0, 1, colors='b', linewidth=0.1)
+        ax.vlines(test_index, 1, 2, colors='r', linewidth=0.1)
+
+        ax.set_title(f'Fold {f + 1}')
+        pass
+
+    return folds
+def create_folds_do_not_use(n_timesteps, num_folds=5, num_windows=3):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
     window_start_ind = np.arange(0, n_timesteps, window_size)
@@ -123,7 +161,7 @@ def create_folds_v2(n_timesteps, num_folds=5, num_windows=3):
     plt.show()
 
     return folds
-def create_folds(n_timesteps, num_folds=10, num_windows=200):
+def create_folds_old(n_timesteps, num_folds=10, num_windows=200):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps // n_windows_total
     window_start_ind = np.arange(0, n_timesteps, window_size)
@@ -144,6 +182,7 @@ def create_folds(n_timesteps, num_folds=10, num_windows=200):
         ratio = len(train_ind) / len(test_ind)
     #as a sanity check, plot the distribution of the test indices
     return folds
+
 def create_sliding_window_folds(n_timesteps, num_folds=10):
     window_size = n_timesteps // num_folds
     folds = []
@@ -413,7 +452,7 @@ def train_and_test_on_umap_randcv(
     # Create your custom folds
     n_timesteps = spks.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=150)
-    custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
+    # custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
     count = 0
     for train_index, test_index in custom_folds:
