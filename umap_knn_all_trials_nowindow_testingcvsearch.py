@@ -100,7 +100,8 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
         test_windows = np.arange(i, n_windows_total, num_folds)
         test_ind = []
         for j in test_windows:
-            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
+            test_ind.extend(np.arange(window_start_ind[j], (window_start_ind[j] + window_size)-1))
+
         train_ind = list(set(range(n_timesteps)) - set(test_ind))
         #convert test_ind to int
         test_ind = [int(i) for i in test_ind]
@@ -323,7 +324,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=150)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=180)
 
     # custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
