@@ -107,6 +107,9 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
         test_ind = [int(i) for i in test_ind]
 
         folds.append((train_ind, test_ind))
+        #print the ratio
+        ratio = len(train_ind) / len(test_ind)
+        print(f'Ratio of train to test indices is {ratio}')
 
     ############ PLOT FOLDS ##################
 
