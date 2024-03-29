@@ -524,6 +524,7 @@ def main():
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
     filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
+    filename_score = f'results_all_trials_randomizedsearchcv_{now}.npy'
 
 
     best_params, mean_score = train_and_test_on_umap_randcv(
@@ -538,6 +539,7 @@ def main():
     y = label_df[regress].values
 
     np.save(data_dir_path / filename, best_params)
+    np.save(data_dir_path / filename_score, mean_score)
 
 
 if __name__ == '__main__':
