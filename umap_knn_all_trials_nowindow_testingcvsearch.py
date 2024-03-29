@@ -412,9 +412,6 @@ def train_and_test_on_umap_randcv(
         print(f'The t-statistic is {t_stat} and the p-value is {p_val}')
         print(f'The effect size is {d}')
 
-
-
-
         count += 1
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
