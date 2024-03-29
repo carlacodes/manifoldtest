@@ -333,7 +333,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=600)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
 
     # custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
