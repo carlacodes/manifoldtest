@@ -318,8 +318,12 @@ def train_and_test_on_umap_randcv(
 
     # param_grid = {'estimator__n_neighbors': [70], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
     #  'reducer__n_neighbors': [60], 'reducer__min_dist': [0.01]}
-    param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
-     'reducer__n_neighbors': [40], 'reducer__min_dist': [0.01]}
+    # param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
+    #  'reducer__n_neighbors': [40], 'reducer__min_dist': [0.01]}
+    param_grid ={'estimator__n_neighbors': [2], 'reducer__n_components': [3], 'estimator__metric': ['cosine'],
+           'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
+    # param_grid = array({'estimator__n_neighbors': 2, 'reducer__n_components': 3, 'estimator__metric': 'cosine', 'reducer__n_neighbors': 70, 'reducer__min_dist': 0.3},
+    #   dtype=object)
     # array({'estimator__n_neighbors': 50, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
     #        'reducer__n_neighbors': 40, 'reducer__min_dist': 0.01},
     #       dtype=object)
@@ -456,7 +460,8 @@ def train_and_test_on_umap_randcv(
 
     # Select the best parameters based on mean score
     best_params, _ = max(random_search_results, key=lambda x: x[1])
-
+    #get the best mean score which is the second entry in the tuple
+    _, mean_score = max(random_search_results, key=lambda x: x[1])
     return best_params, mean_score
 
 
@@ -481,8 +486,10 @@ def main():
     prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
+    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
+    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
 
 
     spike_data_trial = spike_data
