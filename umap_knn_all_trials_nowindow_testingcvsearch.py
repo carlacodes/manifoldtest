@@ -316,8 +316,11 @@ def train_and_test_on_umap_randcv(
     #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     # }
 
-    param_grid = {'estimator__n_neighbors': [70], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
-     'reducer__n_neighbors': [60], 'reducer__min_dist': [0.01]}
+    # param_grid = {'estimator__n_neighbors': [70], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
+    #  'reducer__n_neighbors': [60], 'reducer__min_dist': [0.01]}
+    param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'],
+     'reducer__n_neighbors': [20], 'reducer__min_dist': [0.1]}
+
     # {'estimator__n_neighbors': 70, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
     #  'reducer__n_neighbors': 60, 'reducer__min_dist': 0.01}
 
@@ -456,10 +459,18 @@ def train_and_test_on_umap_randcv(
 
 def load_previous_results(data_dir):
     # previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
-    previous_best_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_200windows_jake_fold_sinandcos_2024-03-26_16-09-16.npy', allow_pickle=True)
+    previous_best_params_250binwidth = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_200windows_jake_fold_sinandcos_2024-03-28_12-49-45.npy', allow_pickle=True)
     # previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
-    print(previous_best_params)
-    return previous_best_params
+    print(previous_best_params_250binwidth)
+
+    params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
+    mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
+
+    params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-28_15-09-53.npy', allow_pickle=True)
+    mean_score_50width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-28_15-09-53.npy',  allow_pickle=True)
+
+
+    return previous_best_params_250binwidth
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
