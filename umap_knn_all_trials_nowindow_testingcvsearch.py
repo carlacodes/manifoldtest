@@ -320,8 +320,14 @@ def train_and_test_on_umap_randcv(
     #  'reducer__n_neighbors': [60], 'reducer__min_dist': [0.01]}
     # param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
     #  'reducer__n_neighbors': [40], 'reducer__min_dist': [0.01]}
-    param_grid ={'estimator__n_neighbors': [2], 'reducer__n_components': [3], 'estimator__metric': ['cosine'],
-           'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
+    # param_grid ={'estimator__n_neighbors': [60], 'reducer__n_components': [3], 'estimator__metric': ['euclidean'],
+    #        'reducer__n_neighbors': [30], 'reducer__min_dist': [0.3]}
+    param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'],
+           'reducer__n_neighbors': [20], 'reducer__min_dist': [0.1]}
+
+    # array({'estimator__n_neighbors': 60, 'reducer__n_components': 3, 'estimator__metric': 'euclidean',
+    #        'reducer__n_neighbors': 30, 'reducer__min_dist': 0.3},
+    #       dtype=object)
     # param_grid = array({'estimator__n_neighbors': 2, 'reducer__n_components': 3, 'estimator__metric': 'cosine', 'reducer__n_neighbors': 70, 'reducer__min_dist': 0.3},
     #   dtype=object)
     # array({'estimator__n_neighbors': 50, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
@@ -337,7 +343,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
 
     # custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
@@ -486,10 +492,10 @@ def main():
     prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
-    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
+    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
+    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_50.npy')
+    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_50.npy')
 
 
     spike_data_trial = spike_data
