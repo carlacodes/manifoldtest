@@ -312,8 +312,8 @@ def main():
     #z-score the x and y labels based on their mean and std
     #concatenate the x and y labels
     xy_labels = np.concatenate(label_df[['x', 'y']].values, axis=0)
-    label_df['x_zscore'] = (label_df['x'] - xy_labels.mean()) / xy_labels['x'].std()
-    label_df['y_zscore'] = (label_df['y'] - xy_labels['y'].mean()) / xy_labels['y'].std()
+    label_df['x_zscore'] = (label_df['x'] - xy_labels.mean()) / xy_labels.std()
+    label_df['y_zscore'] = (label_df['y'] - xy_labels.mean()) / xy_labels.std()
 
 
     regressor = KNeighborsRegressor
