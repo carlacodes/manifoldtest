@@ -320,16 +320,17 @@ def train_and_test_on_umap_randcv(
     #  'reducer__n_neighbors': [60], 'reducer__min_dist': [0.01]}
     # param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
     #  'reducer__n_neighbors': [40], 'reducer__min_dist': [0.01]}
-    # param_grid ={'estimator__n_neighbors': [60], 'reducer__n_components': [3], 'estimator__metric': ['euclidean'],
-    #        'reducer__n_neighbors': [30], 'reducer__min_dist': [0.3]}
-    param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'],
-           'reducer__n_neighbors': [20], 'reducer__min_dist': [0.1]}
+    param_grid ={'estimator__n_neighbors': [60], 'reducer__n_components': [3], 'estimator__metric': ['euclidean'],
+           'reducer__n_neighbors': [30], 'reducer__min_dist': [0.3]}
+
+    # param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'],
+    #        'reducer__n_neighbors': [20], 'reducer__min_dist': [0.1]}
+
 
     # array({'estimator__n_neighbors': 60, 'reducer__n_components': 3, 'estimator__metric': 'euclidean',
     #        'reducer__n_neighbors': 30, 'reducer__min_dist': 0.3},
     #       dtype=object)
-    # param_grid = array({'estimator__n_neighbors': 2, 'reducer__n_components': 3, 'estimator__metric': 'cosine', 'reducer__n_neighbors': 70, 'reducer__min_dist': 0.3},
-    #   dtype=object)
+    param_grid = {'estimator__n_neighbors': [2], 'reducer__n_components': [3], 'estimator__metric': ['cosine'], 'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
     # array({'estimator__n_neighbors': 50, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
     #        'reducer__n_neighbors': 40, 'reducer__min_dist': 0.01},
     #       dtype=object)
@@ -478,11 +479,16 @@ def load_previous_results(data_dir):
     print(previous_best_params_250binwidth)
     previous_best_params_250bin_600windows = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_600windows_jake_fold_sinandcos_2024-03-28_12-49-16.npy', allow_pickle=True)
 
+    mean_score_1000_window_250bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-03-30.npy')
+    params_1000_window_250bin = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-03-30_11-03-16.npy', allow_pickle=True)
+
+    mean_score_250window_25bin = np.load( )
     params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
     mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
 
-    params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-28_15-09-53.npy', allow_pickle=True)
-    mean_score_50width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-28_15-09-53.npy',  allow_pickle=True)
+    params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy', allow_pickle=True)
+    mean_score_50width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy',  allow_pickle=True)
+
 
 
     return previous_best_params_250bin_600windows
@@ -492,10 +498,10 @@ def main():
     prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_50.npy')
-    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_50.npy')
+    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
+    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
+    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
 
 
     spike_data_trial = spike_data
