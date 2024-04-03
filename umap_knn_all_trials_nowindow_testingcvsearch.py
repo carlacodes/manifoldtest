@@ -346,7 +346,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
 
     # custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
@@ -469,14 +469,14 @@ def train_and_test_on_umap_randcv(
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred[:, 0], label='y_pred')
-            plt.plot(y_test[:, 0], label='y_test')
+            plt.plot(y_pred[:, 0], label='y_pred', alpha = 0.5)
+            plt.plot(y_test[:, 0], label='y_test', alpha = 0.5)
             ax.set_title('y_pred (sin theta) for fold: ' + str(count))
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred[:, 1], label='y_pred')
-            plt.plot(y_test[:, 1], label='y_test')
+            plt.plot(y_pred[:, 1], label='y_pred', alpha = 0.5)
+            plt.plot(y_test[:, 1], label='y_test', alpha = 0.5)
             ax.set_title('y_pred (cos theta) for fold: ' + str(count))
             plt.show()
             count += 1
