@@ -330,7 +330,9 @@ def train_and_test_on_umap_randcv(
     # array({'estimator__n_neighbors': 60, 'reducer__n_components': 3, 'estimator__metric': 'euclidean',
     #        'reducer__n_neighbors': 30, 'reducer__min_dist': 0.3},
     #       dtype=object)
-    param_grid = {'estimator__n_neighbors': [2], 'reducer__n_components': [3], 'estimator__metric': ['cosine'], 'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
+    # param_grid = {'estimator__n_neighbors': [2], 'reducer__n_components': [3], 'estimator__metric': ['cosine'], 'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
+
+    param_grid ={'estimator__n_neighbors': [70], 'reducer__n_components': [3], 'estimator__metric': ['euclidean'], 'reducer__n_neighbors': [70], 'reducer__min_dist': [0.001]}
     # array({'estimator__n_neighbors': 50, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
     #        'reducer__n_neighbors': 40, 'reducer__min_dist': 0.01},
     #       dtype=object)
@@ -442,6 +444,7 @@ def train_and_test_on_umap_randcv(
 
         scores = []
         scores_train = []
+        count = 0
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -458,6 +461,25 @@ def train_and_test_on_umap_randcv(
             score_train = current_regressor.score(X_train_reduced, y_train)
             scores.append(score)
             scores_train.append(score_train)
+
+            y_pred = current_regressor.predict(X_test_reduced)
+            fig, ax = plt.subplots(1, 1)
+            ax.scatter(y_test, y_pred)
+            ax.set_title('y_test vs y_pred for fold: ' + str(count))
+            plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(y_pred[:, 0], label='y_pred')
+            plt.plot(y_test[:, 0], label='y_test')
+            ax.set_title('y_pred (sin theta) for fold: ' + str(count))
+            plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(y_pred[:, 1], label='y_pred')
+            plt.plot(y_test[:, 1], label='y_test')
+            ax.set_title('y_pred (cos theta) for fold: ' + str(count))
+            plt.show()
+            count += 1
 
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
@@ -502,10 +524,10 @@ def main():
     prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
-    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
+    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
+    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
+    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
 
 
     spike_data_trial = spike_data

@@ -247,6 +247,7 @@ def train_and_test_on_umap_randcv(
         scores = []
         score_train = []
         scores_train = []
+        count = 0
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -263,7 +264,25 @@ def train_and_test_on_umap_randcv(
             scores.append(score)
             score_train = current_regressor.score(X_train_reduced, y_train)
             scores_train.append(score_train)
+            #get y_pred
+            y_pred = current_regressor.predict(X_test_reduced)
+            fig, ax = plt.subplots(1, 1)
+            ax.scatter(y_test, y_pred)
+            ax.set_title('y_test vs y_pred for fold: ' + str(count))
+            plt.show()
 
+            fig, ax = plt.subplots(1,1)
+            plt.plot(y_pred[:, 0], label='y_pred')
+            plt.plot(y_test[:, 0], label='y_test')
+            ax.set_title('y_pred (x) for fold: ' + str(count))
+            plt.show()
+
+            fig, ax = plt.subplots(1,1)
+            plt.plot(y_pred[:, 1], label='y_pred')
+            plt.plot(y_test[:, 1], label='y_test')
+            ax.set_title('y_pred (y) for fold: ' + str(count))
+            plt.show()
+            count += 1
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
         mean_score_train = np.mean(scores_train)
@@ -277,6 +296,8 @@ def train_and_test_on_umap_randcv(
     best_params_train, _ = max(random_search_results_train, key=lambda x: x[1])
     _, mean_score_max = max(random_search_results, key=lambda x: x[1])
     _, mean_score_max_train = max(random_search_results_train, key=lambda x: x[1])
+
+    #plot the y_test against the y_pred
 
 
 
@@ -301,6 +322,7 @@ def main():
         spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
     # THEN DO THE Z SCORE
     X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+
 
     if np.isnan(X_for_umap).any():
         print('There are nans in the data')
