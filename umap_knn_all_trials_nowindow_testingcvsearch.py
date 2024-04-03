@@ -472,12 +472,14 @@ def train_and_test_on_umap_randcv(
             plt.plot(y_pred[:, 0], label='y_pred', alpha = 0.5)
             plt.plot(y_test[:, 0], label='y_test', alpha = 0.5)
             ax.set_title('y_pred (sin theta) for fold: ' + str(count))
+            ax.set_xlabel('time in SAMPLES')
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 1], label='y_pred', alpha = 0.5)
             plt.plot(y_test[:, 1], label='y_test', alpha = 0.5)
             ax.set_title('y_pred (cos theta) for fold: ' + str(count))
+            ax.set_xlabel('time in SAMPLES')
             plt.show()
             count += 1
 
