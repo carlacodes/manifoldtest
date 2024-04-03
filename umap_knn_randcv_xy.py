@@ -222,17 +222,20 @@ def train_and_test_on_umap_randcv(
         'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
         'reducer__random_state': [42]
     }
+    param_grid = {'estimator__n_neighbors': [10], 'reducer__n_components': [9], 'estimator__metric': 'euclidean',
+           'reducer__n_neighbors': [60], 'reducer__min_dist': [0.001], 'reducer__random_state': [42]}
 
     y = bhv[regress].values
 
     random_search_results = []
+    random_search_results_train = []
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
 
-    for _ in range(200):  # 100 iterations for RandomizedSearchCV
+    for _ in range(1):  # 100 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
 
         # Initialize the regressor with current parameters
@@ -242,6 +245,8 @@ def train_and_test_on_umap_randcv(
         current_reducer = reducer(**reducer_kwargs)
 
         scores = []
+        score_train = []
+        scores_train = []
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -256,15 +261,23 @@ def train_and_test_on_umap_randcv(
             # Evaluate the regressor
             score = current_regressor.score(X_test_reduced, y_test)
             scores.append(score)
+            score_train = current_regressor.score(X_train_reduced, y_train)
+            scores_train.append(score_train)
 
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
+        mean_score_train = np.mean(scores_train)
 
         random_search_results.append((params, mean_score))
+        random_search_results_train.append((params, mean_score_train))
+
 
     # Select the best parameters based on mean score
     best_params, _ = max(random_search_results, key=lambda x: x[1])
+    best_params_train, _ = max(random_search_results_train, key=lambda x: x[1])
     _, mean_score_max = max(random_search_results, key=lambda x: x[1])
+    _, mean_score_max_train = max(random_search_results_train, key=lambda x: x[1])
+
 
 
     return best_params, mean_score_max
