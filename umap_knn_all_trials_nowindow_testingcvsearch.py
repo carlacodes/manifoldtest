@@ -435,12 +435,16 @@ def train_and_test_on_umap_randcv(
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
-
+        regressor_kwargs.update(
+            {k.replace('regressor__', ''): v for k, v in params.items() if k.startswith('regressor__')})
+        reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
         # Initialize the regressor with current parameters
         current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
 
         # Initialize the reducer with current parameters
         current_reducer = reducer(**reducer_kwargs)
+
+
 
         scores = []
         scores_train = []
@@ -480,6 +484,7 @@ def train_and_test_on_umap_randcv(
             plt.plot(y_test[:, 1], label='y_test', alpha = 0.5)
             ax.set_title('y_pred (cos theta) for fold: ' + str(count))
             ax.set_xlabel('time in SAMPLES')
+            plt.legend()
             plt.show()
             count += 1
 

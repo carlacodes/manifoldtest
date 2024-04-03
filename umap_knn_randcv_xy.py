@@ -222,8 +222,8 @@ def train_and_test_on_umap_randcv(
         'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
         'reducer__random_state': [42]
     }
-    param_grid = {'estimator__n_neighbors': [10], 'reducer__n_components': [9], 'estimator__metric': ['euclidean'],
-           'reducer__n_neighbors': [60], 'reducer__min_dist': [0.001], 'reducer__random_state': [42]}
+    # param_grid = {'estimator__n_neighbors': [10], 'reducer__n_components': [9], 'estimator__metric': ['euclidean'],
+    #        'reducer__n_neighbors': [60], 'reducer__min_dist': [0.001], 'reducer__random_state': [42]}
 
     y = bhv[regress].values
 
