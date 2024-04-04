@@ -419,15 +419,17 @@ def train_and_test_on_umap_randcv(
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
         # Initialize the regressor with current parameters
         current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
-
+        current_regressor_shuffled = MultiOutputRegressor(regressor(**regressor_kwargs))
         # Initialize the reducer with current parameters
         current_reducer = reducer(**reducer_kwargs)
 
-
+        current_reducer_shuffled = copy.deepcopy(current_reducer)
 
         scores = []
         scores_train = []
         count = 0
+        scores_shuffled = []
+        scores_train_shuffled = []
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -436,13 +438,31 @@ def train_and_test_on_umap_randcv(
             X_train_reduced = current_reducer.fit_transform(X_train)
             X_test_reduced = current_reducer.transform(X_test)
 
+            X_train_reduced_shuffled = X_train_reduced.copy()
+            np.random.shuffle(X_train_reduced_shuffled)
+
+            X_test_reduced_shuffled = X_test_reduced.copy()
+            np.random.shuffle(X_test_reduced_shuffled)
+
+
+
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
+            current_regressor_shuffled.fit(X_train_reduced_shuffled, y_train)
+
 
             # Evaluate the regressor: using the default for regressors which is r2
             score = current_regressor.score(X_test_reduced, y_test)
+            score_shuffled = current_regressor_shuffled.score(X_test_reduced_shuffled, y_test)
+
             score_train = current_regressor.score(X_train_reduced, y_train)
+            score_train_shuffled = current_regressor_shuffled.score(X_train_reduced_shuffled, y_train)
+
+
             scores.append(score)
+            scores_shuffled.append(score_shuffled)
+
+            scores_train_shuffled.append(score_train_shuffled)
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
@@ -469,6 +489,35 @@ def train_and_test_on_umap_randcv(
             plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
             plt.show()
             count += 1
+
+        #now do the same for the SHUFFLED embeddings
+        scores_shuffled = []
+        scores_train_shuffled = []
+        count = 0
+        for train_index, test_index in custom_folds:
+            X_train, X_test = spks[train_index], spks[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            # Apply dimensionality reduction
+            X_train_reduced = current_reducer.fit_transform(X_train)
+            X_
+            X_test_reduced = current_reducer.transform(X_test)
+            # Fit the regressor
+            current_regressor.fit(X_train_reduced, y_train)
+
+            # Evaluate the regressor: using the default for regressors which is r2
+            score = current_regressor.score(X_test_reduced, y_test)
+            score_train = current_regressor.score(X_train_reduced, y_train)
+            scores_shuffled.append(score)
+            scores_train_shuffled.append(score_train)
+
+            y_pred_shuffled = current_regressor.predict(X_test_reduced)
+            fig, ax = plt.subplots(1, 1)
+            ax.scatter(y_test, y_pred)
+            ax.set_title('y_test vs y_pred for fold: ' + str(count))
+            plt.show()
+
+
 
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
