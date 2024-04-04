@@ -1,27 +1,17 @@
 #from pathlib import Path
 import copy
 from datetime import datetime
-from tqdm import tqdm
-from joblib import Parallel, delayed
-# from extractlfpandspikedata import load_theta_data
-from helpers.datahandling import DataHandler
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.svm import SVR
-from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
 from scipy.stats import randint
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold, TimeSeriesSplit, permutation_test_score, GridSearchCV, \
-    RandomizedSearchCV, cross_val_score
-from sklearn.svm import SVC
-from sklearn.metrics import balanced_accuracy_score, f1_score
-from sklearn.dummy import DummyClassifier
 from pathlib import Path
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 from sklearn.model_selection import train_test_split
 import umap
+from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
 # mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
@@ -34,6 +24,7 @@ from sklearn.gaussian_process.kernels import WhiteKernel, ConstantKernel, RBF
 import os
 import scipy
 import pickle as pkl
+import matplotlib.pyplot as plt
 #TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
 # 2. change the regressor to GaussianProcessRegressor
 #3. should the umap X_training data be 2d rather than 3d? Also need to z-score the X input data
@@ -42,6 +33,41 @@ import pickle as pkl
 #6. they used the gaussian-filtered (omega = 2-time bins) square root of instantenous firing rates for the isomap decomposition
 #7. bin duration = 512 ms, so about the same as what I have
 #8. target position was smoothed using a gaussian filter
+def process_data_within_split(
+        spks_train,
+        spks_test,
+        y_train,
+        y_test,
+        reducer_pipeline,
+        regressor,
+        regressor_kwargs,
+):
+    base_reg = regressor(**regressor_kwargs)
+    reg = MultiOutputRegressor(base_reg)
+
+    reducer_pipeline.fit(spks_train)
+    spks_train_reduced = reducer_pipeline.transform(spks_train)
+    spks_test_reduced = reducer_pipeline.transform(spks_test)
+
+    reg.fit(spks_train_reduced, y_train)
+
+    y_pred = reg.predict(spks_test_reduced)
+    y_pred_train = reg.predict(spks_train_reduced)
+
+    mse_score_train = mean_squared_error(y_train, y_pred_train)
+    r2_score_train = r2_score(y_train, y_pred_train)
+
+    mse_score = mean_squared_error(y_test, y_pred)
+    r2_score_val = r2_score(y_test, y_pred)
+
+    results = {
+        'mse_score_train': mse_score_train,
+        'r2_score_train': r2_score_train,
+        'mse_score': mse_score,
+        'r2_score': r2_score_val,
+    }
+
+    return results
 
 def create_folds(n_timesteps, num_folds=5, num_windows=4):
     n_windows_total = num_folds * num_windows
@@ -79,15 +105,12 @@ def process_window_within_split(
     window_train_y = y_train[w:w + window_size, :]
 
     #if window_train is less than window_size, then skip
-
+    if window_train.shape[0] < window_size:
+        print(f'Window train shape is {window_train.shape[0]} and window size is {window_size}')
+        return
     # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
     window_test = spks_test[w:w + window_size, :]
     window_test_y = y_test[w:w + window_size, :]
-
-    if window_train.shape[0] < window_size or window_test.shape[0] < window_size:
-        print(f'Window train shape is {window_train.shape[0]} and window size is {window_size}')
-        print(f'Window test shape is {window_test.shape[0]} ')
-        return
     # scaler = StandardScaler()
     # # scaler.fit(window_train)
     # window_train = scaler.transform(window_train)
@@ -198,6 +221,10 @@ def train_and_test_on_reduced(
 
         n_timesteps = spks.shape[0]
         folds = create_folds(n_timesteps, num_folds=5, num_windows=4)
+        #double check there is no data contamination
+        # for train_index, test_index in folds:
+        #     if np.intersect1d(train_index, test_index).size > 0:
+        #         print('Data contamination')
 
         # Perform 5-fold cross-validation
         for train_index, test_index in folds:
@@ -208,12 +235,12 @@ def train_and_test_on_reduced(
             # Train the model and compute results_cv
 
 
-            results_cv = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
-                delayed(process_window_within_split)(w, X_train, X_test, window_size, y_train, y_test, reducer_pipeline,
-                                                     regressor, regressor_kwargs) for w in
-                tqdm(range(spks.shape[0] - window_size)))
-            if results_cv is not None:
-                results_cv_list.append(results_cv)
+            results_cv = process_data_within_split(X_train, X_test, y_train, y_test, reducer_pipeline, regressor,
+                                                   regressor_kwargs)
+            # results_cv  = Parallel(n_jobs=n_jobs_parallel)(delayed(process_data_within_split)(X_train, X_test, y_train, y_test, reducer_pipeline, regressor, regressor_kwargs) for train_index, test_index in folds)
+
+
+            results_cv_list.append(results_cv)
 
             # Compute permutation_results
             y_train_perm = copy.deepcopy(y_train)
@@ -230,12 +257,11 @@ def train_and_test_on_reduced(
             if np.array_equal(y_train_perm, y_train):
                 print('y_train_perm is equal to y_train')
 
-            results_perm = Parallel(n_jobs=n_jobs_parallel, verbose=1)(
-                delayed(process_window_within_split)(w, X_train_perm, X_test, window_size, y_train_perm, y_test, reducer_pipeline,
-                                                     regressor, regressor_kwargs) for w in
-                tqdm(range(spks.shape[1] - window_size)))
-            if results_perm is not None:
-                permutation_results_list.append(results_perm)
+
+            results_perm  = process_data_within_split(X_train_perm, X_test, y_train_perm, y_test, reducer_pipeline, regressor, regressor_kwargs)
+
+
+            permutation_results_list.append(results_perm)
 
         # Calculate the difference between the mean of results_cv and permutation_results
         diff = np.mean([res['mse_score'] for sublist in results_cv_list for res in sublist]) - np.mean([res['mse_score'] for sublist in permutation_results_list for res in sublist])
@@ -339,7 +365,7 @@ def main():
             # 'n_neighbors': 70,
             # 'min_dist': 0.3,
             'metric': 'euclidean',
-            'n_jobs': 1,
+            'n_jobs': 2,
         }
 
         # space_ref = ['No Noise', 'Noise']
@@ -349,8 +375,8 @@ def main():
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
-        filename = f'params_trial9_sinandcos_{now}.npy'
-        filename_intermediate_params = f'intermediate_params_trial9_sin_and_cos_v2_{now_day}.npy'
+        filename = f'params_trial9_nowindow_sinandcos_{now}.npy'
+        filename_intermediate_params = f'intermediate_nowindow_params_trial9_sin_and_cos_v2_{now_day}.npy'
 
         if window_size >= X_for_umap.shape[0]:
             print(f'Window size of {window_size} is too large for the number of time bins of {X_for_umap.shape[0]} in the neural data')
@@ -366,7 +392,7 @@ def main():
             reducer,
             reducer_kwargs,
             window_size,
-            n_jobs_parallel=1,
+            n_jobs_parallel=-1,
         )
         #save at intermediate stage of grid search
         # intermediate_results = intermediate_results.append({'difference': diff_result, 'best_params': best_params, 'upper_params': params}, ignore_index=True)
