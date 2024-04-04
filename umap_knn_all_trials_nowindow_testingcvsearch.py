@@ -454,6 +454,8 @@ def train_and_test_on_umap_randcv(
             plt.plot(y_test[:, 0], label='y_test', alpha = 0.5)
             ax.set_title('y_pred (sin theta) for fold: ' + str(count))
             ax.set_xlabel('time in SAMPLES')
+            plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
+
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
@@ -462,6 +464,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_pred (cos theta) for fold: ' + str(count))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
+            plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
             plt.show()
             count += 1
 
