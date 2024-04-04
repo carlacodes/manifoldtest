@@ -316,6 +316,8 @@ def train_and_test_on_umap_randcv(
     #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     # }
     param_grid = {'estimator__n_neighbors': [5], 'reducer__n_components': [6], 'estimator__metric': ['euclidean'], 'reducer__n_neighbors': [10], 'reducer__min_dist': [0.3], 'reducer__random_state': [42]}
+    param_grid_200windows = {'estimator__n_neighbors': [10], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'], 'reducer__n_neighbors': [20], 'reducer__min_dist': [0.1]}
+
 
     y = bhv[regress].values
 
@@ -323,7 +325,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
 
     # custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
@@ -411,7 +413,7 @@ def train_and_test_on_umap_randcv(
         count += 1
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
-        params = {key: np.random.choice(values) for key, values in param_grid.items()}
+        params = {key: np.random.choice(values) for key, values in param_grid_200windows.items()}
         regressor_kwargs.update(
             {k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
