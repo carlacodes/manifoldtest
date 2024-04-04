@@ -322,6 +322,7 @@ def train_and_test_on_umap_randcv(
     y = bhv[regress].values
 
     random_search_results = []
+    random_search_results_shuffled = []
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
@@ -430,6 +431,8 @@ def train_and_test_on_umap_randcv(
         count = 0
         scores_shuffled = []
         scores_train_shuffled = []
+
+
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -491,31 +494,6 @@ def train_and_test_on_umap_randcv(
             count += 1
 
         #now do the same for the SHUFFLED embeddings
-        scores_shuffled = []
-        scores_train_shuffled = []
-        count = 0
-        for train_index, test_index in custom_folds:
-            X_train, X_test = spks[train_index], spks[test_index]
-            y_train, y_test = y[train_index], y[test_index]
-
-            # Apply dimensionality reduction
-            X_train_reduced = current_reducer.fit_transform(X_train)
-            X_
-            X_test_reduced = current_reducer.transform(X_test)
-            # Fit the regressor
-            current_regressor.fit(X_train_reduced, y_train)
-
-            # Evaluate the regressor: using the default for regressors which is r2
-            score = current_regressor.score(X_test_reduced, y_test)
-            score_train = current_regressor.score(X_train_reduced, y_train)
-            scores_shuffled.append(score)
-            scores_train_shuffled.append(score_train)
-
-            y_pred_shuffled = current_regressor.predict(X_test_reduced)
-            fig, ax = plt.subplots(1, 1)
-            ax.scatter(y_test, y_pred)
-            ax.set_title('y_test vs y_pred for fold: ' + str(count))
-            plt.show()
 
 
 
@@ -523,13 +501,20 @@ def train_and_test_on_umap_randcv(
         mean_score = np.mean(scores)
         mean_score_train = np.mean(scores_train)
 
+        mean_score_shuffled = np.mean(scores_shuffled)
+        mean_score_train_shuffled = np.mean(scores_train_shuffled)
+
         random_search_results.append((params, mean_score))
+        random_search_results_shuffled.append((params, mean_score_shuffled))
 
     # Select the best parameters based on mean score
     best_params, _ = max(random_search_results, key=lambda x: x[1])
     #get the best mean score which is the second entry in the tuple
     _, mean_score = max(random_search_results, key=lambda x: x[1])
-    return best_params, mean_score
+
+    best_params_shuffled, _ = max(random_search_results_shuffled, key=lambda x: x[1])
+    _, mean_score_shuffled = max(random_search_results_shuffled, key=lambda x: x[1])
+    return best_params, mean_score, best_params_shuffled, mean_score_shuffled
 
 
 def load_previous_results(data_dir):
