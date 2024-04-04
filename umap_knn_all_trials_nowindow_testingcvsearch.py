@@ -326,7 +326,7 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=200)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
 
     # custom_folds = create_sliding_window_folds(n_timesteps, num_folds=10)
     # Example, you can use your custom folds here
@@ -414,7 +414,7 @@ def train_and_test_on_umap_randcv(
         count += 1
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
-        params = {key: np.random.choice(values) for key, values in param_grid_200windows.items()}
+        params = {key: np.random.choice(values) for key, values in param_grid.items()}
         regressor_kwargs.update(
             {k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
@@ -491,6 +491,31 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
             plt.show()
+
+            ##now plot the shuffled data
+            y_pred_shuffled = current_regressor_shuffled.predict(X_test_reduced_shuffled)
+            fig, ax = plt.subplots(1, 1)
+            ax.scatter(y_test, y_pred_shuffled, c='orange')
+            ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled')
+            plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
+            plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha = 0.5)
+            plt.plot(y_test[:, 0], label='y_test', alpha = 0.5)
+            ax.set_title('y_pred (sin theta) for fold: ' + str(count) + ' shuffled')
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_sin_fold_' + str(count) + 'shuffled.png')
+            plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(y_pred_shuffled[:, 1], label='y_pred', alpha = 0.5)
+            plt.plot(y_test[:, 1], label='y_test', alpha = 0.5)
+            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' shuffled')
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_cos_fold_' + str(count) + 'shuffled.png')
             count += 1
 
         #now do the same for the SHUFFLED embeddings
