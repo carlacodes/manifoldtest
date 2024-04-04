@@ -315,30 +315,7 @@ def train_and_test_on_umap_randcv(
     #     'reducer__n_neighbors': [20, 30, 40, 50, 60, 70],
     #     'reducer__min_dist': [0.001, 0.01, 0.1, 0.3],
     # }
-
-    # param_grid = {'estimator__n_neighbors': [70], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
-    #  'reducer__n_neighbors': [60], 'reducer__min_dist': [0.01]}
-    # param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [5], 'estimator__metric': ['cosine'],
-    #  'reducer__n_neighbors': [40], 'reducer__min_dist': [0.01]}
-    param_grid ={'estimator__n_neighbors': [60], 'reducer__n_components': [3], 'estimator__metric': ['euclidean'],
-           'reducer__n_neighbors': [30], 'reducer__min_dist': [0.3]}
-
-    # param_grid = {'estimator__n_neighbors': [50], 'reducer__n_components': [7], 'estimator__metric': ['minkowski'],
-    #        'reducer__n_neighbors': [20], 'reducer__min_dist': [0.1]}
-
-
-    # array({'estimator__n_neighbors': 60, 'reducer__n_components': 3, 'estimator__metric': 'euclidean',
-    #        'reducer__n_neighbors': 30, 'reducer__min_dist': 0.3},
-    #       dtype=object)
-    # param_grid = {'estimator__n_neighbors': [2], 'reducer__n_components': [3], 'estimator__metric': ['cosine'], 'reducer__n_neighbors': [70], 'reducer__min_dist': [0.3]}
-
-    param_grid ={'estimator__n_neighbors': [70], 'reducer__n_components': [3], 'estimator__metric': ['euclidean'], 'reducer__n_neighbors': [70], 'reducer__min_dist': [0.001]}
-    # array({'estimator__n_neighbors': 50, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
-    #        'reducer__n_neighbors': 40, 'reducer__min_dist': 0.01},
-    #       dtype=object)
-
-    # {'estimator__n_neighbors': 70, 'reducer__n_components': 5, 'estimator__metric': 'cosine',
-    #  'reducer__n_neighbors': 60, 'reducer__min_dist': 0.01}
+    param_grid = {'estimator__n_neighbors': [5], 'reducer__n_components': [6], 'estimator__metric': ['euclidean'], 'reducer__n_neighbors': [10], 'reducer__min_dist': [0.3], 'reducer__random_state': [42]}
 
     y = bhv[regress].values
 
@@ -503,28 +480,28 @@ def train_and_test_on_umap_randcv(
 
 def load_previous_results(data_dir):
     # previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
-    previous_best_params_250binwidth = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_200windows_jake_fold_sinandcos_2024-03-28_12-49-45.npy', allow_pickle=True)
+    previous_best_params_250binwidth = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_200windows_jake_fold_sinandcos_2024-04-03_16-17-04.npy', allow_pickle=True)
     # previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
     print(previous_best_params_250binwidth)
-    previous_best_params_250bin_600windows = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_600windows_jake_fold_sinandcos_2024-03-28_12-49-16.npy', allow_pickle=True)
+    # previous_best_params_250bin_600windows = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_600windows_jake_fold_sinandcos_2024-03-28_12-49-16.npy', allow_pickle=True)
 
-    mean_score_1000_window_250bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-02.npy')
-    params_1000_window_250bin = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth25_200windows_jake_fold_sinandcos_2024-04-01_10-40-38.npy', allow_pickle=True)
+    mean_score_1000_window_250bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03.npy')
+    params_1000_window_250bin = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03_16-15-28.npy', allow_pickle=True)
 
-    params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
-    mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
+    # params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
+    # mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
+    #
+    # params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy', allow_pickle=True)
+    # mean_score_50width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy',  allow_pickle=True)
+    #
+    # mean_score_1000_window_100bin = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-02.npy', allow_pickle=True)
+    #
+    # mean_score_200_window_25bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth25_200windows_jake_fold_sinandcos_2024-04-01_10-40-38.npy', allow_pickle=True)
+    #
+    # mean_score_100window_250bin_xy  = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02.npy', allow_pickle=True)
+    # params_1000_window_250bin_xy = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02_10-24-16.npy', allow_pickle=True)
 
-    params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy', allow_pickle=True)
-    mean_score_50width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy',  allow_pickle=True)
-
-    mean_score_1000_window_100bin = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-02.npy', allow_pickle=True)
-
-    mean_score_200_window_25bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth25_200windows_jake_fold_sinandcos_2024-04-01_10-40-38.npy', allow_pickle=True)
-
-    mean_score_100window_250bin_xy  = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02.npy', allow_pickle=True)
-    params_1000_window_250bin_xy = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02_10-24-16.npy', allow_pickle=True)
-
-    return previous_best_params_250bin_600windows
+    return
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
