@@ -273,7 +273,7 @@ def train_and_test_on_umap_randcv(
     return best_params, mean_score_max
 
 def main():
-    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
+    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_10/23-11-2021/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -312,13 +312,6 @@ def main():
                             columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
 
-    #z-score the x and y labels based on their mean and std
-    #concatenate the x and y labels
-    xy_labels = np.concatenate(label_df[['x', 'y']].values, axis=0)
-    label_df['x_zscore'] = (label_df['x'] - xy_labels.mean()) / xy_labels.std()
-    label_df['y_zscore'] = (label_df['y'] - xy_labels.mean()) / xy_labels.std()
-
-
     regressor = KNeighborsRegressor
     regressor_kwargs = {'n_neighbors': 70}
 
@@ -332,12 +325,12 @@ def main():
         'n_jobs': 1,
     }
 
-    regress = ['x_zscore', 'y_zscore']  # changing to two target variables
+    regress = ['angle_sin', 'angle_cos']  # changing to two target variables
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_{now}.npy'
-    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_{now_day}.npy'
+    filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
+    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
 
 
     best_params, mean_score = train_and_test_on_umap_randcv(

@@ -1,6 +1,7 @@
 # from pathlib import Path
 import copy
 from datetime import datetime
+import sklearn
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
