@@ -561,7 +561,7 @@ def load_previous_results(data_dir):
     # params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy', allow_pickle=True)
     # mean_score_50width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy',  allow_pickle=True)
     #
-    # mean_score_1000_window_100bin = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-02.npy', allow_pickle=True)
+    mean_score_1000_window_100bin = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-05.npy', allow_pickle=True)
     #
     # mean_score_200_window_25bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth25_200windows_jake_fold_sinandcos_2024-04-01_10-40-38.npy', allow_pickle=True)
     #
