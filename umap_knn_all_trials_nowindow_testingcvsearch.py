@@ -423,7 +423,6 @@ def train_and_test_on_umap_randcv(
         current_regressor_shuffled = MultiOutputRegressor(regressor(**regressor_kwargs))
         # Initialize the reducer with current parameters
         current_reducer = reducer(**reducer_kwargs)
-
         current_reducer_shuffled = copy.deepcopy(current_reducer)
 
         scores = []
@@ -439,6 +438,9 @@ def train_and_test_on_umap_randcv(
 
             # Apply dimensionality reduction
             X_train_reduced = current_reducer.fit_transform(X_train)
+
+            #take the inverse transform of the reduced data
+            X_train_reduced_mapped_back = current_reducer.inverse_transform(X_train_reduced)
             X_test_reduced = current_reducer.transform(X_test)
 
             X_train_reduced_shuffled = X_train_reduced.copy()
@@ -480,7 +482,6 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_pred (sin theta) for fold: ' + str(count))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
-
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
