@@ -552,6 +552,8 @@ def load_previous_results(data_dir):
     mean_score_1000_window_250bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03.npy')
     params_1000_window_250bin = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03_16-15-28.npy', allow_pickle=True)
 
+
+
     # params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
     # mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
     #
@@ -564,6 +566,25 @@ def load_previous_results(data_dir):
     #
     # mean_score_100window_250bin_xy  = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02.npy', allow_pickle=True)
     # params_1000_window_250bin_xy = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02_10-24-16.npy', allow_pickle=True)
+
+    ##compare across rats
+    rat_3_data_dir = 'C:/neural_data/rat_3/25-3-2019'
+    mean_score_1000_window_250bin_rat3 = np.load(f'{rat_3_data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05.npy')
+    params_1000_window_250bin_rat3 = np.load(f'{rat_3_data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05_12-51-01.npy', allow_pickle=True)
+
+    rat_8_data_dir = 'C:/neural_data/rat_8/15-10-2019'
+    mean_score_1000_window_250bin_rat8 = np.load(f'{rat_8_data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05.npy')
+    params_1000_window_250bin_rat8 = np.load(f'{rat_8_data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05_12-53-25.npy', allow_pickle=True)
+
+    rat_9_data_dir = 'C:/neural_data/rat_9/10-12-2021'
+    mean_score_1000_window_250bin_rat9 = np.load(f'{rat_9_data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05.npy')
+    params_1000_window_250bin_rat9 = np.load(f'{rat_9_data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05_12-58-22.npy', allow_pickle=True)
+
+    rat_10_data_dir = 'C:/neural_data/rat_10/23-11-2021'
+    mean_score_1000_window_250bin_rat10 = np.load(f'{rat_10_data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05.npy')
+    params_1000_window_250bin_rat10 = np.load(f'{rat_10_data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05_14-03-55.npy', allow_pickle=True)
+
+
 
     return
 
