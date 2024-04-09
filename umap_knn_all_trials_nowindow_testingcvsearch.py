@@ -554,13 +554,13 @@ def load_previous_results(data_dir):
     params_1000_window_250bin = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03_16-15-28.npy', allow_pickle=True)
 
 
+    params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
+    mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
+    #
+    params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy', allow_pickle=True)
+    mean_score_50width = np.load(f'{}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy',  allow_pickle=True)
 
-    # params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
-    # mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
-    #
-    # params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy', allow_pickle=True)
-    # mean_score_50width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy',  allow_pickle=True)
-    #
+
     mean_score_1000_window_100bin = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-05.npy', allow_pickle=True)
     #
     # mean_score_200_window_25bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth25_200windows_jake_fold_sinandcos_2024-04-01_10-40-38.npy', allow_pickle=True)
