@@ -546,28 +546,12 @@ def train_and_test_on_umap_randcv(
 def load_previous_results(data_dir):
     # previous_results = np.load(f'{data_dir}/results_cv_2024-03-21_12-31-37.npy', allow_pickle=True)
     previous_best_params_250binwidth = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_200windows_jake_fold_sinandcos_2024-04-03_16-17-04.npy', allow_pickle=True)
-    # previous_perm_results = np.load(f'{data_dir}/perm_results_list_2024-03-21_12-31-37.npy', allow_pickle=True)
-    print(previous_best_params_250binwidth)
-    # previous_best_params_250bin_600windows = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_600windows_jake_fold_sinandcos_2024-03-28_12-49-16.npy', allow_pickle=True)
-
-    mean_score_1000_window_250bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03.npy')
-    params_1000_window_250bin = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03_16-15-28.npy', allow_pickle=True)
+    mean_score_500binwidth_200windows = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-04-08_11-42-55.npy', allow_pickle=True)
 
 
-    params_500width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
-    mean_score_500width = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-03-28_15-09-41.npy', allow_pickle=True)
-    #
-    params_50width_params = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy', allow_pickle=True)
-    mean_score_50width = np.load(f'{}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth50_200windows_jake_fold_sinandcos_2024-03-29_21-06-05.npy',  allow_pickle=True)
 
-
-    mean_score_1000_window_100bin = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-05.npy', allow_pickle=True)
-    #
-    # mean_score_200_window_25bin = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth25_200windows_jake_fold_sinandcos_2024-04-01_10-40-38.npy', allow_pickle=True)
-    #
-    # mean_score_100window_250bin_xy  = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02.npy', allow_pickle=True)
-    # params_1000_window_250bin_xy = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_2024-04-02_10-24-16.npy', allow_pickle=True)
-
+    mean_score_500binwidth_1000windows = np.load(f'{data_dir}/cluster_results/mean_score_500sbinwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-08.npy', allow_pickle=True)
+    mean_score_100binwidth_1000windows = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-05.npy', allow_pickle=True)
     ##compare across rats
     rat_3_data_dir = 'C:/neural_data/rat_3/25-3-2019'
     mean_score_1000_window_250bin_rat3 = np.load(f'{rat_3_data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05.npy')
