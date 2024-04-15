@@ -580,8 +580,8 @@ def plot_inverse_transform_umap(data_dir):
         X_test = np.load(f'{data_dir}/cluster_results/X_test_reduced_mapped_back_fold_{fold}.npy')
         #plot them on top of each other with alpha =0.5
         fig, ax = plt.subplots(1, 1)
-        ax.scatter(X_train, label = 'train', alpha = 0.5)
-        ax.scatter(X_test, label = 'test', alpha = 0.5)
+        plt.plot(X_train, label = 'train', alpha = 0.5, ax =ax)
+        plt.plot(X_test, label = 'test', alpha = 0.5, ax = ax)
         ax.set_title(f'Inverse transformed UMAP embeddings for fold {fold}')
         plt.legend()
         plt.show()
