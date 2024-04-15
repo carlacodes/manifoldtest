@@ -573,8 +573,25 @@ def load_previous_results(data_dir):
 
     return
 
+def plot_inverse_transform_umap(data_dir):
+    for fold in [0, 1, 2, 3]:
+        #load the X_train and X_test data
+        X_train = np.load(f'{data_dir}/cluster_results/X_train_reduced_mapped_back_fold_{fold}.npy')
+        X_test = np.load(f'{data_dir}/cluster_results/X_test_reduced_mapped_back_fold_{fold}.npy')
+        #plot them on top of each other with alpha =0.5
+        fig, ax = plt.subplots(1, 1)
+        ax.scatter(X_train, label = 'train', alpha = 0.5)
+        ax.scatter(X_test, label = 'test', alpha = 0.5)
+        ax.set_title(f'Inverse transformed UMAP embeddings for fold {fold}')
+        plt.legend()
+        plt.show()
+    return
+
+
+
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
+    plot_inverse_transform_umap(data_dir)
     prev_best_params = load_previous_results(data_dir)
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
