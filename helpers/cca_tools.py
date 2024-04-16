@@ -134,125 +134,125 @@ def get_ccs_lower_bound_mice(side1df, side2df, area, n_components, len_trial, ca
     return CCsL
 
 
-@utility.report
-def plot_cca(ax, ax_hist, allDFs, epoch, area, n_components, dataset='monkey', prep=False, use_procrustes=False):
-    # get data
-    if dataset == 'monkey':
-        animals = 'monkeys'
-        defs = monkey_defs
-        pairFileList = dt.get_paired_files_monkey(allDFs)
-        n_animals = len(np.unique([df.monkey[0] for df in allDFs]))
-    elif dataset == 'mouse':
-        animals = 'mice'
-        defs = mouse_defs
-        pairFileList = dt.get_paired_files_mouse(allDFs)
-        n_animals = len(np.unique([df.mouse[0] for df in allDFs]))
-    else:
-        raise ValueError('dataset must be monkey or mouse')
-
-    pair_side1df = [allDFs[i] for i, _ in pairFileList]
-    pair_side2df = [allDFs[j] for _, j in pairFileList]
-    side1df = allDFs
-
-    # get ccs
-    if prep:
-        len_trial = int(np.round(np.diff(defs.WINDOW_prep) / defs.BIN_SIZE))
-    else:
-        len_trial = int(np.round(np.diff(defs.WINDOW_exec) / defs.BIN_SIZE))
-    allCCs = get_ccs(pair_side1df, pair_side2df, epoch, area, n_components, use_procrustes=use_procrustes)
-    if dataset == 'monkey':
-        CCsL = get_ccs_lower_bound_monkey(pair_side1df, pair_side2df, area, n_components, len_trial,
-                                          use_procrustes=use_procrustes)
-    else:
-        CCsL = get_ccs_lower_bound_mice(pair_side1df, pair_side2df, area, n_components, len_trial,
-                                        use_procrustes=use_procrustes)
-    CCsU = get_ccs_upper_bound(side1df, epoch, area, n_components, use_procrustes=use_procrustes)
-
-    # plotting
-    x_ = np.arange(1, n_components + 1)
-    utility.shaded_errorbar(ax, x_, allCCs, color=params.colors.MainCC, marker='o')
-    utility.shaded_errorbar(ax, x_, CCsU, color=params.colors.UpperCC, marker='<', ls='--')
-    utility.shaded_errorbar(ax, x_, CCsL, color=params.colors.LowerCC, marker='>', ls=':')
-
-    ax.set_ylim([-.05, 1])
-    ax.set_xlim([.6, n_components + .6])
-    ax.set_xlabel('Neural mode')
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    if use_procrustes:
-        ax.set_ylabel('Procrustes correlation')
-    else:
-        ax.set_ylabel('Canonical correlation')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_bounds([1, n_components])
-    ax.spines['left'].set_bounds([0, 1])
-    ax.text(x=n_components, y=1, s=f'$n={CCsL.shape[1]}$ pairs of sessions\nacross ${n_animals}$ ${animals}$',
-            ha='right', va='top', fontsize=mpl.rcParams['xtick.labelsize'])
-
-    # plot the hist
-    bins = np.arange(0, 1, 0.05)
-    ax_hist.xaxis.set_visible(False)
-    ax_hist.set_facecolor('None')
-    ax_hist.spines['bottom'].set_visible(False)
-    ax_hist.spines['right'].set_visible(False)
-    ax_hist.spines['top'].set_visible(False)
-    ax_hist.spines['left'].set_bounds([0, 1])
-    ax_hist.set_ylim([-.05, 1])
-    ax_hist.hist(allCCs[:4, :].mean(axis=0), bins=bins, density=True, label=f'Across ($n={allCCs.shape[1]}$)',
-                 color=params.colors.MainCC, alpha=.8, orientation='horizontal')
-    ax_hist.hist(CCsU[:4, :].mean(axis=0), bins=bins, density=True, label=f'Within ($n={CCsU.shape[1]}$)',
-                 color=params.colors.UpperCC, alpha=.8, orientation='horizontal')
-    ax_hist.hist(CCsL[:4, :].mean(axis=0), bins=bins, density=True, label=f'Control ($n={CCsL.shape[1]}$)',
-                 color=params.colors.LowerCC, alpha=.8, orientation='horizontal')
-
-    ax_hist.tick_params('y', direction='out')
-    ax_hist.set_yticklabels([])
-    ax_hist.legend(loc=(0, -.05))
-
-    # stats ###################################
-    allCCs_median = np.median(allCCs[:4, :].mean(axis=0))
-    CCsU_median = np.median(CCsU[:4, :].mean(axis=0))
-    CCsL_median = np.median(CCsL[:4, :].mean(axis=0))
-    allCCs_mean = allCCs[:4, :].mean(axis=0)
-    CCsU_mean = CCsU[:4, :].mean(axis=0)
-    CCsL_mean = CCsL[:4, :].mean(axis=0)
-
-    # calc stats
-    ##for paired stats
-    side1CCsU_mean = [CCsU_mean[i] for i, _ in pairFileList]
-    side2CCsU_mean = [CCsU_mean[j] for _, j in pairFileList]
-    allCCsU_mean = side1CCsU_mean + side2CCsU_mean
-
-    compare_upper_stats = wilcoxon(np.tile(allCCs_mean, 2), allCCsU_mean)
-    compare_lower_stats = wilcoxon(allCCs_mean, CCsL_mean)
-
-    ##for unpaired stats
-    # compare_upper_stats = mannwhitneyu(allCCs_mean, CCsU_mean)
-    # compare_lower_stats = mannwhitneyu(allCCs_mean, CCsL_mean)
-
-    print("Across vs within:", compare_upper_stats)
-    print("Across vs control:", compare_lower_stats)
-
-    if params.annotate_stats:
-        # annotate stats
-        xmin, xmax = ax_hist.get_xlim()
-        markerx = xmax + (xmax - xmin) * 0.05
-        linex = xmax + (xmax - xmin) * 0.15
-        textx = xmax + (xmax - xmin) * 0.25
-        line_kwargs = dict(linewidth=0.5, color='k')
-        text_kwargs = dict(ha='left', va='center')
-
-        ax_hist.scatter(markerx, allCCs_median, color=params.colors.MainCC, marker='<')
-        ax_hist.scatter(markerx, CCsU_median, color=params.colors.UpperCC, marker='<')
-        ax_hist.scatter(markerx, CCsL_median, color=params.colors.LowerCC, marker='<')
-
-        ax_hist.plot([linex, linex], [allCCs_median, CCsU_median], **line_kwargs)
-        ax_hist.plot([linex, linex], [allCCs_median, CCsL_median], linestyle='--', **line_kwargs)
-
-        ax_hist.text(textx, (allCCs_median + CCsU_median) / 2, dt.get_signif_annot(compare_upper_stats[1]),
-                     **text_kwargs)
-        ax_hist.text(textx, (allCCs_median + CCsL_median) / 2, dt.get_signif_annot(compare_lower_stats[1]),
-                     **text_kwargs)
+# @utility.report
+# def plot_cca(ax, ax_hist, allDFs, epoch, area, n_components, dataset='monkey', prep=False, use_procrustes=False):
+#     # get data
+#     if dataset == 'monkey':
+#         animals = 'monkeys'
+#         defs = monkey_defs
+#         pairFileList = dt.get_paired_files_monkey(allDFs)
+#         n_animals = len(np.unique([df.monkey[0] for df in allDFs]))
+#     elif dataset == 'mouse':
+#         animals = 'mice'
+#         defs = mouse_defs
+#         pairFileList = dt.get_paired_files_mouse(allDFs)
+#         n_animals = len(np.unique([df.mouse[0] for df in allDFs]))
+#     else:
+#         raise ValueError('dataset must be monkey or mouse')
+#
+#     pair_side1df = [allDFs[i] for i, _ in pairFileList]
+#     pair_side2df = [allDFs[j] for _, j in pairFileList]
+#     side1df = allDFs
+#
+#     # get ccs
+#     if prep:
+#         len_trial = int(np.round(np.diff(defs.WINDOW_prep) / defs.BIN_SIZE))
+#     else:
+#         len_trial = int(np.round(np.diff(defs.WINDOW_exec) / defs.BIN_SIZE))
+#     allCCs = get_ccs(pair_side1df, pair_side2df, epoch, area, n_components, use_procrustes=use_procrustes)
+#     if dataset == 'monkey':
+#         CCsL = get_ccs_lower_bound_monkey(pair_side1df, pair_side2df, area, n_components, len_trial,
+#                                           use_procrustes=use_procrustes)
+#     else:
+#         CCsL = get_ccs_lower_bound_mice(pair_side1df, pair_side2df, area, n_components, len_trial,
+#                                         use_procrustes=use_procrustes)
+#     CCsU = get_ccs_upper_bound(side1df, epoch, area, n_components, use_procrustes=use_procrustes)
+#
+#     # plotting
+#     x_ = np.arange(1, n_components + 1)
+#     utility.shaded_errorbar(ax, x_, allCCs, color=params.colors.MainCC, marker='o')
+#     utility.shaded_errorbar(ax, x_, CCsU, color=params.colors.UpperCC, marker='<', ls='--')
+#     utility.shaded_errorbar(ax, x_, CCsL, color=params.colors.LowerCC, marker='>', ls=':')
+#
+#     ax.set_ylim([-.05, 1])
+#     ax.set_xlim([.6, n_components + .6])
+#     ax.set_xlabel('Neural mode')
+#     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+#     if use_procrustes:
+#         ax.set_ylabel('Procrustes correlation')
+#     else:
+#         ax.set_ylabel('Canonical correlation')
+#     ax.spines['top'].set_visible(False)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['bottom'].set_bounds([1, n_components])
+#     ax.spines['left'].set_bounds([0, 1])
+#     ax.text(x=n_components, y=1, s=f'$n={CCsL.shape[1]}$ pairs of sessions\nacross ${n_animals}$ ${animals}$',
+#             ha='right', va='top', fontsize=mpl.rcParams['xtick.labelsize'])
+#
+#     # plot the hist
+#     bins = np.arange(0, 1, 0.05)
+#     ax_hist.xaxis.set_visible(False)
+#     ax_hist.set_facecolor('None')
+#     ax_hist.spines['bottom'].set_visible(False)
+#     ax_hist.spines['right'].set_visible(False)
+#     ax_hist.spines['top'].set_visible(False)
+#     ax_hist.spines['left'].set_bounds([0, 1])
+#     ax_hist.set_ylim([-.05, 1])
+#     ax_hist.hist(allCCs[:4, :].mean(axis=0), bins=bins, density=True, label=f'Across ($n={allCCs.shape[1]}$)',
+#                  color=params.colors.MainCC, alpha=.8, orientation='horizontal')
+#     ax_hist.hist(CCsU[:4, :].mean(axis=0), bins=bins, density=True, label=f'Within ($n={CCsU.shape[1]}$)',
+#                  color=params.colors.UpperCC, alpha=.8, orientation='horizontal')
+#     ax_hist.hist(CCsL[:4, :].mean(axis=0), bins=bins, density=True, label=f'Control ($n={CCsL.shape[1]}$)',
+#                  color=params.colors.LowerCC, alpha=.8, orientation='horizontal')
+#
+#     ax_hist.tick_params('y', direction='out')
+#     ax_hist.set_yticklabels([])
+#     ax_hist.legend(loc=(0, -.05))
+#
+#     # stats ###################################
+#     allCCs_median = np.median(allCCs[:4, :].mean(axis=0))
+#     CCsU_median = np.median(CCsU[:4, :].mean(axis=0))
+#     CCsL_median = np.median(CCsL[:4, :].mean(axis=0))
+#     allCCs_mean = allCCs[:4, :].mean(axis=0)
+#     CCsU_mean = CCsU[:4, :].mean(axis=0)
+#     CCsL_mean = CCsL[:4, :].mean(axis=0)
+#
+#     # calc stats
+#     ##for paired stats
+#     side1CCsU_mean = [CCsU_mean[i] for i, _ in pairFileList]
+#     side2CCsU_mean = [CCsU_mean[j] for _, j in pairFileList]
+#     allCCsU_mean = side1CCsU_mean + side2CCsU_mean
+#
+#     compare_upper_stats = wilcoxon(np.tile(allCCs_mean, 2), allCCsU_mean)
+#     compare_lower_stats = wilcoxon(allCCs_mean, CCsL_mean)
+#
+#     ##for unpaired stats
+#     # compare_upper_stats = mannwhitneyu(allCCs_mean, CCsU_mean)
+#     # compare_lower_stats = mannwhitneyu(allCCs_mean, CCsL_mean)
+#
+#     print("Across vs within:", compare_upper_stats)
+#     print("Across vs control:", compare_lower_stats)
+#
+#     if params.annotate_stats:
+#         # annotate stats
+#         xmin, xmax = ax_hist.get_xlim()
+#         markerx = xmax + (xmax - xmin) * 0.05
+#         linex = xmax + (xmax - xmin) * 0.15
+#         textx = xmax + (xmax - xmin) * 0.25
+#         line_kwargs = dict(linewidth=0.5, color='k')
+#         text_kwargs = dict(ha='left', va='center')
+#
+#         ax_hist.scatter(markerx, allCCs_median, color=params.colors.MainCC, marker='<')
+#         ax_hist.scatter(markerx, CCsU_median, color=params.colors.UpperCC, marker='<')
+#         ax_hist.scatter(markerx, CCsL_median, color=params.colors.LowerCC, marker='<')
+#
+#         ax_hist.plot([linex, linex], [allCCs_median, CCsU_median], **line_kwargs)
+#         ax_hist.plot([linex, linex], [allCCs_median, CCsL_median], linestyle='--', **line_kwargs)
+#
+#         ax_hist.text(textx, (allCCs_median + CCsU_median) / 2, dt.get_signif_annot(compare_upper_stats[1]),
+#                      **text_kwargs)
+#         ax_hist.text(textx, (allCCs_median + CCsL_median) / 2, dt.get_signif_annot(compare_lower_stats[1]),
+#                      **text_kwargs)
 
 
 def plot_cca_for_ex(ax, example_dfs, epoch, area, n_components, dataset='monkey', prep=False):

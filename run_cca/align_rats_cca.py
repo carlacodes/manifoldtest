@@ -376,7 +376,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs_1 = {'n_neighbors': 70}
     regressor_kwargs_2 = {'n_neighbors': 70}
 
-
+    corr_dict = {}
     for rat_id_1 in data_store.keys():
         for rat_id_2 in data_store.keys():
             # if rat_id_1 == rat_id_2:
@@ -435,7 +435,9 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 #apply cca to the reduced data
                 cca = CCA(n_components=8)
                 # data1_c, data2_c = cca.fit_transform(X_test_reduced_1, X_test_reduced_2)
-                A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_1)
+                A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_1, fullReturn=True)
+                #get the mean of the correlation coefficients
+                avg_corr = np.mean(r)
 
                 # correlation_matrix = np.corrcoef(data1_c.T, data2_c.T)
 
@@ -445,7 +447,9 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 # print("Correlation coefficients:", correlation)
                 # #average the correlation coefficients
                 # avg_corr = np.mean(correlation)
-                # print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
+                print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
+                #add the correlation coefficient to a dictionary
+                corr_dict[rat_id_1 + '_' + rat_id_2] = avg_corr
     return
 
 
