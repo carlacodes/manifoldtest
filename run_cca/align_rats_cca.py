@@ -353,7 +353,7 @@ def load_previous_results(data_dir):
     return params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10
 
 
-def run_cca_on_rat_data(data_store, param_dict, custom_folds):
+def run_cca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs = {'n_neighbors': 70}
 
     reducer = UMAP
@@ -375,6 +375,7 @@ def run_cca_on_rat_data(data_store, param_dict, custom_folds):
     regressor_kwargs_1 = {'n_neighbors': 70}
     regressor_kwargs_2 = {'n_neighbors': 70}
 
+
     for rat_id_1 in data_store.keys():
         for rat_id_2 in data_store.keys():
             if rat_id_1 == rat_id_2:
@@ -388,7 +389,16 @@ def run_cca_on_rat_data(data_store, param_dict, custom_folds):
 
             X_rat_1 = data_store[rat_id_1]['X']
             X_rat_2 = data_store[rat_id_2]['X']
-
+            folds_rat_1 = fold_store[rat_id_1]
+            folds_rat_2 = fold_store[rat_id_2]
+            #check which folds are shorter
+            folds_rat_1_len = [len(fold) for fold in folds_rat_1]
+            folds_rat_2_len = [len(fold) for fold in folds_rat_2]
+            print(f'The lengths of the folds for rat {rat_id_1} are {folds_rat_1_len}')
+            if len(set(folds_rat_1_len)) > 1:
+                custom_folds = folds_rat_2
+            else:
+                custom_folds = folds_rat_1
 
             for train_index, test_index in custom_folds:
                 regressor_kwargs_1.update(
@@ -406,7 +416,7 @@ def run_cca_on_rat_data(data_store, param_dict, custom_folds):
                 current_reducer_1 = reducer(**reducer_kwargs_1)
                 current_reducer_2 = reducer(**reducer_kwargs_2)
 
-                X_train_1, X_test_1 = X_rat_1[train_index], X_rat_2[test_index]
+                X_train_1, X_test_1 = X_rat_1[train_index], X_rat_1[test_index]
 
 
                 X_train_2, X_test_2 = X_rat_2[train_index], X_rat_2[test_index]
@@ -442,6 +452,7 @@ def main():
     #loop over the data dirs
     data_dirs = ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_3/25-3-2019']
     data_store_big = {}
+    fold_store = {}
     for data_dir in data_dirs:
         rat_id = data_dir.split('/')[-2]
         spike_dir = os.path.join(data_dir, 'physiology_data')
@@ -465,7 +476,9 @@ def main():
             print('There are nans in the data')
 
         X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+        n_timesteps = X_for_umap.shape[0]
 
+        custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
 
         labels_for_umap = labels[:, 0:6]
         labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
@@ -476,10 +489,9 @@ def main():
         #add label_df and X_for_umap to a dictionary
         data_store = {'X': X_for_umap, 'labels': label_df}
         data_store_big[rat_id] = data_store
+        fold_store[rat_id] = custom_folds
 
 
-    n_timesteps = X_for_umap.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     param_dict = {}
     param_dict['rat_3'] = params_1000_window_250bin_rat3
     param_dict['rat_8'] = params_1000_window_250bin_rat8
@@ -487,7 +499,7 @@ def main():
     param_dict['rat_10'] = params_1000_window_250bin_rat10
     param_dict['rat_7'] = params_1000_window_250bin_rat10
 
-    run_cca_on_rat_data(data_store_big, param_dict, custom_folds)
+    run_cca_on_rat_data(data_store_big, param_dict, fold_store)
 
 
 if __name__ == '__main__':
