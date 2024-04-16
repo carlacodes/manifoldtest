@@ -489,7 +489,6 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
         params_1 = param_dict[rat_id_1]
         #remove np array
         params_1 = params_1.item()
-        params_2 = params_2.item()
 
         X_rat_1 = data_store[rat_id_1]['X']
         folds_rat_1 = fold_store[rat_id_1]
@@ -527,6 +526,14 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
             X_test_reduced_1 = current_reducer_1.transform(X_test_1)
             X_reduced_store_train[rat_id_1] = X_train_reduced_1
             X_reduced_store_test[rat_id_1] = X_test_reduced_1
+
+    #apply gcca to the reduced data
+    gcca = GCCA()
+    #check if the number of rows is the same
+    for rat_id in data_store.keys():
+        # X_reduced_store_train[rat_id] = X_reduced_store_train[rat_id][0:1000, :]
+        X_reduced_store_test[rat_id] = X_reduced_store_test[rat_id][0:1000, :]
+    gcca.fit(X_reduced_store_test)
     return
 
 
@@ -583,7 +590,7 @@ def main():
     param_dict['rat_9'] = params_1000_window_250bin_rat9
     param_dict['rat_10'] = params_1000_window_250bin_rat10
     param_dict['rat_7'] = params_1000_window_250bin_rat10
-
+    run_gcca_on_rat_data(data_store_big, param_dict, fold_store)
     run_cca_on_rat_data(data_store_big, param_dict, fold_store)
 
 
