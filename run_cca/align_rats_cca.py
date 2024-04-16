@@ -370,8 +370,8 @@ def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_
     regressor_kwargs_1 = {'n_neighbors': 70}
     regressor_kwargs_2 = {'n_neighbors': 70}
 
-    for rat_id_1 in data_store['rat_id']:
-        for rat_id_2 in data_store['rat_id']:
+    for rat_id_1 in data_store.keys():
+        for rat_id_2 in data_store.keys():
             if rat_id_1 == rat_id_2:
                 continue
             elif rat_id_1 == 'rat_3':
