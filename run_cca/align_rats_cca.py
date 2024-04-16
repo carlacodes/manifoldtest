@@ -1,25 +1,15 @@
 # from pathlib import Path
 import copy
-from datetime import datetime
-from sklearn.model_selection import ParameterSampler
-from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
-from sklearn.pipeline import Pipeline
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
 from pathlib import Path
-from sklearn.metrics import mean_squared_error, r2_score
-from umap import UMAP
+from sklearn import CCA
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.pipeline import Pipeline
-from skopt import BayesSearchCV
-from sklearn.pipeline import Pipeline, FeatureUnion
+
 from sklearn.multioutput import MultiOutputRegressor
-from sklearn.preprocessing import FunctionTransformer
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.neighbors import KNeighborsRegressor
+
 from umap import UMAP
 import seaborn as sns
 from scipy.stats import ttest_ind
