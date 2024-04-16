@@ -43,47 +43,6 @@ os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 # 8. target position was smoothed using a gaussian filter
 def passthrough_func(X):
     return X
-def process_data_within_split(
-        spks_train,
-        spks_test,
-        y_train,
-        y_test,
-        reducer_pipeline,
-        regressor,
-        regressor_kwargs,
-):
-    base_reg = regressor(**regressor_kwargs)
-    reg = MultiOutputRegressor(base_reg)
-
-    reducer_pipeline.fit(spks_train)
-    spks_train_reduced = reducer_pipeline.transform(spks_train)
-    spks_test_reduced = reducer_pipeline.transform(spks_test)
-
-    reg.fit(spks_train_reduced, y_train)
-
-    y_pred = reg.predict(spks_test_reduced)
-    y_pred_train = reg.predict(spks_train_reduced)
-
-    mse_score_train = mean_squared_error(y_train, y_pred_train)
-    r2_score_train = r2_score(y_train, y_pred_train)
-
-    mse_score = mean_squared_error(y_test, y_pred)
-    r2_score_val = r2_score(y_test, y_pred)
-    #make sure they are all float32
-    mse_score_train = np.float32(mse_score_train)
-    r2_score_train = np.float32(r2_score_train)
-    mse_score = np.float32(mse_score)
-    r2_score_val = np.float32(r2_score_val)
-
-
-    results = {
-        'mse_score_train': mse_score_train,
-        'r2_score_train': r2_score_train,
-        'mse_score': mse_score,
-        'r2_score': r2_score_val,
-    }
-
-    return results
 
 
 
@@ -129,65 +88,6 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
         ax.set_title(f'Fold {f + 1}')
         pass
 
-    return folds
-def create_folds_do_not_use(n_timesteps, num_folds=5, num_windows=3):
-    n_windows_total = num_folds * num_windows
-    window_size = n_timesteps // n_windows_total
-    window_start_ind = np.arange(0, n_timesteps, window_size)
-
-    folds = []
-
-    for i in range(num_folds):
-        # Uniformly select test windows from the total windows
-        step_size = n_windows_total // num_windows
-        step_size_train = n_windows_total // (num_windows - 1)
-        test_windows = np.arange(i, n_windows_total, step_size)
-        test_ind = []
-        #make sure the train and test indices are equivalent in length
-
-        for j in test_windows:
-            # Select every nth index for testing, where n is the step size
-            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size, step_size))
-        # for j2 in range(n_windows_total):
-        #     if j2 not in test_windows:
-        #         #ensure the
-        #         train_ind = np.arange(window_start_ind[j2], window_start_ind[j2] + window_size)
-        train_ind = list(set(range(n_timesteps)) - set(test_ind))
-
-
-        folds.append((train_ind, test_ind))
-        ratio =  len(test_ind) / len(train_ind)
-        print(f'Ratio of train to test indices is {ratio}')
-
-
-    # As a sanity check, plot the distribution of the test indices
-    fig, ax = plt.subplots()
-    ax.hist(train_ind, label='train')
-    ax.hist(test_ind, label='test')
-    ax.legend()
-    plt.show()
-
-    return folds
-def create_folds_old(n_timesteps, num_folds=10, num_windows=200):
-    n_windows_total = num_folds * num_windows
-    window_size = n_timesteps // n_windows_total
-    window_start_ind = np.arange(0, n_timesteps, window_size)
-    folds = []
-    for i in range(num_folds):
-        test_windows = np.arange(i, n_windows_total, num_folds)
-        test_ind = []
-        for j in test_windows:
-            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + window_size))
-        train_ind = list(set(range(n_timesteps)) - set(test_ind))
-        #adjust the train indices so it doesnt oversample from the end of the distribution
-        train_ind = train_ind[0:len(test_ind)]
-        #add the leftover indices to the test indices
-        test_ind.extend(list(set(range(n_timesteps)) - set(train_ind)))
-
-        folds.append((train_ind, test_ind))
-        #check the ratio of train_ind to test_ind
-        ratio = len(train_ind) / len(test_ind)
-    #as a sanity check, plot the distribution of the test indices
     return folds
 
 def create_sliding_window_folds(n_timesteps, num_folds=10):
@@ -572,9 +472,40 @@ def load_previous_results(data_dir):
     return params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10
 
 
-def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10):
+def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, custom_folds):
 
+    for rat_id in data_store['rat_id']:
+        for rat_id_2 in data_store['rat_id']:
+            if rat_id == rat_id_2:
+                continue
+            elif rat_id == 'rat_3':
+                params = params_1000_window_250bin_rat3
+            elif rat_id == 'rat_8':
+                params = params_1000_window_250bin_rat8
+            elif rat_id == 'rat_9':
+                params = params_1000_window_250bin_rat9
+            elif rat_id == 'rat_10':
+                params = params_1000_window_250bin_rat10
+            else:
+                params = None
+            spks = data_store['X']
+            bhv = data_store['labels']
+            for train_index, test_index in custom_folds:
+                X_train, X_test = spks[train_index], spks[test_index]
+                y_train, y_test = y[train_index], y[test_index]
 
+                # Apply dimensionality reduction
+                X_train_reduced = current_reducer.fit_transform(X_train)
+
+                # take the inverse transform of the reduced data
+                # X_train_reduced_mapped_back = current_reducer.inverse_transform(X_train_reduced)
+                X_test_reduced = current_reducer.transform(X_test)
+
+                X_train_reduced_shuffled = X_train_reduced.copy()
+                np.random.shuffle(X_train_reduced_shuffled)
+
+                X_test_reduced_shuffled = X_test_reduced.copy()
+                np.random.shuffle(X_test_reduced_shuffled)
 
 
 def main():
