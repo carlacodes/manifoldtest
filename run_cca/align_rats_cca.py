@@ -437,7 +437,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 #apply cca to the reduced data
                 cca = CCA(n_components=8)
                 # data1_c, data2_c = cca.fit_transform(X_test_reduced_1, X_test_reduced_2)
-                A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_1, fullReturn=True)
+                A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_2, fullReturn=True)
                 #get the mean of the correlation coefficients
                 avg_corr = np.mean(r)
 
