@@ -403,7 +403,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
             else:
                 custom_folds = folds_rat_1
 
-            for i in range(len(custom_folds)):
+            for i in range(1):
                 regressor_kwargs_1.update(
                     {k.replace('estimator__', ''): v for k, v in params_1.items() if k.startswith('estimator__')})
                 reducer_kwargs_1.update(
