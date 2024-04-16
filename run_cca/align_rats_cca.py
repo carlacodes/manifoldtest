@@ -327,6 +327,11 @@ def load_previous_results(data_dir):
     mean_score_500binwidth_1000windows = np.load(f'{data_dir}/cluster_results/mean_score_500sbinwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-08.npy', allow_pickle=True)
     mean_score_100binwidth_1000windows = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-05.npy', allow_pickle=True)
     ##compare across rats
+    params_1000_window_250bin_rat7 = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-03_16-15-28.npy', allow_pickle=True)
+
+
+
+
     rat_3_data_dir = 'C:/neural_data/rat_3/25-3-2019'
     mean_score_1000_window_250bin_rat3 = np.load(f'{rat_3_data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05.npy')
     params_1000_window_250bin_rat3 = np.load(f'{rat_3_data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_2024-04-05_12-51-01.npy', allow_pickle=True)
@@ -348,7 +353,7 @@ def load_previous_results(data_dir):
     return params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10
 
 
-def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, custom_folds):
+def run_cca_on_rat_data(data_store, param_dict, custom_folds):
     regressor_kwargs = {'n_neighbors': 70}
 
     reducer = UMAP
@@ -372,24 +377,8 @@ def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_
 
     for rat_id_1 in data_store.keys():
         for rat_id_2 in data_store.keys():
-            if rat_id_1 == rat_id_2:
-                continue
-            elif rat_id_1 == 'rat_3':
-                params_1 = params_1000_window_250bin_rat3
-            elif rat_id_1 == 'rat_8':
-                params_1 = params_1000_window_250bin_rat8
-            elif rat_id_1 == 'rat_9':
-                params_1 = params_1000_window_250bin_rat9
-            elif rat_id_1 == 'rat_10':
-                params_1 = params_1000_window_250bin_rat10
-            elif rat_id_2 == 'rat_3':
-                params_2 = params_1000_window_250bin_rat3
-            elif rat_id_2 == 'rat_8':
-                params_2 = params_1000_window_250bin_rat8
-            elif rat_id_2 == 'rat_9':
-                params_2 = params_1000_window_250bin_rat9
-            elif rat_id_2 == 'rat_10':
-                params_2 = params_1000_window_250bin_rat10
+            params_1 = param_dict[rat_id_1]
+            params_2 = param_dict[rat_id_2]
 
             X_rat_1 = data_store[rat_id_1]['X']
             X_rat_2 = data_store[rat_id_2]['X']
@@ -485,7 +474,14 @@ def main():
 
     n_timesteps = X_for_umap.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
-    run_cca_on_rat_data(data_store_big, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, custom_folds)
+    param_dict = {}
+    param_dict['rat_3'] = params_1000_window_250bin_rat3
+    param_dict['rat_8'] = params_1000_window_250bin_rat8
+    param_dict['rat_9'] = params_1000_window_250bin_rat9
+    param_dict['rat_10'] = params_1000_window_250bin_rat10
+    param_dict['rat_7'] = params_1000_window_250bin_rat10
+
+    run_cca_on_rat_data(data_store_big, param_dict, custom_folds)
 
 
 if __name__ == '__main__':
