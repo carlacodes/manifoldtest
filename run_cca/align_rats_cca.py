@@ -377,6 +377,9 @@ def run_cca_on_rat_data(data_store, param_dict, custom_folds):
 
     for rat_id_1 in data_store.keys():
         for rat_id_2 in data_store.keys():
+            if rat_id_1 == rat_id_2:
+                print(f'Skipping {rat_id_1} and {rat_id_2}')
+                continue
             params_1 = param_dict[rat_id_1]
             params_2 = param_dict[rat_id_2]
             #remove np array
@@ -417,7 +420,7 @@ def run_cca_on_rat_data(data_store, param_dict, custom_folds):
                 X_test_reduced_2 = current_reducer_2.transform(X_test_2)
 
                 #apply cca to the reduced data
-                cca = CCA(n_components=3)
+                cca = CCA(n_components=8)
                 data1_c, data2_c = cca.fit_transform(X_train_reduced_1, X_train_reduced_2)
                 correlation_matrix = np.corrcoef(data1_c.T, data2_c.T)
 
@@ -427,7 +430,7 @@ def run_cca_on_rat_data(data_store, param_dict, custom_folds):
                 print("Correlation coefficients:", correlation)
                 #average the correlation coefficients
                 avg_corr = np.mean(correlation)
-                print(f'The average correlation coefficient is {avg_corr}')
+                print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
     return
 
 
