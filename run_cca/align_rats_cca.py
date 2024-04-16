@@ -378,10 +378,12 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
     corr_dict = {}
     for rat_id_1 in data_store.keys():
+        print(f'Working on rat {rat_id_1}')
         for rat_id_2 in data_store.keys():
-            # if rat_id_1 == rat_id_2:
-            #     print(f'Skipping {rat_id_1} and {rat_id_2}')
-            #     continue
+            print(f'Working on rat {rat_id_2}')
+            if rat_id_1 == rat_id_2:
+                print(f'Skipping {rat_id_1} and {rat_id_2}')
+                continue
             params_1 = param_dict[rat_id_1]
             params_2 = param_dict[rat_id_2]
             #remove np array
