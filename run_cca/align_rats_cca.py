@@ -13,6 +13,7 @@ from sklearn.multioutput import MultiOutputRegressor
 from umap import UMAP
 import seaborn as sns
 from scipy.stats import ttest_ind
+from manifold_neural.helpers import cca_tools
 from numpy import mean, std, var, sqrt
 
 
@@ -424,23 +425,27 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 # Apply dimensionality reduction
                 X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
                 X_train_reduced_2 = current_reducer_2.fit_transform(X_train_2)
-
+                np.array_equal(X_train_reduced_1, X_train_reduced_2)
 
                 X_test_reduced_1 = current_reducer_1.transform(X_test_1)
                 X_test_reduced_2 = current_reducer_2.transform(X_test_2)
+                #check if X_test_reduced_1 and X_test_reduced_2 are the same
+                np.array_equal(X_test_reduced_1, X_test_reduced_2)
 
                 #apply cca to the reduced data
                 cca = CCA(n_components=8)
-                data1_c, data2_c = cca.fit_transform(X_test_reduced_1, X_test_reduced_2)
-                correlation_matrix = np.corrcoef(data1_c.T, data2_c.T)
+                # data1_c, data2_c = cca.fit_transform(X_test_reduced_1, X_test_reduced_2)
+                A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_1)
+
+                # correlation_matrix = np.corrcoef(data1_c.T, data2_c.T)
 
                 # Since corrcoef returns a matrix, we only need the off-diagonal elements which represent the correlation between the two datasets.
-                correlation = correlation_matrix[np.triu_indices(data1_c.shape[1], k=1)]
+                # correlation = correlation_matrix[np.triu_indices(data1_c.shape[1], k=1)]
 
-                print("Correlation coefficients:", correlation)
-                #average the correlation coefficients
-                avg_corr = np.mean(correlation)
-                print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
+                # print("Correlation coefficients:", correlation)
+                # #average the correlation coefficients
+                # avg_corr = np.mean(correlation)
+                # print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
     return
 
 
