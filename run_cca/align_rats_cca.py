@@ -392,15 +392,15 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
             folds_rat_1 = fold_store[rat_id_1]
             folds_rat_2 = fold_store[rat_id_2]
             #check which folds are shorter
-            folds_rat_1_len = [len(fold) for fold in folds_rat_1]
-            folds_rat_2_len = [len(fold) for fold in folds_rat_2]
+            folds_rat_1_len = [len(fold) for fold in folds_rat_1[0]]
+            folds_rat_2_len = [len(fold) for fold in folds_rat_2[0]]
             print(f'The lengths of the folds for rat {rat_id_1} are {folds_rat_1_len}')
             if len(set(folds_rat_1_len)) > 1:
                 custom_folds = folds_rat_2
             else:
                 custom_folds = folds_rat_1
 
-            for train_index, test_index in custom_folds:
+            for i in range(len(custom_folds)):
                 regressor_kwargs_1.update(
                     {k.replace('estimator__', ''): v for k, v in params_1.items() if k.startswith('estimator__')})
                 reducer_kwargs_1.update(
@@ -416,10 +416,10 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 current_reducer_1 = reducer(**reducer_kwargs_1)
                 current_reducer_2 = reducer(**reducer_kwargs_2)
 
-                X_train_1, X_test_1 = X_rat_1[train_index], X_rat_1[test_index]
+                X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][0]]
 
 
-                X_train_2, X_test_2 = X_rat_2[train_index], X_rat_2[test_index]
+                X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][0]], X_rat_2[folds_rat_2[i][0]]
 
                 # Apply dimensionality reduction
                 X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
