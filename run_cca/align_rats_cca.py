@@ -485,6 +485,8 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs_2 = {'n_neighbors': 70}
 
     corr_dict = {}
+    X_reduced_store_test = {}
+    X_reduced_store_test_list = []
     for rat_id_1 in data_store.keys():
         params_1 = param_dict[rat_id_1]
         #remove np array
@@ -523,6 +525,7 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
             X_test_reduced_1 = current_reducer_1.transform(X_test_1)
             X_reduced_store_train[rat_id_1] = X_train_reduced_1
             X_reduced_store_test[rat_id_1] = X_test_reduced_1
+            X_reduced_store_test_list.append(X_test_reduced_1)
 
     #apply gcca to the reduced data
     gcca = GCCA()
@@ -530,7 +533,11 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
     for rat_id in data_store.keys():
         # X_reduced_store_train[rat_id] = X_reduced_store_train[rat_id][0:1000, :]
         X_reduced_store_test[rat_id] = X_reduced_store_test[rat_id][0:1000, :]
-    gcca.fit(X_reduced_store_test)
+
+    for i in range(len(X_reduced_store_test_list)):
+        X_reduced_store_test_list[i] = X_reduced_store_test_list[i][0:1000, :]
+
+    gcca.fit(X_reduced_store_test_list)
     return
 
 
