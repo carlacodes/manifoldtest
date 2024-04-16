@@ -548,8 +548,6 @@ def load_previous_results(data_dir):
     previous_best_params_250binwidth = np.load(f'{data_dir}/cluster_results/params_all_trials_randomizedsearchcv_250bin_200windows_jake_fold_sinandcos_2024-04-03_16-17-04.npy', allow_pickle=True)
     mean_score_500binwidth_200windows = np.load(f'{data_dir}/cluster_results/mean_score_all_trials_randomizedsearchcv_binwidth500_200windows_jake_fold_sinandcos_2024-04-08_11-42-55.npy', allow_pickle=True)
 
-
-
     mean_score_500binwidth_1000windows = np.load(f'{data_dir}/cluster_results/mean_score_500sbinwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-08.npy', allow_pickle=True)
     mean_score_100binwidth_1000windows = np.load(f'{data_dir}/cluster_results/mean_score_100binwidth_randomizedsearchcv_1000windows_jake_fold_sinandcos_2024-04-05.npy', allow_pickle=True)
     ##compare across rats
@@ -571,109 +569,97 @@ def load_previous_results(data_dir):
 
 
 
-    return
+    return params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10
 
-def plot_inverse_transform_umap(data_dir):
-    for fold in [0, 1, 2, 3]:
-        #load the X_train and X_test data
-        X_train = np.load(f'{data_dir}/cluster_results/X_train_reduced_mapped_back_fold_{fold}.npy')
-        X_test = np.load(f'{data_dir}/cluster_results/X_test_reduced_mapped_back_fold_{fold}.npy')
-        #plot them on top of each other with alpha =0.5
-        # fig, ax = plt.subplots(1, 1)
-        # ax.plot(X_train, label = 'train', alpha = 0.5)
-        # ax.plot(X_test, label = 'test', alpha = 0.5)
-        # ax.set_title(f'Inverse transformed UMAP embeddings for fold {fold}')
-        # plt.legend()
-        # plt.show()
-
-        fig, ax = plt.subplots()
-        ax.plot(X_train[:, 0], label='mapped back')
-        ax.plot(X_train[:, 0], label='original')
-        ax.set_title('Mapped back data for train data')
-        plt.legend()
-    return
 
 
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    plot_inverse_transform_umap(data_dir)
-    prev_best_params = load_previous_results(data_dir)
-    spike_dir = os.path.join(data_dir, 'physiology_data')
-    dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-    # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
-    # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
+    params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10 = load_previous_results(data_dir)
 
 
-    spike_data_trial = spike_data
-    data_dir_path = Path(data_dir)
+
+    #loop over the data dirs
+    data_dir = 'C:/neural_data/rat_7/6-12-2019'
+
+    for data_dir in data_dirs:
+        spike_dir = os.path.join(data_dir, 'physiology_data')
+        dlc_dir = os.path.join(data_dir, 'positional_data')
+        labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
+        spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+        # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
+        # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
 
 
-    # check for neurons with constant firing rates
-    tolerance = 1e-10  # or any small number that suits your needs
-    if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
-        print('There are neurons with constant firing rates')
-        # remove those neurons
-        spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
-    # THEN DO THE Z SCORE
-    X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
 
-    if np.isnan(X_for_umap).any():
-        print('There are nans in the data')
-
-    X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
-
-    # as a check, plot the firing rates for a single neuron before and after smoothing
-    # fig, ax = plt.subplots(1, 2)
-    # ax[0].plot(X_for_umap[:, 0])
-    # ax[0].set_title('Before smoothing')
-    # ax[1].plot(X_for_umap_smooth[ :, 0])
-    # ax[1].set_title('After smoothing')
-    # plt.show()
-
-    labels_for_umap = labels[:, 0:6]
-    labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
-
-    label_df = pd.DataFrame(labels_for_umap,
-                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
-    label_df['time_index'] = np.arange(0, label_df.shape[0])
-
-    regressor = KNeighborsRegressor
-    regressor_kwargs = {'n_neighbors': 70}
-
-    reducer = UMAP
-
-    reducer_kwargs = {
-        'n_components': 3,
-        # 'n_neighbors': 70,
-        # 'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
-    }
-
-    regress = ['angle_sin', 'angle_cos']  # changing to two target variables
-
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
-    filename_score = f'results_all_trials_randomizedsearchcv_{now}.npy'
+        spike_data_trial = spike_data
+        data_dir_path = Path(data_dir)
 
 
-    best_params, mean_score = train_and_test_on_umap_randcv(
-        X_for_umap,
-        label_df,
-        regress,
-        regressor,
-        regressor_kwargs,
-        reducer,
-        reducer_kwargs,
-    )
-    y = label_df[regress].values
+        # check for neurons with constant firing rates
+        tolerance = 1e-10  # or any small number that suits your needs
+        if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
+            print('There are neurons with constant firing rates')
+            # remove those neurons
+            spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
+        # THEN DO THE Z SCORE
+        X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
 
-    np.save(data_dir_path / filename, best_params)
-    np.save(data_dir_path / filename_score, mean_score)
+        if np.isnan(X_for_umap).any():
+            print('There are nans in the data')
+
+        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+
+        # as a check, plot the firing rates for a single neuron before and after smoothing
+        # fig, ax = plt.subplots(1, 2)
+        # ax[0].plot(X_for_umap[:, 0])
+        # ax[0].set_title('Before smoothing')
+        # ax[1].plot(X_for_umap_smooth[ :, 0])
+        # ax[1].set_title('After smoothing')
+        # plt.show()
+
+        labels_for_umap = labels[:, 0:6]
+        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+
+        label_df = pd.DataFrame(labels_for_umap,
+                                columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+        label_df['time_index'] = np.arange(0, label_df.shape[0])
+
+        regressor = KNeighborsRegressor
+        regressor_kwargs = {'n_neighbors': 70}
+
+        reducer = UMAP
+
+        reducer_kwargs = {
+            'n_components': 3,
+            # 'n_neighbors': 70,
+            # 'min_dist': 0.3,
+            'metric': 'euclidean',
+            'n_jobs': 1,
+        }
+
+        regress = ['angle_sin', 'angle_cos']  # changing to two target variables
+
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        now_day = datetime.now().strftime("%Y-%m-%d")
+        filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
+        filename_score = f'results_all_trials_randomizedsearchcv_{now}.npy'
+
+
+        best_params, mean_score = train_and_test_on_umap_randcv(
+            X_for_umap,
+            label_df,
+            regress,
+            regressor,
+            regressor_kwargs,
+            reducer,
+            reducer_kwargs,
+        )
+        y = label_df[regress].values
+
+        np.save(data_dir_path / filename, best_params)
+        np.save(data_dir_path / filename_score, mean_score)
 
 
 if __name__ == '__main__':
