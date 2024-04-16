@@ -378,9 +378,9 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
     for rat_id_1 in data_store.keys():
         for rat_id_2 in data_store.keys():
-            if rat_id_1 == rat_id_2:
-                print(f'Skipping {rat_id_1} and {rat_id_2}')
-                continue
+            # if rat_id_1 == rat_id_2:
+            #     print(f'Skipping {rat_id_1} and {rat_id_2}')
+            #     continue
             params_1 = param_dict[rat_id_1]
             params_2 = param_dict[rat_id_2]
             #remove np array
@@ -395,7 +395,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
             folds_rat_1_len = [len(fold) for fold in folds_rat_1[0]]
             folds_rat_2_len = [len(fold) for fold in folds_rat_2[0]]
             print(f'The lengths of the folds for rat {rat_id_1} are {folds_rat_1_len}')
-            if len(set(folds_rat_1_len)) > 1:
+            if len(set(folds_rat_1_len)) > folds_rat_2_len:
                 custom_folds = folds_rat_2
             else:
                 custom_folds = folds_rat_1
