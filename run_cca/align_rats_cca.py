@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from sklearn.multioutput import MultiOutputRegressor
-
+from mvlearn.embed import GCCA
 from umap import UMAP
 import seaborn as sns
 from scipy.stats import ttest_ind
@@ -457,9 +457,77 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 # avg_corr = np.mean(correlation)
                 print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
                 #add the correlation coefficient to a dictionary
-                corr_dict[rat_id_1 + '_' + rat_id_2] = avg_corr
+                corr_dict[rat_id_1 + '_' + rat_id_2] = r
     return
 
+def run_gcca_on_rat_data(data_store, param_dict, fold_store):
+    regressor_kwargs = {'n_neighbors': 70}
+
+    reducer = UMAP
+    X_reduced_store_train = {}
+    X_reduced_store_test = {}
+
+    reducer_kwargs_1 = {
+        'n_components': 3,
+        # 'n_neighbors': 70,
+        # 'min_dist': 0.3,
+        'metric': 'euclidean',
+        'n_jobs': 1,
+    }
+    reducer_kwargs_2 = {
+        'n_components': 3,
+        # 'n_neighbors': 70,
+        # 'min_dist': 0.3,
+        'metric': 'euclidean',
+        'n_jobs': 1,
+    }
+    regressor_kwargs_1 = {'n_neighbors': 70}
+    regressor_kwargs_2 = {'n_neighbors': 70}
+
+    corr_dict = {}
+    for rat_id_1 in data_store.keys():
+        params_1 = param_dict[rat_id_1]
+        #remove np array
+        params_1 = params_1.item()
+        params_2 = params_2.item()
+
+        X_rat_1 = data_store[rat_id_1]['X']
+        folds_rat_1 = fold_store[rat_id_1]
+        #check which folds are shorter
+        folds_rat_1_len = [len(fold) for fold in folds_rat_1[0]]
+        print(f'The lengths of the folds for rat {rat_id_1} are {folds_rat_1_len}')
+
+
+        for i in range(1):
+            regressor_kwargs_1.update(
+                {k.replace('estimator__', ''): v for k, v in params_1.items() if k.startswith('estimator__')})
+            reducer_kwargs_1.update(
+                {k.replace('reducer__', ''): v for k, v in params_1.items() if k.startswith('reducer__')})
+
+            regressor_kwargs_2.update(
+                {k.replace('estimator__', ''): v for k, v in params_2.items() if k.startswith('estimator__')})
+            reducer_kwargs_2.update(
+                {k.replace('reducer__', ''): v for k, v in params_2.items() if k.startswith('reducer__')})
+
+
+            # Initialize the reducer with current parameters
+            current_reducer_1 = reducer(**reducer_kwargs_1)
+            current_reducer_2 = reducer(**reducer_kwargs_2)
+            #todo: need to check if truncating is ok
+
+
+
+            X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][1]]
+
+
+
+            # Apply dimensionality reduction
+            X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
+
+            X_test_reduced_1 = current_reducer_1.transform(X_test_1)
+            X_reduced_store_train[rat_id_1] = X_train_reduced_1
+            X_reduced_store_test[rat_id_1] = X_test_reduced_1
+    return
 
 
 
