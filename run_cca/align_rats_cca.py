@@ -419,7 +419,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][0]]
 
 
-                X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][0]], X_rat_2[folds_rat_2[i][0]]
+                X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][1]], X_rat_2[folds_rat_2[i][1]]
 
                 # Apply dimensionality reduction
                 X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
@@ -431,7 +431,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
                 #apply cca to the reduced data
                 cca = CCA(n_components=8)
-                data1_c, data2_c = cca.fit_transform(X_train_reduced_1, X_train_reduced_2)
+                data1_c, data2_c = cca.fit_transform(X_test_reduced_1, X_test_reduced_2)
                 correlation_matrix = np.corrcoef(data1_c.T, data2_c.T)
 
                 # Since corrcoef returns a matrix, we only need the off-diagonal elements which represent the correlation between the two datasets.
