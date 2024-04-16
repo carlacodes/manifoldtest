@@ -359,39 +359,84 @@ def load_previous_results(data_dir):
 
 
 def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, custom_folds):
+    regressor_kwargs = {'n_neighbors': 70}
 
-    for rat_id in data_store['rat_id']:
+    reducer = UMAP
+
+    reducer_kwargs_1 = {
+        'n_components': 3,
+        # 'n_neighbors': 70,
+        # 'min_dist': 0.3,
+        'metric': 'euclidean',
+        'n_jobs': 1,
+    }
+    reducer_kwargs_2 = {
+        'n_components': 3,
+        # 'n_neighbors': 70,
+        # 'min_dist': 0.3,
+        'metric': 'euclidean',
+        'n_jobs': 1,
+    }
+    regressor_kwargs_1 = {'n_neighbors': 70}
+    regressor_kwargs_2 = {'n_neighbors': 70}
+
+    for rat_id_1 in data_store['rat_id']:
         for rat_id_2 in data_store['rat_id']:
-            if rat_id == rat_id_2:
+            if rat_id_1 == rat_id_2:
                 continue
-            elif rat_id == 'rat_3':
-                params = params_1000_window_250bin_rat3
-            elif rat_id == 'rat_8':
-                params = params_1000_window_250bin_rat8
-            elif rat_id == 'rat_9':
-                params = params_1000_window_250bin_rat9
-            elif rat_id == 'rat_10':
-                params = params_1000_window_250bin_rat10
-            else:
-                params = None
-            spks = data_store['X']
-            bhv = data_store['labels']
+            elif rat_id_1 == 'rat_3':
+                params_1 = params_1000_window_250bin_rat3
+            elif rat_id_1 == 'rat_8':
+                params_1 = params_1000_window_250bin_rat8
+            elif rat_id_1 == 'rat_9':
+                params_1 = params_1000_window_250bin_rat9
+            elif rat_id_1 == 'rat_10':
+                params_1 = params_1000_window_250bin_rat10
+            elif rat_id_2 == 'rat_3':
+                params_2 = params_1000_window_250bin_rat3
+            elif rat_id_2 == 'rat_8':
+                params_2 = params_1000_window_250bin_rat8
+            elif rat_id_2 == 'rat_9':
+                params_2 = params_1000_window_250bin_rat9
+            elif rat_id_2 == 'rat_10':
+                params_2 = params_1000_window_250bin_rat10
+
+            X_rat_1 = data_store[rat_id_1]['X']
+            X_rat_2 = data_store[rat_id_2]['X']
+
+
             for train_index, test_index in custom_folds:
-                X_train, X_test = spks[train_index], spks[test_index]
-                y_train, y_test = y[train_index], y[test_index]
+                regressor_kwargs_1.update(
+                    {k.replace('estimator__', ''): v for k, v in params_1.items() if k.startswith('estimator__')})
+                reducer_kwargs_1.update(
+                    {k.replace('reducer__', ''): v for k, v in params_1.items() if k.startswith('reducer__')})
+
+                regressor_kwargs_2.update(
+                    {k.replace('estimator__', ''): v for k, v in params_2.items() if k.startswith('estimator__')})
+                reducer_kwargs_2.update(
+                    {k.replace('reducer__', ''): v for k, v in params_2.items() if k.startswith('reducer__')})
+
+
+                # Initialize the reducer with current parameters
+                current_reducer_1 = reducer(**reducer_kwargs_1)
+                current_reducer_2 = reducer(**reducer_kwargs_2)
+
+                X_train_1, X_test_1 = X_rat_1[train_index], X_rat_2[test_index]
+
+
+                X_train_2, X_test_2 = X_rat_2[train_index], X_rat_2[test_index]
 
                 # Apply dimensionality reduction
-                X_train_reduced = current_reducer.fit_transform(X_train)
+                X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
+                X_train_reduced_2 = current_reducer_2.fit_transform(X_train_2)
 
-                # take the inverse transform of the reduced data
-                # X_train_reduced_mapped_back = current_reducer.inverse_transform(X_train_reduced)
-                X_test_reduced = current_reducer.transform(X_test)
 
-                X_train_reduced_shuffled = X_train_reduced.copy()
-                np.random.shuffle(X_train_reduced_shuffled)
+                X_test_reduced_1 = current_reducer_1.transform(X_test_1)
+                X_test_reduced_2 = current_reducer_2.transform(X_test_2)
 
-                X_test_reduced_shuffled = X_test_reduced.copy()
-                np.random.shuffle(X_test_reduced_shuffled)
+                #apply cca to the reduced data
+
+
 
 
 def main():
