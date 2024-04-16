@@ -480,6 +480,9 @@ def main():
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         #add label_df and X_for_umap to a dictionary
         data_store = {'X': X_for_umap, 'labels': label_df, 'rat_id': {rat_id}}
+
+    n_timesteps = X_for_umap.shape[0]
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, custom_folds)
 
 
