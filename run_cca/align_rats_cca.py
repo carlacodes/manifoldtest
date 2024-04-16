@@ -503,10 +503,7 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
             reducer_kwargs_1.update(
                 {k.replace('reducer__', ''): v for k, v in params_1.items() if k.startswith('reducer__')})
 
-            regressor_kwargs_2.update(
-                {k.replace('estimator__', ''): v for k, v in params_2.items() if k.startswith('estimator__')})
-            reducer_kwargs_2.update(
-                {k.replace('reducer__', ''): v for k, v in params_2.items() if k.startswith('reducer__')})
+
 
 
             # Initialize the reducer with current parameters
