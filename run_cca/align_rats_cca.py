@@ -33,14 +33,6 @@ import scipy
 import pickle as pkl
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 
-# TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
-# 2. change the regressor to GaussianProcessRegressor
-# 3. should the umap X_training data be 2d rather than 3d? Also need to z-score the X input data
-# 4. in the 2021 sci advances paper they used 2 fold cross validation
-# 5. for the isomap they used n_neighbours = 20 #
-# 6. they used the gaussian-filtered (omega = 2-time bins) square root of instantenous firing rates for the isomap decomposition
-# 7. bin duration = 512 ms, so about the same as what I have
-# 8. target position was smoothed using a gaussian filter
 def passthrough_func(X):
     return X
 
@@ -92,18 +84,6 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
 
 
-
-def cohend(d1, d2):
-    # calculate the size of samples
-    n1, n2 = len(d1), len(d2)
-    # calculate the variance of the samples
-    s1, s2 = var(d1, ddof=1), var(d2, ddof=1)
-    # calculate the pooled standard deviation
-    s = sqrt(((n1 - 1) * s1 + (n2 - 1) * s2) / (n1 + n2 - 2))
-    # calculate the means of the samples
-    u1, u2 = mean(d1), mean(d2)
-    # calculate the effect size
-    return (u1 - u2) / s
 
 def train_and_test_on_umap_randcv(
         spks,
