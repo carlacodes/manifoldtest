@@ -395,7 +395,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
             folds_rat_1_len = [len(fold) for fold in folds_rat_1[0]]
             folds_rat_2_len = [len(fold) for fold in folds_rat_2[0]]
             print(f'The lengths of the folds for rat {rat_id_1} are {folds_rat_1_len}')
-            if len(set(folds_rat_1_len)) > folds_rat_2_len:
+            if len(set(folds_rat_1_len)) > len(set(folds_rat_2_len)):
                 custom_folds = folds_rat_2
             else:
                 custom_folds = folds_rat_1
