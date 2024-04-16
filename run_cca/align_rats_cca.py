@@ -446,7 +446,7 @@ def main():
     params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10 = load_previous_results(data_dir)
     #loop over the data dirs
     data_dirs = ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_3/25-3-2019']
-
+    data_store_big = {}
     for data_dir in data_dirs:
         rat_id = data_dir.split('/')[-2]
         spike_dir = os.path.join(data_dir, 'physiology_data')
@@ -479,7 +479,8 @@ def main():
                                 columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         #add label_df and X_for_umap to a dictionary
-        data_store = {'X': X_for_umap, 'labels': label_df, 'rat_id': {rat_id}}
+        data_store = {'X': X_for_umap, 'labels': label_df}
+        data_store_big[rat_id] = data_store
 
     n_timesteps = X_for_umap.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
