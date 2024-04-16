@@ -418,6 +418,12 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 # Initialize the reducer with current parameters
                 current_reducer_1 = reducer(**reducer_kwargs_1)
                 current_reducer_2 = reducer(**reducer_kwargs_2)
+                #todo: need to check if truncating is ok
+                if len(folds_rat_1[i][1]) > len(folds_rat_2[i][1]):
+                    folds_rat_1[i] = (folds_rat_1[i][0], folds_rat_1[i][1][0:len(folds_rat_2[i][1])])
+                elif len(folds_rat_1[i][1]) < len(folds_rat_2[i][1]):
+                    folds_rat_2[i] = (folds_rat_2[i][0], folds_rat_2[i][1][0:len(folds_rat_1[i][1])])
+
 
                 X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][1]]
 
@@ -461,7 +467,7 @@ def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
     params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10 = load_previous_results(data_dir)
     #loop over the data dirs
-    data_dirs = ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_3/25-3-2019']
+    data_dirs = [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']
     data_store_big = {}
     fold_store = {}
     for data_dir in data_dirs:
