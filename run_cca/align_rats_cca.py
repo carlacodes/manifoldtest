@@ -379,6 +379,9 @@ def run_cca_on_rat_data(data_store, param_dict, custom_folds):
         for rat_id_2 in data_store.keys():
             params_1 = param_dict[rat_id_1]
             params_2 = param_dict[rat_id_2]
+            #remove np array
+            params_1 = params_1.item()
+            params_2 = params_2.item()
 
             X_rat_1 = data_store[rat_id_1]['X']
             X_rat_2 = data_store[rat_id_2]['X']
