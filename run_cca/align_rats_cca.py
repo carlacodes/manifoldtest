@@ -416,10 +416,10 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 current_reducer_1 = reducer(**reducer_kwargs_1)
                 current_reducer_2 = reducer(**reducer_kwargs_2)
 
-                X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][0]]
+                X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][1]]
 
 
-                X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][1]], X_rat_2[folds_rat_2[i][1]]
+                X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][0]], X_rat_2[folds_rat_2[i][1]]
 
                 # Apply dimensionality reduction
                 X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
