@@ -572,6 +572,9 @@ def load_previous_results(data_dir):
     return params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10
 
 
+def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10):
+
+
 
 
 def main():
@@ -581,9 +584,10 @@ def main():
 
 
     #loop over the data dirs
-    data_dir = 'C:/neural_data/rat_7/6-12-2019'
+    data_dirs = ['C:/neural_data/rat_7/6-12-2019']
 
     for data_dir in data_dirs:
+        rat_id = data_dir.split('/')[-2]
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -625,41 +629,10 @@ def main():
         label_df = pd.DataFrame(labels_for_umap,
                                 columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
+        #add label_df and X_for_umap to a dictionary
+        data_store = {'X': X_for_umap, 'labels': label_df, 'rat_id': {rat_id}}
 
-        regressor = KNeighborsRegressor
-        regressor_kwargs = {'n_neighbors': 70}
-
-        reducer = UMAP
-
-        reducer_kwargs = {
-            'n_components': 3,
-            # 'n_neighbors': 70,
-            # 'min_dist': 0.3,
-            'metric': 'euclidean',
-            'n_jobs': 1,
-        }
-
-        regress = ['angle_sin', 'angle_cos']  # changing to two target variables
-
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        now_day = datetime.now().strftime("%Y-%m-%d")
-        filename = f'params_all_trials_randomizedsearchcv_jake_fold_sinandcos_{now}.npy'
-        filename_score = f'results_all_trials_randomizedsearchcv_{now}.npy'
-
-
-        best_params, mean_score = train_and_test_on_umap_randcv(
-            X_for_umap,
-            label_df,
-            regress,
-            regressor,
-            regressor_kwargs,
-            reducer,
-            reducer_kwargs,
-        )
-        y = label_df[regress].values
-
-        np.save(data_dir_path / filename, best_params)
-        np.save(data_dir_path / filename_score, mean_score)
+    run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10)
 
 
 if __name__ == '__main__':
