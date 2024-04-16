@@ -7,7 +7,7 @@ from pathlib import Path
 from sklearn.cross_decomposition import CCA
 import numpy as np
 import pandas as pd
-
+from scipy.stats import pearsonr
 from sklearn.multioutput import MultiOutputRegressor
 from mvlearn.embed import GCCA
 from umap import UMAP
@@ -537,7 +537,17 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
     for i in range(len(X_reduced_store_test_list)):
         X_reduced_store_test_list[i] = X_reduced_store_test_list[i][0:1000, :]
 
-    gcca.fit(X_reduced_store_test_list)
+    latents = gcca.fit_transform(X_reduced_store_test_list)
+    # Assuming latents is a list of 2D arrays, where each 2D array corresponds to a dataset
+    corr_dict_gcca = {}
+    # Assuming latents is a list of 2D arrays, where each 2D array corresponds to a dataset
+    for i in range(latents[0].shape[1]):  # Iterate over dimensions
+        latent_neural_model_1 = latents[:, :, i]
+        print(latent_neural_model_1.shape)
+        # Calculate the correlation between the latent variables
+        corr = np.corrcoef(latent_neural_model_1)
+        #store the correlation in a dictionary
+        corr_dict_gcca[f'latent_{i}'] = corr
     return
 
 
