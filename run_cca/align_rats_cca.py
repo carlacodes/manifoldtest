@@ -442,10 +442,7 @@ def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_
 
 
 def main():
-    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10 = load_previous_results(data_dir)
-
-
 
     #loop over the data dirs
     data_dirs = ['C:/neural_data/rat_7/6-12-2019']
@@ -456,13 +453,8 @@ def main():
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
         spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-        # labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_500.npy')
-        # spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_500.npy')
-
-
 
         spike_data_trial = spike_data
-        data_dir_path = Path(data_dir)
 
 
         # check for neurons with constant firing rates
@@ -479,13 +471,6 @@ def main():
 
         X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
-        # as a check, plot the firing rates for a single neuron before and after smoothing
-        # fig, ax = plt.subplots(1, 2)
-        # ax[0].plot(X_for_umap[:, 0])
-        # ax[0].set_title('Before smoothing')
-        # ax[1].plot(X_for_umap_smooth[ :, 0])
-        # ax[1].set_title('After smoothing')
-        # plt.show()
 
         labels_for_umap = labels[:, 0:6]
         labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
@@ -495,8 +480,7 @@ def main():
         label_df['time_index'] = np.arange(0, label_df.shape[0])
         #add label_df and X_for_umap to a dictionary
         data_store = {'X': X_for_umap, 'labels': label_df, 'rat_id': {rat_id}}
-
-    run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10)
+    run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, custom_folds)
 
 
 if __name__ == '__main__':
