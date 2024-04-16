@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
 from pathlib import Path
-from sklearn import CCA
+from sklearn.cross_decomposition import CCA
 import numpy as np
 import pandas as pd
 
@@ -425,6 +425,18 @@ def run_cca_on_rat_data(data_store, params_1000_window_250bin_rat3, params_1000_
                 X_test_reduced_2 = current_reducer_2.transform(X_test_2)
 
                 #apply cca to the reduced data
+                cca = CCA(n_components=3)
+                data1_c, data2_c = cca.fit_transform(X_train_reduced_1, X_train_reduced_2)
+                correlation_matrix = np.corrcoef(data1_c.T, data2_c.T)
+
+                # Since corrcoef returns a matrix, we only need the off-diagonal elements which represent the correlation between the two datasets.
+                correlation = correlation_matrix[np.triu_indices(data1_c.shape[1], k=1)]
+
+                print("Correlation coefficients:", correlation)
+                #average the correlation coefficients
+                avg_corr = np.mean(correlation)
+                print(f'The average correlation coefficient is {avg_corr}')
+    return
 
 
 

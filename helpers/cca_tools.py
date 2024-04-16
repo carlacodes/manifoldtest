@@ -2,7 +2,6 @@
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 import matplotlib as mpl
-import pyaldata as pyal
 from scipy.stats import wilcoxon
 import pandas as pd
 from sklearn.decomposition import PCA
@@ -10,7 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy.linalg import qr, svd, inv
 from scipy.interpolate import interp1d
-import pyaldata as pyal
+# import pyaldata as pyal
 from sklearn.decomposition import PCA
 from scipy.spatial import procrustes
 import logging
@@ -19,8 +18,8 @@ import torch
 # from tools import dataTools as dt
 # from tools import utilityTools as utility
 
-monkey_defs = params.monkey_defs
-mouse_defs = params.mouse_defs
+# monkey_defs = params.monkey_defs
+# mouse_defs = params.mouse_defs
 '''Author: Mostafa Safaie, 2023'''
 
 def get_ccs(side1df, side2df, epoch, area, n_components, use_procrustes=False):
