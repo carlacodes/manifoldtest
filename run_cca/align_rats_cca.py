@@ -458,6 +458,15 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
                 #add the correlation coefficient to a dictionary
                 corr_dict[rat_id_1 + '_' + rat_id_2] = r
+
+                #for each pair plot the resultant data
+                fig, ax = plt.subplots(1, 1)
+                ax.scatter(U[:, 0], V[:, 0])
+                ax.set_title(f'CCA component 1 for rats {rat_id_1} and {rat_id_2}')
+                plt.savefig('../figures/cca/cca_component_1_' + rat_id_1 + '_' + rat_id_2 + '.png')
+                plt.show()
+
+
     return
 
 def run_gcca_on_rat_data(data_store, param_dict, fold_store):
