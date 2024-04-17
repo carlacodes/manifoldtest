@@ -351,7 +351,7 @@ def load_previous_results(data_dir):
 
 
 
-    return params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10
+    return params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, params_1000_window_250bin_rat7
 
 
 def run_cca_on_rat_data(data_store, param_dict, fold_store):
@@ -384,8 +384,8 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
             if rat_id_1 == rat_id_2:
                 print(f'Skipping {rat_id_1} and {rat_id_2}')
                 continue
-            params_1 = param_dict[rat_id_1]
-            params_2 = param_dict[rat_id_2]
+            params_1 = param_dict['rat_7']
+            params_2 = param_dict['rat_7']
             #remove np array
             params_1 = params_1.item()
             params_2 = params_2.item()
@@ -482,7 +482,6 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
         'n_jobs': 1,
     }
     regressor_kwargs_1 = {'n_neighbors': 70}
-    regressor_kwargs_2 = {'n_neighbors': 70}
 
     corr_dict = {}
     X_reduced_store_test = {}
@@ -510,11 +509,7 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
 
             # Initialize the reducer with current parameters
             current_reducer_1 = reducer(**reducer_kwargs_1)
-            current_reducer_2 = reducer(**reducer_kwargs_2)
             #todo: need to check if truncating is ok
-
-
-
             X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][1]]
 
 
@@ -554,7 +549,7 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
-    params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10 = load_previous_results(data_dir)
+    params_1000_window_250bin_rat3, params_1000_window_250bin_rat8, params_1000_window_250bin_rat9, params_1000_window_250bin_rat10, params_1000_window_250bin_rat7 = load_previous_results(data_dir)
     #loop over the data dirs
     data_dirs = [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']
     data_store_big = {}
@@ -603,9 +598,9 @@ def main():
     param_dict['rat_8'] = params_1000_window_250bin_rat8
     param_dict['rat_9'] = params_1000_window_250bin_rat9
     param_dict['rat_10'] = params_1000_window_250bin_rat10
-    param_dict['rat_7'] = params_1000_window_250bin_rat10
-    run_gcca_on_rat_data(data_store_big, param_dict, fold_store)
+    param_dict['rat_7'] = params_1000_window_250bin_rat7
     run_cca_on_rat_data(data_store_big, param_dict, fold_store)
+    run_gcca_on_rat_data(data_store_big, param_dict, fold_store)
 
 
 if __name__ == '__main__':
