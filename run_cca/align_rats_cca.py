@@ -444,7 +444,6 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
                 #apply cca to the reduced data
                 cca = CCA(n_components=8)
-                # data1_c, data2_c = cca.fit_transform(X_test_reduced_1, X_test_reduced_2)
                 A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_2, fullReturn=True)
                 #get the mean of the correlation coefficients
                 avg_corr = np.mean(r)
@@ -474,8 +473,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 aligned_data_1 = X_test_reduced_1 @ U_1 @ Vh_1
                 U_2, _, Vh_2 = linalg.svd(B, full_matrices=False, compute_uv=True, overwrite_a=False, check_finite=False)
                 aligned_data_2 = X_test_reduced_2 @ U_2 @ Vh_2
-                fig, ax = plt.subplots(1, 1)
-                #create a 3d plot of the alignments, subplots side by side
+
 
                 fig = plt.figure()
 
@@ -488,7 +486,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 ax2 = fig.add_subplot(122, projection='3d')  # 122 means: 1 row, 2 columns, second plot
                 ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2])
                 ax2.set_title(f'{rat_id_2}')
-                plt.savefig('../figures/cca/aligned_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png')
+                plt.savefig('../figures/cca/aligned_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png', bbox_inches='tight', dpi = 300)
                 plt.suptitle(f'Aligned UMAP embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
                 plt.show()
 
