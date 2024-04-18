@@ -482,10 +482,12 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 # Create first subplot for aligned_data_1
                 ax1 = fig.add_subplot(121, projection='3d')  # 121 means: 1 row, 2 columns, first plot
                 ax1.scatter(aligned_data_1[:, 0], aligned_data_1[:, 1], aligned_data_1[:, 2])
+                ax1.set_title(f'{rat_id_1}')
 
                 # Create second subplot for aligned_data_2
                 ax2 = fig.add_subplot(122, projection='3d')  # 122 means: 1 row, 2 columns, second plot
                 ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2])
+                ax2.set_title(f'{rat_id_2}')
                 plt.savefig('../figures/cca/aligned_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png')
                 plt.suptitle(f'Aligned UMAP embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
                 plt.show()
