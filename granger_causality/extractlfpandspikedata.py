@@ -1,8 +1,6 @@
 import matplotlib
 import pandas as pd
 import matplotlib.pyplot as plt
-import mat73
-import statsmodels.api as sm
 from pathlib import Path
 import scipy
 import numpy as np

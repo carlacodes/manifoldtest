@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pandas as pd
 from load_and_save_data import save_pickle
-
+from pathlib import Path
 
 def round_matlab_data(data, n_decimals=0):
     """
@@ -140,6 +140,12 @@ def create_spike_arrays(spike_data_dir):
 
     return spike_arrays
 
+def create_lfp_arrays(lfp_data_dir):
+    theta_data = loadmat(lfp_data_dir / 'thetaAndRipplePower.mat')
+    theta_power = theta_data['thetaPower']
+    theta_signal_hcomb = theta_power['hComb'][0][0]['raw']
+    power_sample_index = theta_data['powerSampleInd']['hComb'][0][0]
+    return
 
 if __name__ == '__main__':
     # data_dir = 'D:/analysis/og_honeycomb'
@@ -165,6 +171,7 @@ if __name__ == '__main__':
         # load the spike data
         spike_data_dir = os.path.join(data_dir, f'rat_{rat}', date, 'physiology_data')
         spike_arrays = create_spike_arrays(spike_data_dir)
+        lfp_arrays = create_lfp_arrays(Path(spike_data_dir))
         save_pickle(spike_arrays, 'unit_spike_times', spike_data_dir)
 
     pass

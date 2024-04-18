@@ -520,13 +520,13 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 ax1.scatter(X_test_reduced_1[:, 0], X_test_reduced_1[:, 1], X_test_reduced_1[:, 2], c=color_data_rat_1)
                 ax1.set_title(f'{rat_id_1}')
 
-                ax2.figure.add_subplot(122, projection='3d')
+                ax2 = fig.add_subplot(122, projection='3d')
                 ax2.scatter(X_test_reduced_2[:, 0], X_test_reduced_2[:, 1], X_test_reduced_2[:, 2], c=color_data_rat_2)
                 ax2.set_title(f'{rat_id_2}')
                 plt.suptitle(f'UMAP embeddings for rats {rat_id_1} and {rat_id_2}')
-                plt.savefig('../figures/cca/original_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png', bbox_inches='tight', dpi = 300)
+                plt.savefig('../figures/cca/original_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png',
+                            bbox_inches='tight', dpi=300)
                 plt.show()
-
 
 
 
