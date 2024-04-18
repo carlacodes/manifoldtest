@@ -468,9 +468,12 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 plt.savefig('../figures/cca/cca_component_1_' + rat_id_1 + '_' + rat_id_2 + '.png')
                 plt.show()
                 coef = [A, B]
-                U, _, Vh = linalg.svd(coef, full_matrices=False, compute_uv=True, overwrite_a=False, check_finite=True)
-                aligned_data_1 = X_test_reduced_1 @ U @ Vh
-                aligned_data_2 = X_test_reduced_2 @ U @ Vh
+                #convert coef to a matrix
+                coef = np.array(coef)
+                U_1, _, Vh_1 = linalg.svd(A, full_matrices=False, compute_uv=True, overwrite_a=False, check_finite=False)
+                aligned_data_1 = X_test_reduced_1 @ U_1 @ Vh_1
+                U_2, _, Vh_2 = linalg.svd(B, full_matrices=False, compute_uv=True, overwrite_a=False, check_finite=False)
+                aligned_data_2 = X_test_reduced_2 @ U_2 @ Vh_2
                 fig, ax = plt.subplots(1, 1)
                 #create a 3d plot of the alignments, subplots side by side
 
