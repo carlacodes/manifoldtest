@@ -15,6 +15,8 @@ import seaborn as sns
 from scipy.stats import ttest_ind
 from manifold_neural.helpers import cca_tools
 from numpy import mean, std, var, sqrt
+import scipy.linalg as linalg
+
 
 
 ''' Modified from Jules Lebert's code
@@ -462,9 +464,32 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 #for each pair plot the resultant data
                 fig, ax = plt.subplots(1, 1)
                 ax.scatter(U[:, 0], V[:, 0])
-                ax.set_title(f'CCA component 1 for rats {rat_id_1} and {rat_id_2}')
+                ax.set_title(f'CCA component 1 for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
                 plt.savefig('../figures/cca/cca_component_1_' + rat_id_1 + '_' + rat_id_2 + '.png')
                 plt.show()
+                coef = [A, B]
+                U, _, Vh = linalg.svd(coef, full_matrices=False, compute_uv=True, overwrite_a=False, check_finite=True)
+                aligned_data_1 = X_test_reduced_1 @ U @ Vh
+                aligned_data_2 = X_test_reduced_2 @ U @ Vh
+                fig, ax = plt.subplots(1, 1)
+                #create a 3d plot of the alignments, subplots side by side
+
+                fig = plt.figure()
+
+                # Create first subplot for aligned_data_1
+                ax1 = fig.add_subplot(121, projection='3d')  # 121 means: 1 row, 2 columns, first plot
+                ax1.scatter(aligned_data_1[:, 0], aligned_data_1[:, 1], aligned_data_1[:, 2])
+
+                # Create second subplot for aligned_data_2
+                ax2 = fig.add_subplot(122, projection='3d')  # 122 means: 1 row, 2 columns, second plot
+                ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2])
+                plt.savefig('../figures/cca/aligned_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png')
+                plt.suptitle(f'Aligned UMAP embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
+                plt.show()
+
+
+
+
 
 
     return
