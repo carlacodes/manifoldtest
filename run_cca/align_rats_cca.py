@@ -14,6 +14,7 @@ from umap import UMAP
 import seaborn as sns
 from scipy.stats import ttest_ind
 from manifold_neural.helpers import cca_tools
+from manifold_neural.helpers import visualisation
 from numpy import mean, std, var, sqrt
 import scipy.linalg as linalg
 
@@ -394,16 +395,23 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
             X_rat_1 = data_store[rat_id_1]['X']
             X_rat_2 = data_store[rat_id_2]['X']
+            labels_rat_1 = data_store[rat_id_1]['y']
+            labels_rat_2 = data_store[rat_id_2]['y']
+
+            data_1 = labels_rat_1['angle_sin'].values
+
+            data_2 = labels_rat_1['angle_cos'].values
+
             folds_rat_1 = fold_store[rat_id_1]
             folds_rat_2 = fold_store[rat_id_2]
             #check which folds are shorter
             folds_rat_1_len = [len(fold) for fold in folds_rat_1[0]]
             folds_rat_2_len = [len(fold) for fold in folds_rat_2[0]]
             print(f'The lengths of the folds for rat {rat_id_1} are {folds_rat_1_len}')
-            if len(set(folds_rat_1_len)) > len(set(folds_rat_2_len)):
-                custom_folds = folds_rat_2
-            else:
-                custom_folds = folds_rat_1
+            # if len(set(folds_rat_1_len)) > len(set(folds_rat_2_len)):
+            #     custom_folds = folds_rat_2
+            # else:
+            #     custom_folds = folds_rat_1
 
             for i in range(1):
                 regressor_kwargs_1.update(
@@ -428,9 +436,11 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
 
                 X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][1]]
+                data_1_train, data_1_test = data_1[folds_rat_1[i][0]], data_1[folds_rat_1[i][1]]
 
 
                 X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][0]], X_rat_2[folds_rat_2[i][1]]
+                data_2_train, data_2_test = data_2[folds_rat_2[i][0]], data_2[folds_rat_2[i][1]]
 
                 # Apply dimensionality reduction
                 X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
@@ -443,7 +453,6 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 np.array_equal(X_test_reduced_1, X_test_reduced_2)
 
                 #apply cca to the reduced data
-                cca = CCA(n_components=8)
                 A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_2, fullReturn=True)
                 #get the mean of the correlation coefficients
                 avg_corr = np.mean(r)
@@ -474,17 +483,24 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 U_2, _, Vh_2 = linalg.svd(B, full_matrices=False, compute_uv=True, overwrite_a=False, check_finite=False)
                 aligned_data_2 = X_test_reduced_2 @ U_2 @ Vh_2
 
+                data_1_c = np.interp(data_1, (data_1_test.min(), data_1_test.max()), (0, 255)).astype(int)
+                data_2_c = np.interp(data_2, (data_2_test.min(), data_2_test.max()), (0, 255)).astype(int)
+                colormap = visualisation.colormap_2d()
+                color_data = colormap[data_1_c, data_2_c]
+
+
 
                 fig = plt.figure()
 
+
                 # Create first subplot for aligned_data_1
                 ax1 = fig.add_subplot(121, projection='3d')  # 121 means: 1 row, 2 columns, first plot
-                ax1.scatter(aligned_data_1[:, 0], aligned_data_1[:, 1], aligned_data_1[:, 2])
+                ax1.scatter(aligned_data_1[:, 0], aligned_data_1[:, 1], aligned_data_1[:, 2], c=color_data)
                 ax1.set_title(f'{rat_id_1}')
 
                 # Create second subplot for aligned_data_2
                 ax2 = fig.add_subplot(122, projection='3d')  # 122 means: 1 row, 2 columns, second plot
-                ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2])
+                ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2], c=color_data)
                 ax2.set_title(f'{rat_id_2}')
                 plt.savefig('../figures/cca/aligned_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png', bbox_inches='tight', dpi = 300)
                 plt.suptitle(f'Aligned UMAP embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
