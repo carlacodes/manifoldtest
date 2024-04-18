@@ -395,12 +395,13 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
             X_rat_1 = data_store[rat_id_1]['X']
             X_rat_2 = data_store[rat_id_2]['X']
-            labels_rat_1 = data_store[rat_id_1]['y']
-            labels_rat_2 = data_store[rat_id_2]['y']
+            labels_rat_1 = data_store[rat_id_1]['labels']
+            labels_rat_2 = data_store[rat_id_2]['labels']
 
-            data_1 = labels_rat_1['angle_sin'].values
-
-            data_2 = labels_rat_1['angle_cos'].values
+            data_1_sin = labels_rat_1['angle_sin'].values
+            data_1_cos = labels_rat_1['angle_cos'].values
+            data_2_sin = labels_rat_2['angle_sin'].values
+            data_2_cos = labels_rat_2['angle_cos'].values
 
             folds_rat_1 = fold_store[rat_id_1]
             folds_rat_2 = fold_store[rat_id_2]
@@ -436,11 +437,12 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
 
                 X_train_1, X_test_1 = X_rat_1[folds_rat_1[i][0]], X_rat_1[folds_rat_1[i][1]]
-                data_1_train, data_1_test = data_1[folds_rat_1[i][0]], data_1[folds_rat_1[i][1]]
-
+                data_1_train_sin, data_1_test_sin = data_1_sin[folds_rat_1[i][0]], data_1_sin[folds_rat_1[i][1]]
+                data_1_train_cos, data_1_test_cos = data_1_cos[folds_rat_1[i][0]], data_1_cos[folds_rat_1[i][1]]
 
                 X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][0]], X_rat_2[folds_rat_2[i][1]]
-                data_2_train, data_2_test = data_2[folds_rat_2[i][0]], data_2[folds_rat_2[i][1]]
+                data_2_train_sin, data_2_test_sin = data_2_sin[folds_rat_2[i][0]], data_2_sin[folds_rat_2[i][1]]
+                data_2_train_cos, data_2_test_cos = data_2_cos[folds_rat_2[i][0]], data_2_cos[folds_rat_2[i][1]]
 
                 # Apply dimensionality reduction
                 X_train_reduced_1 = current_reducer_1.fit_transform(X_train_1)
@@ -483,10 +485,16 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 U_2, _, Vh_2 = linalg.svd(B, full_matrices=False, compute_uv=True, overwrite_a=False, check_finite=False)
                 aligned_data_2 = X_test_reduced_2 @ U_2 @ Vh_2
 
-                data_1_c = np.interp(data_1, (data_1_test.min(), data_1_test.max()), (0, 255)).astype(int)
-                data_2_c = np.interp(data_2, (data_2_test.min(), data_2_test.max()), (0, 255)).astype(int)
+                data_1_c_sin = np.interp(data_1_test_sin, (data_1_test_sin.min(), data_1_test_sin.max()), (0, 255)).astype(int)
+                data_1_c_cos = np.interp(data_1_test_cos, (data_1_test_cos.min(), data_1_test_cos.max()), (0, 255)).astype(int)
+                data_2_c_sin = np.interp(data_2_test_sin, (data_2_test_sin.min(), data_2_test_sin.max()), (0, 255)).astype(int)
+                data_2_c_cos = np.interp(data_2_test_cos, (data_2_test_cos.min(), data_2_test_cos.max()), (0, 255)).astype(int)
+
+
+
                 colormap = visualisation.colormap_2d()
-                color_data = colormap[data_1_c, data_2_c]
+                color_data_rat_1 = colormap[data_1_c_sin, data_1_c_cos]
+                color_data_rat_2 = colormap[data_2_c_sin, data_2_c_cos]
 
 
 
@@ -495,12 +503,12 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
                 # Create first subplot for aligned_data_1
                 ax1 = fig.add_subplot(121, projection='3d')  # 121 means: 1 row, 2 columns, first plot
-                ax1.scatter(aligned_data_1[:, 0], aligned_data_1[:, 1], aligned_data_1[:, 2], c=color_data)
+                ax1.scatter(aligned_data_1[:, 0], aligned_data_1[:, 1], aligned_data_1[:, 2], c=color_data_rat_1)
                 ax1.set_title(f'{rat_id_1}')
 
                 # Create second subplot for aligned_data_2
                 ax2 = fig.add_subplot(122, projection='3d')  # 122 means: 1 row, 2 columns, second plot
-                ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2], c=color_data)
+                ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2], c=color_data_rat_2)
                 ax2.set_title(f'{rat_id_2}')
                 plt.savefig('../figures/cca/aligned_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png', bbox_inches='tight', dpi = 300)
                 plt.suptitle(f'Aligned UMAP embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
