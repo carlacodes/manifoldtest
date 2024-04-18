@@ -138,13 +138,15 @@ def create_spike_arrays(spike_data_dir):
 
         spike_arrays[unit_type][unit_name] = unit_samples
 
-    return spike_arrays
+    return spike_arrays, sample_rate
 
-def create_lfp_arrays(lfp_data_dir):
+def create_lfp_arrays(lfp_data_dir, fs = None):
     theta_data = loadmat(lfp_data_dir / 'thetaAndRipplePower.mat')
     theta_power = theta_data['thetaPower']
     theta_signal_hcomb = theta_power['hComb'][0][0]['raw']
     power_sample_index = theta_data['powerSampleInd']['hComb'][0][0]
+    #interporlate up from a sample rate of 1000 hz to the fs sample rate
+    theta_signal_hcomb = np.interp(np.arange(0, len(theta_signal_hcomb), 1000/fs), np.arange(0, len(theta_signal_hcomb)), theta_signal_hcomb)
     return
 
 if __name__ == '__main__':
@@ -170,8 +172,8 @@ if __name__ == '__main__':
 
         # load the spike data
         spike_data_dir = os.path.join(data_dir, f'rat_{rat}', date, 'physiology_data')
-        spike_arrays = create_spike_arrays(spike_data_dir)
-        lfp_arrays = create_lfp_arrays(Path(spike_data_dir))
+        spike_arrays, sample_rate = create_spike_arrays(spike_data_dir)
+        lfp_arrays = create_lfp_arrays(Path(spike_data_dir), fs = sample_rate)
         save_pickle(spike_arrays, 'unit_spike_times', spike_data_dir)
 
     pass
