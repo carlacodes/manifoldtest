@@ -331,7 +331,7 @@ def load_previous_results():
             for bin_size in [250]:
                 #find the file names
                 for file in files:
-                    if file.__contains__(f'window_{window}_bin_size_{bin_size}'):
+                    if file.__contains__(f'{bin_size}bin_{window}windows'):
                         if file.__contains__('mean_score'):
                             with open(f'{pca_decomp_directory}/{file}', 'rb') as f:
                                 score_dict[rat_id] = pkl.load(f)
