@@ -957,10 +957,11 @@ if __name__ == "__main__":
         assert np.all(trial_number_tracker_example == trial_list_example)
 
         model_inputs, unit_list = cat_spike_trains(spike_trains)
-        lfp_array = create_lfp_arrays(Path(spike_dir), model_inputs, window_size=20)
+        theta_sin_bin, theta_cos_bin = create_lfp_arrays(Path(spike_dir), model_inputs, window_size=20)
         # convert model_inputs to float32
         model_inputs = model_inputs.astype(np.float32)
         np.save(f'{spike_dir}/inputs_overlap_{use_overlap}_window_size_{window_size}.npy', model_inputs)
+        np.save(f'{spike_dir}/theta_sin_and_cos_bin_overlap_{use_overlap}_window_size_{window_size}.npy', theta_sin_bin)
         save_pickle(unit_list, f'unit_list_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
 
         reshape_model_inputs_and_labels(model_inputs, labels)
