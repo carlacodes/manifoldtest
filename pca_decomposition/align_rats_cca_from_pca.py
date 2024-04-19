@@ -322,7 +322,7 @@ def load_previous_results():
     param_dict = {}
     score_dict = {}
     for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
-        rat_id = rat_dir.split('/')[-1]
+        rat_id = rat_dir.split('/')[-2]
         pca_decomp_directory = f'{rat_dir}/cluster_results/pca_decomposition'
         #find all the files in the directory
         files = os.listdir(pca_decomp_directory)
@@ -333,11 +333,10 @@ def load_previous_results():
                 for file in files:
                     if file.__contains__(f'{bin_size}bin_{window}windows'):
                         if file.__contains__('mean_score'):
+                                score_dict[rat_id] = np.load(f'{pca_decomp_directory}/{file}')
+                        elif file.__contains__('params'):
                             with open(f'{pca_decomp_directory}/{file}', 'rb') as f:
-                                score_dict[rat_id] = pkl.load(f)
-                        elif file.__contains__('best_params'):
-                            with open(f'{pca_decomp_directory}/{file}', 'rb') as f:
-                                param_dict[rat_id] = pkl.load(f)
+                                param_dict[rat_id] =  np.load(f'{pca_decomp_directory}/{file}', allow_pickle=True)
     return param_dict, score_dict
 
 def run_cca_on_rat_data(data_store, param_dict, fold_store):
@@ -651,11 +650,7 @@ def main():
 
 
     param_dict = {}
-    param_dict['rat_3'] = params_1000_window_250bin_rat3
-    param_dict['rat_8'] = params_1000_window_250bin_rat8
-    param_dict['rat_9'] = params_1000_window_250bin_rat9
-    param_dict['rat_10'] = params_1000_window_250bin_rat10
-    param_dict['rat_7'] = params_1000_window_250bin_rat7
+
     run_cca_on_rat_data(data_store_big, param_dict, fold_store)
     run_gcca_on_rat_data(data_store_big, param_dict, fold_store)
 
