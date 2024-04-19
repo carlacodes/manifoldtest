@@ -339,10 +339,82 @@ def load_previous_results():
                                 param_dict[rat_id] =  np.load(f'{pca_decomp_directory}/{file}', allow_pickle=True)
     return param_dict, score_dict
 
+
+def plot_knn_decoding_results(y_pred, y_1_test, savefig_dir, i, score, score_train, score_shuffled, current_regressor_1, X_train_reduced_1, ):
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
+    plt.plot(y_1_test[:, 0], label='y_test', alpha=0.5)
+    ax.set_title('y_pred (sin theta) for fold: ' + str(i) + ', r_2 score:' + str(score), fontsize=10)
+    ax.set_xlabel('time in SAMPLES')
+    plt.savefig(
+        f'{savefig_dir}/y_pred_vs_y_test_sin_fold_' + str(i) + '.png')
+    plt.show()
+
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(y_pred[:, 1], label='y_pred', alpha=0.5)
+    plt.plot(y_1_test[:, 1], label='y_test', alpha=0.5)
+    ax.set_title('y_pred (cos theta) for fold: ' + str(i) + ', r_2 score: ' + str(score))
+    ax.set_xlabel('time in SAMPLES')
+    plt.legend()
+    plt.savefig(
+        f'{savefig_dir}/y_pred_vs_y_test_cos_fold_' + str(i) + '.png')
+    plt.show()
+
+    # do the same for the training data
+    y_pred_train = current_regressor_1.predict(X_train_reduced_1)
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
+    plt.plot(y_1_train[:, 0], label='y_train', alpha=0.5)
+    ax.set_title('y_pred (sin theta) for fold: ' + str(i) + ', r_2 score:' + str(score_train), fontsize=10)
+    ax.set_xlabel('time in SAMPLES')
+    plt.savefig(
+        f'{savefig_dir}/y_pred_vs_y_train_sin_fold_' + str(i) + '.png')
+    plt.show()
+
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(y_pred_train[:, 1], label='y_pred', alpha=0.5)
+    plt.plot(y_1_train[:, 1], label='y_train', alpha=0.5)
+    ax.set_title('y_pred (cos theta) for fold: ' + str(i) + 'r_2 score: ' + str(score_train))
+    ax.set_xlabel('time in SAMPLES')
+    plt.legend()
+    plt.savefig(
+        f'{savefig_dir}/y_pred_vs_y_train_cos_fold_' + str(i) + '.png')
+
+    ##now plot the shuffled data
+    y_pred_shuffled = current_regressor_1_shuffled.predict(X_test_reduced_1_shuffled)
+    fig, ax = plt.subplots(1, 1)
+    ax.scatter(y_1_test, y_pred_shuffled, c='orange')
+    ax.set_title('y_test vs y_pred for fold: ' + str(i) + ' shuffled, r_2 score: ' + str(score_shuffled))
+    plt.savefig(f'{savefig_dir}/y_pred_vs_y_test_shuffled_fold_' + str(
+        i) + '.png')
+    plt.show()
+
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5)
+    plt.plot(y_1_test[:, 0], label='y_test', alpha=0.5)
+    ax.set_title('y_pred (sin theta) for fold: ' + str(i) + ' shuffled , r_2 score: ' + str(score_shuffled))
+    ax.set_xlabel('time in SAMPLES')
+    plt.legend()
+    plt.savefig(f'{savefig_dir}/y_pred_vs_y_test_sin_fold_' + str(
+        i) + 'shuffled.png')
+    plt.show()
+
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(y_pred_shuffled[:, 1], label='y_pred', alpha=0.5)
+    plt.plot(y_1_test[:, 1], label='y_test', alpha=0.5)
+    ax.set_title('y_pred (cos theta) for fold: ' + str(i) + ' shuffled, r_2 score: ' + str(score_shuffled))
+    ax.set_xlabel('time in SAMPLES')
+    plt.legend()
+    plt.savefig(f'{savefig_dir}/y_pred_vs_y_test_cos_fold_' + str(
+        i) + 'shuffled.png')
+    plt.show()
+    return
+
 def run_cca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs = {'n_neighbors': 70}
 
     reducer = PCA
+    regressor = KNeighborsRegressor
 
     reducer_kwargs_1 = {
         'n_components': 3,
@@ -354,15 +426,20 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs_2 = {'n_neighbors': 70}
 
     corr_dict = {}
+    score_dict = {}
     for rat_id_1 in data_store.keys():
+        scores = []
+        scores_shuffled = []
+        scores_train = []
+        scores_train_shuffled = []
         print(f'Working on rat {rat_id_1}')
         for rat_id_2 in data_store.keys():
             print(f'Working on rat {rat_id_2}')
             if rat_id_1 == rat_id_2:
                 print(f'Skipping {rat_id_1} and {rat_id_2}')
                 continue
-            params_1 = param_dict['rat_7']
-            params_2 = param_dict['rat_7']
+            params_1 = param_dict[rat_id_1]
+            params_2 = param_dict[rat_id_2]
             #remove np array
             params_1 = params_1.item()
             params_2 = params_2.item()
@@ -388,7 +465,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
             # else:
             #     custom_folds = folds_rat_1
 
-            for i in range(1):
+            for i in range(len(folds_rat_1)):
                 regressor_kwargs_1.update(
                     {k.replace('estimator__', ''): v for k, v in params_1.items() if k.startswith('estimator__')})
                 reducer_kwargs_1.update(
@@ -414,6 +491,10 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 data_1_train_sin, data_1_test_sin = data_1_sin[folds_rat_1[i][0]], data_1_sin[folds_rat_1[i][1]]
                 data_1_train_cos, data_1_test_cos = data_1_cos[folds_rat_1[i][0]], data_1_cos[folds_rat_1[i][1]]
 
+                y_1_train = np.stack((data_1_train_sin, data_1_train_cos), axis = 1)
+                y_1_test = np.stack((data_1_test_sin, data_1_test_cos), axis = 1)
+
+
                 X_train_2, X_test_2 = X_rat_2[folds_rat_2[i][0]], X_rat_2[folds_rat_2[i][1]]
                 data_2_train_sin, data_2_test_sin = data_2_sin[folds_rat_2[i][0]], data_2_sin[folds_rat_2[i][1]]
                 data_2_train_cos, data_2_test_cos = data_2_cos[folds_rat_2[i][0]], data_2_cos[folds_rat_2[i][1]]
@@ -427,6 +508,44 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 X_test_reduced_2 = current_reducer_2.transform(X_test_2)
                 #check if X_test_reduced_1 and X_test_reduced_2 are the same
                 np.array_equal(X_test_reduced_1, X_test_reduced_2)
+
+                ##get the train r2 and test r2
+
+                # Fit the regressor
+                current_regressor_1 = MultiOutputRegressor(regressor(**regressor_kwargs))
+                current_regressor_1.fit(X_train_reduced_1, y_1_train)
+
+                current_regressor_1_shuffled = MultiOutputRegressor(regressor(**regressor_kwargs))
+                X_train_reduced_1_shuffled = X_train_reduced_1.copy()
+                X_test_reduced_1_shuffled = X_test_reduced_1.copy()
+
+
+
+                np.random.shuffle(X_train_reduced_1_shuffled)
+                np.random.shuffle(X_test_reduced_1_shuffled)
+
+                current_regressor_1_shuffled.fit(X_train_reduced_1_shuffled, y_1_train)
+
+                # Evaluate the regressor: using the default for regressors which is r2
+                score = current_regressor_1.score(X_test_reduced_1, y_1_test)
+                score_shuffled = current_regressor_1_shuffled.score(X_test_reduced_1_shuffled, y_1_test)
+
+                score_train = current_regressor_1.score(X_train_reduced_1, y_1_train)
+                score_train_shuffled = current_regressor_1_shuffled.score(X_train_reduced_1_shuffled, y_1_train)
+
+                scores.append(score)
+                scores_shuffled.append(score_shuffled)
+
+                scores_train_shuffled.append(score_train_shuffled)
+                scores_train.append(score_train)
+
+                y_pred = current_regressor_1.predict(X_test_reduced_1)
+                savefig_dir = f'C:/neural_data/r2_decoding_figures/pca/{rat_id_1}'
+                if not os.path.exists(savefig_dir):
+                    os.makedirs(savefig_dir)
+
+
+
 
                 #apply cca to the reduced data
                 A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_2, fullReturn=True)
@@ -448,7 +567,9 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 #for each pair plot the resultant data
                 fig, ax = plt.subplots(1, 1)
                 ax.scatter(U[:, 0], V[:, 0])
-                ax.set_title(f'CCA component 1 for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
+                #round the r[0] value to 3 decimal places
+                r_rounded = np.round(r, 3)
+                ax.set_title(f'CCA component 1 for rats {rat_id_1} and {rat_id_2}, r[0]: {r_rounded[0]}')
                 plt.savefig('../figures/cca/cca_component_1_' + rat_id_1 + '_' + rat_id_2 + '.png')
                 plt.show()
                 coef = [A, B]
@@ -473,8 +594,6 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
 
                 fig = plt.figure()
-
-
                 # Create first subplot for aligned_data_1
                 ax1 = fig.add_subplot(121, projection='3d')  # 121 means: 1 row, 2 columns, first plot
                 ax1.scatter(aligned_data_1[:, 0], aligned_data_1[:, 1], aligned_data_1[:, 2], c=color_data_rat_1)
@@ -484,7 +603,9 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 ax2 = fig.add_subplot(122, projection='3d')  # 122 means: 1 row, 2 columns, second plot
                 ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2], c=color_data_rat_2)
                 ax2.set_title(f'{rat_id_2}')
-                plt.suptitle(f'Aligned PCA embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
+                r_rounded = np.round(r, 3)
+                r_rounded = float(r_rounded[0])
+                plt.suptitle(f'Aligned PCA embeddings for rats {rat_id_1} and {rat_id_2}, r[0]: {r_rounded}')
                 plt.savefig('../figures/cca/aligned_PCA_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png', bbox_inches='tight', dpi = 300)
                 plt.show()
 
@@ -519,8 +640,6 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
         'n_components': 3,
         # 'n_neighbors': 70,
         # 'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
     }
     reducer_kwargs_2 = {
         'n_components': 3,
