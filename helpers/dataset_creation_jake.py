@@ -6,8 +6,10 @@ from get_directories import get_data_dir, get_robot_maze_directory
 from load_and_save_data import load_pickle, save_pickle
 from calculate_spike_pos_hd import interpolate_rads
 sample_freq = 30000  # Hz
-
-
+import scipy
+from pathlib import Path
+import matplotlib.pyplot as plt
+from scipy.signal import hilbert
 import numpy as np
 def create_positional_trains_no_overlap(dlc_data, window_size=100):  # we'll default to 100 ms windows for now
     # first, get the start and end time of the video
@@ -808,6 +810,40 @@ def reshape_model_inputs_and_labels(model_inputs, labels):
     model_inputs_new = model_inputs[:total_intervals * time_interval].reshape(total_intervals, time_bins_per_interval, -1)
     return
 
+def create_lfp_arrays(lfp_data_dir, model_inputs, window_size = 20):
+    theta_data = scipy.io.loadmat(lfp_data_dir / 'filteredTheta.mat')
+    theta_filtered = theta_data['filteredTheta']
+    theta_fs = int(theta_data['sFreqDS'][0][0])
+    #take the hilbert transform of the data
+    theta_hilbert = hilbert(theta_filtered)
+    theta_phase = np.angle(theta_hilbert)
+    #get the sin and cos of the phase
+    theta_phase_sin = np.sin(theta_phase).flatten()
+    theta_phase_cos = np.cos(theta_phase).flatten()
+    #knowing the sampling rate is 1000hz, put the data into 20ms bins
+    #get the number of bins
+    num_bins = model_inputs.shape[0]
+    #get the number of samples in each bin
+    samples_per_bin = int(theta_fs/50)
+    samples_per_bin = int(theta_fs * window_size / 1000)  # Use interval here
+
+    #initialize the array
+    theta_phase_sin_binned = np.zeros((num_bins, 1))
+    theta_phase_cos_binned = np.zeros((num_bins, 1))
+    #loop through the bins
+    for i in range(num_bins):
+        #get the start and end of the bin
+        start = i * samples_per_bin
+        end = (i + 1) * samples_per_bin
+        #get the sin and cos of the phase
+        theta_phase_sin_binned[i] = np.mean(theta_phase_sin[start:end])
+        theta_phase_cos_binned[i] = np.mean(theta_phase_cos[start:end])
+
+
+
+    return theta_phase_sin_binned, theta_phase_cos_binned
+
+
 
 if __name__ == "__main__":
     # animal = 'Rat65'
@@ -846,10 +882,10 @@ if __name__ == "__main__":
         # and save as a pickle file
         if use_overlap:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains(dlc_data, window_size=100)
+                create_positional_trains(dlc_data, window_size=20)
         else:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains_no_overlap(dlc_data, window_size=100)
+                create_positional_trains_no_overlap(dlc_data, window_size=20)
         windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
         save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
@@ -921,7 +957,7 @@ if __name__ == "__main__":
         assert np.all(trial_number_tracker_example == trial_list_example)
 
         model_inputs, unit_list = cat_spike_trains(spike_trains)
-
+        lfp_array = create_lfp_arrays(Path(spike_dir), model_inputs, window_size=20)
         # convert model_inputs to float32
         model_inputs = model_inputs.astype(np.float32)
         np.save(f'{spike_dir}/inputs_overlap_{use_overlap}_window_size_{window_size}.npy', model_inputs)

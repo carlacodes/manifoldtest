@@ -145,8 +145,19 @@ def create_lfp_arrays(lfp_data_dir, fs = None):
     theta_power = theta_data['thetaPower']
     theta_signal_hcomb = theta_power['hComb'][0][0]['raw']
     power_sample_index = theta_data['powerSampleInd']['hComb'][0][0]
-    #interporlate up from a sample rate of 1000 hz to the fs sample rate
-    theta_signal_hcomb = np.interp(np.arange(0, len(theta_signal_hcomb), 1000/fs), np.arange(0, len(theta_signal_hcomb)), theta_signal_hcomb)
+    #interporlate up from a sample rate of 1000 hz to the fs sample rate for each trial index
+    power_sample_index_1000hz = np.zeros_like(power_sample_index)
+    for i in range(power_sample_index.shape[0]):
+        #for some reason power_sample_index is in the sample rate of fs
+
+        power_sample_index_1000hz[i] = np.round(power_sample_index[i] * (1000 / fs)).astype(int)
+        #now interpolate the trial up to the fs sample rate
+        theta_signal_trial = theta_signal_hcomb[i]
+        theta_signal_trial = theta_signal_trial.flatten()
+        #interpolate up to the fs sample rate
+        theta_signal_trial = np.interp(power_sample_index_1000hz[i], np.arange(len(theta_signal_trial)), theta_signal_trial)
+
+
     return
 
 if __name__ == '__main__':
@@ -172,8 +183,8 @@ if __name__ == '__main__':
 
         # load the spike data
         spike_data_dir = os.path.join(data_dir, f'rat_{rat}', date, 'physiology_data')
-        spike_arrays, sample_rate = create_spike_arrays(spike_data_dir)
-        lfp_arrays = create_lfp_arrays(Path(spike_data_dir), fs = sample_rate)
+        spike_arrays, sample_rate_spks = create_spike_arrays(spike_data_dir)
+        lfp_arrays = create_lfp_arrays(Path(spike_data_dir), fs = sample_rate_spks)
         save_pickle(spike_arrays, 'unit_spike_times', spike_data_dir)
 
     pass
