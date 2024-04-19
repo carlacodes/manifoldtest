@@ -221,6 +221,8 @@ def train_and_test_on_umap_randcv(
     #     'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
     # }
     param_grid = param_dict[rat_id]
+    #convert to dictionary
+    param_grid = param_grid.item()
 
     y = bhv[regress].values
 
@@ -233,7 +235,7 @@ def train_and_test_on_umap_randcv(
     savedir = f'C:/neural_data/r2_decoding_figures/pca/{rat_id}/'
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
-        params = {key: np.random.choice(values) for key, values in param_grid.items()}
+        params = {key: (values) for key, values in param_grid.items()}
         regressor_kwargs.update(
             {k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
@@ -292,48 +294,80 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
             plt.plot(y_test[:, 0], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (sin theta) for fold: ' + str(count))
+            ax.set_title('y_pred (sin theta) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
-                'C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 1], label='y_pred', alpha=0.5)
             plt.plot(y_test[:, 1], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (cos theta) for fold: ' + str(count))
+            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
-                'C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
             plt.show()
+
+
+            #do the same for the train data
+            y_pred_train = current_regressor.predict(X_train_reduced)
+            fig, ax = plt.subplots(1, 1)
+            ax.scatter(y_train, y_pred_train)
+            ax.set_title('y_train vs y_pred for fold: ' + str(count))
+            plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
+            plt.plot(y_train[:, 0], label='y_test', alpha=0.5)
+            ax.set_title('y_pred (sin theta) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(
+                f'{savedir}/y_pred_vs_y_train_sin_fold_' + str(count) + '.png')
+
+            plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(y_pred_train[:, 1], label='y_pred', alpha=0.5)
+            plt.plot(y_train[:, 1], label='y_test', alpha=0.5)
+            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(
+                f'{savedir}/y_pred_vs_y_train_cos_fold_' + str(count) + '.png')
+            plt.show()
+
+
+
 
             ##now plot the shuffled data
             y_pred_shuffled = current_regressor_shuffled.predict(X_test_reduced_shuffled)
             fig, ax = plt.subplots(1, 1)
-            ax.scatter(y_test, y_pred_shuffled, c='orange')
-            ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled')
+            ax.scatter(y_test, y_pred_shuffled, c='purple')
+            ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             plt.savefig(
-                'C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5)
-            plt.plot(y_test[:, 0], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (sin theta) for fold: ' + str(count) + ' shuffled')
+            plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
+            plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c= 'yellow')
+            ax.set_title('y_pred (sin theta) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
-            plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_sin_fold_' + str(
+            plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
                 count) + 'shuffled.png')
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred_shuffled[:, 1], label='y_pred', alpha=0.5)
-            plt.plot(y_test[:, 1], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' shuffled')
+            plt.plot(y_pred_shuffled[:, 1], label='y_pred',c='purple',  alpha=0.5)
+            plt.plot(y_test[:, 1], label='y_test', c='yellow', alpha=0.5)
+            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
-            plt.savefig('C:/neural_data/rat_7/6-12-2019/cluster_results/y_pred_vs_y_test_cos_fold_' + str(
+            plt.savefig(f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(
                 count) + 'shuffled.png')
             count += 1
 
@@ -353,69 +387,92 @@ def train_and_test_on_umap_randcv(
 
 
     return best_params, mean_score_max
+def load_previous_results():
+    param_dict = {}
+    score_dict = {}
+    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
+        rat_id = rat_dir.split('/')[-2]
+        pca_decomp_directory = f'{rat_dir}/cluster_results/pca_decomposition'
+        #find all the files in the directory
+        files = os.listdir(pca_decomp_directory)
+
+        for window in [1000]:
+            for bin_size in [250]:
+                #find the file names
+                for file in files:
+                    if file.__contains__(f'{bin_size}bin_{window}windows'):
+                        if file.__contains__('mean_score'):
+                                score_dict[rat_id] = np.load(f'{pca_decomp_directory}/{file}')
+                        elif file.__contains__('params'):
+                            with open(f'{pca_decomp_directory}/{file}', 'rb') as f:
+                                param_dict[rat_id] =  np.load(f'{pca_decomp_directory}/{file}', allow_pickle=True)
+    return param_dict, score_dict
+
 
 def main():
-    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_3/25-3-2019/'
-    spike_dir = os.path.join(data_dir, 'physiology_data')
-    dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    # data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_3/25-3-2019/'
+    param_dict, score_dict = load_previous_results()
+    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
+        spike_dir = os.path.join(data_dir, 'physiology_data')
+        dlc_dir = os.path.join(data_dir, 'positional_data')
+        labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
+        spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
 
-    spike_data_trial = spike_data
-    data_dir_path = Path(data_dir)
-
-
-    # check for neurons with constant firing rates
-    tolerance = 1e-10  # or any small number that suits your needs
-    if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
-        print('There are neurons with constant firing rates')
-        # remove those neurons
-        spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
-    # THEN DO THE Z SCORE
-    X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
-
-    if np.isnan(X_for_umap).any():
-        print('There are nans in the data')
-
-    X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+        spike_data_trial = spike_data
+        data_dir_path = Path(data_dir)
 
 
-    labels_for_umap = labels[:, 0:6]
-    labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+        # check for neurons with constant firing rates
+        tolerance = 1e-10  # or any small number that suits your needs
+        if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
+            print('There are neurons with constant firing rates')
+            # remove those neurons
+            spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
+        # THEN DO THE Z SCORE
+        X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
 
-    label_df = pd.DataFrame(labels_for_umap,
-                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
-    label_df['time_index'] = np.arange(0, label_df.shape[0])
+        if np.isnan(X_for_umap).any():
+            print('There are nans in the data')
 
-    regressor = KNeighborsRegressor
-    regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
+        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
-    reducer = PCA
 
-    reducer_kwargs = {
-        'n_components': 3,
-    }
+        labels_for_umap = labels[:, 0:6]
+        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
-    regress = ['angle_sin', 'angle_cos']  # changing to two target variables
+        label_df = pd.DataFrame(labels_for_umap,
+                                columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+        label_df['time_index'] = np.arange(0, label_df.shape[0])
 
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
-    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
-    save_dir_path = data_dir_path / 'pca_decomposition'
-    save_dir_path.mkdir(parents=True, exist_ok=True)
+        regressor = KNeighborsRegressor
+        regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
 
-    best_params, mean_score = train_and_test_on_umap_randcv(
-        X_for_umap,
-        label_df,
-        regress,
-        regressor,
-        regressor_kwargs,
-        reducer,
-        reducer_kwargs,
-    )
-    np.save(save_dir_path / filename, best_params)
-    np.save(save_dir_path / filename_mean_score, mean_score)
+        reducer = PCA
+
+        reducer_kwargs = {
+            'n_components': 3,
+        }
+
+        regress = ['angle_sin', 'angle_cos']  # changing to two target variables
+
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        now_day = datetime.now().strftime("%Y-%m-%d")
+        filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
+        filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
+        save_dir_path = data_dir_path / 'pca_decomposition'
+        save_dir_path.mkdir(parents=True, exist_ok=True)
+
+        best_params, mean_score = train_and_test_on_umap_randcv(
+            X_for_umap,
+            label_df,
+            regress,
+            regressor,
+            regressor_kwargs,
+            reducer,
+            reducer_kwargs, param_dict, rat_id = data_dir.split('/')[-2]
+        )
+        # np.save(save_dir_path / filename, best_params)
+        # np.save(save_dir_path / filename_mean_score, mean_score)
 
 
 if __name__ == '__main__':
