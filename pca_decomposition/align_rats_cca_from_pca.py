@@ -10,7 +10,7 @@ import pandas as pd
 from scipy.stats import pearsonr
 from sklearn.multioutput import MultiOutputRegressor
 from mvlearn.embed import GCCA
-from umap import UMAP
+from sklearn.decomposition import PCA
 import seaborn as sns
 from scipy.stats import ttest_ind
 from manifold_neural.helpers import cca_tools
@@ -74,7 +74,7 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
 
 
-def train_and_test_on_umap_randcv(
+def train_and_test_on_pca_randcv(
         spks,
         bhv,
         regress,
@@ -342,21 +342,13 @@ def load_previous_results():
 def run_cca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs = {'n_neighbors': 70}
 
-    reducer = UMAP
+    reducer = PCA
 
     reducer_kwargs_1 = {
         'n_components': 3,
-        # 'n_neighbors': 70,
-        # 'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
     }
     reducer_kwargs_2 = {
         'n_components': 3,
-        # 'n_neighbors': 70,
-        # 'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
     }
     regressor_kwargs_1 = {'n_neighbors': 70}
     regressor_kwargs_2 = {'n_neighbors': 70}
@@ -492,8 +484,8 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 ax2 = fig.add_subplot(122, projection='3d')  # 122 means: 1 row, 2 columns, second plot
                 ax2.scatter(aligned_data_2[:, 0], aligned_data_2[:, 1], aligned_data_2[:, 2], c=color_data_rat_2)
                 ax2.set_title(f'{rat_id_2}')
-                plt.suptitle(f'Aligned UMAP embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
-                plt.savefig('../figures/cca/aligned_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png', bbox_inches='tight', dpi = 300)
+                plt.suptitle(f'Aligned PCA embeddings for rats {rat_id_1} and {rat_id_2}, r: {r[0]}')
+                plt.savefig('../figures/cca/aligned_PCA_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png', bbox_inches='tight', dpi = 300)
                 plt.show()
 
                 #plot the unaligned data
@@ -505,8 +497,8 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 ax2 = fig.add_subplot(122, projection='3d')
                 ax2.scatter(X_test_reduced_2[:, 0], X_test_reduced_2[:, 1], X_test_reduced_2[:, 2], c=color_data_rat_2)
                 ax2.set_title(f'{rat_id_2}')
-                plt.suptitle(f'UMAP embeddings for rats {rat_id_1} and {rat_id_2}')
-                plt.savefig('../figures/cca/original_umap_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png',
+                plt.suptitle(f'PCA embeddings for rats {rat_id_1} and {rat_id_2}')
+                plt.savefig('../figures/cca/original_PCA_embedding_data_' + rat_id_1 + '_' + rat_id_2 + '.png',
                             bbox_inches='tight', dpi=300)
                 plt.show()
 
@@ -519,7 +511,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 def run_gcca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs = {'n_neighbors': 70}
 
-    reducer = UMAP
+    reducer = PCA
     X_reduced_store_train = {}
     X_reduced_store_test = {}
 
@@ -605,7 +597,7 @@ def run_gcca_on_rat_data(data_store, param_dict, fold_store):
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
-    paramdict, scoredict = load_previous_results()
+    param_dict, scoredict = load_previous_results()
     #loop over the data dirs
     data_dirs = [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']
     data_store_big = {}
@@ -627,29 +619,28 @@ def main():
             # remove those neurons
             spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
         # THEN DO THE Z SCORE
-        X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+        X_for_pca = scipy.stats.zscore(spike_data_trial, axis=0)
 
-        if np.isnan(X_for_umap).any():
+        if np.isnan(X_for_pca).any():
             print('There are nans in the data')
 
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
-        n_timesteps = X_for_umap.shape[0]
+        X_for_pca = scipy.ndimage.gaussian_filter(X_for_pca, 2, axes=0)
+        n_timesteps = X_for_pca.shape[0]
 
         custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
 
-        labels_for_umap = labels[:, 0:6]
-        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+        labels_for_pca = labels[:, 0:6]
+        labels_for_pca = scipy.ndimage.gaussian_filter(labels_for_pca, 2, axes=0)
 
-        label_df = pd.DataFrame(labels_for_umap,
+        label_df = pd.DataFrame(labels_for_pca,
                                 columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
         label_df['time_index'] = np.arange(0, label_df.shape[0])
-        #add label_df and X_for_umap to a dictionary
-        data_store = {'X': X_for_umap, 'labels': label_df}
+        #add label_df and X_for_pca to a dictionary
+        data_store = {'X': X_for_pca, 'labels': label_df}
         data_store_big[rat_id] = data_store
         fold_store[rat_id] = custom_folds
 
 
-    param_dict = {}
 
     run_cca_on_rat_data(data_store_big, param_dict, fold_store)
     run_gcca_on_rat_data(data_store_big, param_dict, fold_store)
