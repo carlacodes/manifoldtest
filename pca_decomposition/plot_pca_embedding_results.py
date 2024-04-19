@@ -233,6 +233,9 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
     savedir = f'C:/neural_data/r2_decoding_figures/pca/{rat_id}/'
+    #check if the directory exists
+    if not os.path.exists(savedir):
+        os.makedirs(savedir, exist_ok=True)
 
     for _ in range(1):  # 100 iterations for RandomizedSearchCV
         params = {key: (values) for key, values in param_grid.items()}
