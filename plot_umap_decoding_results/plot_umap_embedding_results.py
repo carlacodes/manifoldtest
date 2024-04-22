@@ -296,7 +296,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
             plt.plot(y_test[:, 0], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (sin theta) for fold: ' + str(count)+ ' r2_score: ' + str(score))
+            ax.set_title('y_pred (sin head angle) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
@@ -305,7 +305,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 1], label='y_pred', alpha=0.5)
             plt.plot(y_test[:, 1], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' r2_score: ' + str(score))
+            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
@@ -323,7 +323,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
             plt.plot(y_train[:, 0], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (sin theta) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
+            ax.set_title('y_pred (sin head angle) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
@@ -334,7 +334,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 1], label='y_pred', alpha=0.5)
             plt.plot(y_train[:, 1], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
+            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
@@ -356,7 +356,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
             plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c= 'yellow')
-            ax.set_title('y_pred (sin theta) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_title('y_pred (sin head angle) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
@@ -366,7 +366,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 1], label='y_pred',c='purple',  alpha=0.5)
             plt.plot(y_test[:, 1], label='y_test', c='yellow', alpha=0.5)
-            ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(
