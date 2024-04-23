@@ -290,7 +290,11 @@ def train_and_test_on_umap_randcv(
 
             y_pred = current_regressor.predict(X_test_reduced)
             colormap = visualisation.colormap_2d()
-            color_data= colormap[y_test[:,0], y_test[:,1]]
+            data_x_c = np.interp(y_test[:,0], (y_test[:,0].min(), y_test[:,0].max()), (0, 255)).astype(
+                int)
+            data_y_c = np.interp(y_test[:,1], (y_test[:,1].min(), y_test[:,1].max()), (0, 255)).astype(
+                int)
+            color_data= colormap[data_x_c, data_y_c]
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
