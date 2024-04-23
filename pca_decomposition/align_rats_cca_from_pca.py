@@ -610,16 +610,12 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 plt.show()
 
                 fig, ax = plt.subplots(1, 1)
-                ax.imshow(color_data_rat_1)
+                ax.imshow(colormap)
                 ax.set_title('Color map for {}'.format(rat_id_1))
                 plt.savefig(f'../figures/cca/color_map_fold_{rat_id_1}.png')
                 plt.show()
 
-                fig, ax = plt.subplots(1, 1)
-                ax.imshow(color_data_rat_2)
-                ax.set_title('Color map for {}'.format(rat_id_2))
-                plt.savefig(f'../figures/cca/color_map_fold_{rat_id_2}.png')
-                plt.show()
+
 
                 #plot the unaligned data
                 fig = plt.figure()

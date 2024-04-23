@@ -305,7 +305,7 @@ def train_and_test_on_umap_randcv(
 
             #plot the color map
             fig, ax = plt.subplots(1, 1)
-            ax.imshow(color_data)
+            ax.imshow(colormap)
             ax.set_title('Color map for x and y position')
             plt.savefig(f'{savedir}/color_map_fold_{count}.png')
             plt.show()
