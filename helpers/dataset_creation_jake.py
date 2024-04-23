@@ -268,6 +268,7 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_dat
         temp_array = np.zeros((num_rows, total_num_cols))
 
         count = 0
+        column_names_temp = column_names.copy()
         for c in column_names:
             # if c not hd or relative_direction, just add the column to the array
             if c not in ['hd'] and not c.startswith('relative_direction'):
@@ -279,10 +280,21 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_dat
                 temp_array[:, count] = np.sin(windowed_dlc[k][c].values)
                 temp_array[:, count + 1] = np.cos(windowed_dlc[k][c].values)
                 temp_array[:, count + 2] = windowed_dlc[k][c].values
+                #remove hd from column names
+                column_names_temp.remove('hd')
+                column_names_temp.append(c + '_sin')
+                column_names_temp.append(c + '_cos')
+                column_names_temp.append(c)
+
                 count += 3
             else:
                 temp_array[:, count] = np.sin(windowed_dlc[k][c].values)
                 temp_array[:, count + 1] = np.cos(windowed_dlc[k][c].values)
+                #remove hd from column names
+                column_names_temp.remove('hd')
+                column_names_temp.append(c + '_sin')
+                column_names_temp.append(c + '_cos')
+
                 count += 2
 
 
@@ -306,7 +318,7 @@ def cat_dlc(windowed_dlc, include_raw_hd = True, scale_data = False, z_score_dat
 
     dlc_array = np.round(dlc_array, 3)
 
-    return dlc_array, column_names
+    return dlc_array, column_names_temp
 
 
 def cat_dlc_modified(windowed_dlc, length_size, include_raw_hd=True, scale_data=False, z_score_data=True):
