@@ -243,8 +243,8 @@ def train_and_test_on_umap_randcv(
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
 
         # Initialize the regressor with current parameters
-        current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
-        current_regressor_shuffled = MultiOutputRegressor(regressor(**regressor_kwargs))
+        current_regressor = regressor(**regressor_kwargs)
+        current_regressor_shuffled = regressor(**regressor_kwargs)
 
         # Initialize the reducer with current parameters
         current_reducer = reducer(**reducer_kwargs)
@@ -296,21 +296,12 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
             plt.plot(y_test[:, 0], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (sin head angle) for fold: ' + str(count)+ ' r2_score: ' + str(score))
+            ax.set_title('y_pred (dist2goal) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
             plt.show()
 
-            fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred[:, 1], label='y_pred', alpha=0.5)
-            plt.plot(y_test[:, 1], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' r2_score: ' + str(score))
-            ax.set_xlabel('time in SAMPLES')
-            plt.legend()
-            plt.savefig(
-                f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
-            plt.show()
 
 
             #do the same for the train data
@@ -323,23 +314,14 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
             plt.plot(y_train[:, 0], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (sin head angle) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
+            ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_train_sin_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_train_dist2goal_fold_' + str(count) + '.png')
 
             plt.show()
 
-            fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred_train[:, 1], label='y_pred', alpha=0.5)
-            plt.plot(y_train[:, 1], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
-            ax.set_xlabel('time in SAMPLES')
-            plt.legend()
-            plt.savefig(
-                f'{savedir}/y_pred_vs_y_train_cos_fold_' + str(count) + '.png')
-            plt.show()
 
 
 
@@ -356,21 +338,14 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
             plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c= 'yellow')
-            ax.set_title('y_pred (sin head angle) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
                 count) + 'shuffled.png')
             plt.show()
 
-            fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred_shuffled[:, 1], label='y_pred',c='purple',  alpha=0.5)
-            plt.plot(y_test[:, 1], label='y_test', c='yellow', alpha=0.5)
-            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
-            ax.set_xlabel('time in SAMPLES')
-            plt.legend()
-            plt.savefig(f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(
-                count) + 'shuffled.png')
+
             count += 1
 
 
@@ -397,7 +372,7 @@ def load_previous_results(directory_of_interest):
     score_dict = {}
     for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
         rat_id = rat_dir.split('/')[-2]
-        param_directory = f'{rat_dir}/cluster_results/{directory_of_interest}'
+        param_directory = f'{rat_dir}/{directory_of_interest}'
         #find all the files in the directory
         files = os.listdir(param_directory)
 
@@ -415,11 +390,11 @@ def load_previous_results(directory_of_interest):
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
-    param_dict = load_previous_results(
+    param_dict, score_dict = load_previous_results(
         'dist2goal_results')
 
-
-    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
+    #'C:/neural_data/rat_10/23-11-2021'
+    for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -460,13 +435,13 @@ def main():
             'n_components': 3,
         }
 
-        regress = ['angle_sin', 'angle_cos']  # changing to two target variables
+        regress = ['dist2goal']  # changing to two target variables
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
-        save_dir_path = data_dir_path / 'umap_decomposition / dist2goal_results /'
+        save_dir_path = data_dir_path / 'umap_decomposition'/ 'dist2goal_results'
         save_dir_path.mkdir(parents=True, exist_ok=True)
 
         best_params, mean_score = train_and_test_on_umap_randcv(
