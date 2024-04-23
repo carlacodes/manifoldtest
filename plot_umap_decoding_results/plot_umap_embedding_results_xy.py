@@ -400,31 +400,13 @@ def train_and_test_on_umap_randcv(
 
 
     return best_params, mean_score_max
-def load_previous_results():
-    param_dict = {}
-    score_dict = {}
-    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
-        rat_id = rat_dir.split('/')[-2]
-        umap_decomp_directory = f'{rat_dir}/cluster_results/umap_decomposition'
-        #find all the files in the directory
-        files = os.listdir(umap_decomp_directory)
 
-        for window in [1000]:
-            for bin_size in [250]:
-                #find the file names
-                for file in files:
-                    if file.__contains__(f'{bin_size}bin_{window}windows'):
-                        if file.__contains__('mean_score'):
-                                score_dict[rat_id] = np.load(f'{umap_decomp_directory}/{file}')
-                        elif file.__contains__('params'):
-                            with open(f'{umap_decomp_directory}/{file}', 'rb') as f:
-                                param_dict[rat_id] =  np.load(f'{umap_decomp_directory}/{file}', allow_pickle=True)
-    return param_dict, score_dict
 
 def load_previous_results(directory_of_interest):
     param_dict = {}
     score_dict = {}
-    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
+    # 'C:/neural_data/rat_3/25-3-2019'
+    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
         rat_id = rat_dir.split('/')[-2]
         param_directory = f'{rat_dir}/{directory_of_interest}'
         #find all the files in the directory
@@ -434,7 +416,7 @@ def load_previous_results(directory_of_interest):
             for bin_size in [250]:
                 #find the file names
                 for file in files:
-                    if file.__contains__(f'{bin_size}bin_{window}windows'):
+                    if file.__contains__(f'{window}windows'):
                         if file.__contains__('mean_score'):
                                 score_dict[rat_id] = np.load(f'{param_directory}/{file}')
                         elif file.__contains__('params'):
@@ -446,8 +428,8 @@ def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
     param_dict, score_dict = load_previous_results(
         'xy_decoding')
-
-    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
+    #'C:/neural_data/rat_3/25-3-2019'
+    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',]:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -500,7 +482,7 @@ def main():
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
-        save_dir_path = data_dir_path / 'umap_decomposition'
+        save_dir_path = data_dir_path / 'umap_decomposition' / 'xy_decoding'
         save_dir_path.mkdir(parents=True, exist_ok=True)
 
         best_params, mean_score = train_and_test_on_umap_randcv(
