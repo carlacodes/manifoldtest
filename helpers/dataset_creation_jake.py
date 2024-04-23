@@ -985,7 +985,7 @@ if __name__ == "__main__":
         # behav_array, var_list_padded = cat_dlc_3d(rearranged_dlc)
 
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
-        add_angle_rel_to_goal_labels(labels, column_names)
+        new_labels, new_col_names = add_angle_rel_to_goal_labels(labels, column_names, rat_id=f'rat_{rat}')
         # convert labels to float32
         labels = labels.astype(np.float32)
         np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', labels)
