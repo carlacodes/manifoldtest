@@ -298,9 +298,16 @@ def train_and_test_on_umap_randcv(
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=y_test[:, 0], cmap=color_data)
+            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=color_data)
             ax.set_title('UMAP test embeddings for fold: ' + str(count))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
+            plt.show()
+
+            #plot the color map
+            fig, ax = plt.subplots(1, 1)
+            ax.imshow(colormap)
+            ax.set_title('Color map for x and y position')
+            plt.savefig(f'{savedir}/color_map_fold_{count}.png')
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
