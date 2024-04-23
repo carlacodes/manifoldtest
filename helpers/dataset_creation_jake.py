@@ -878,10 +878,23 @@ def add_angle_rel_to_goal_labels(labels, column_names, rat_id = 'None'):
     goal_position_dir = f'C:/neural_data/{rat_id}/{date_rat}/positional_data/goalCoordinates.mat'
     goal_position = scipy.io.loadmat(goal_position_dir)
     goal_position = goal_position['goalCoor']
-    #get the center of the coordinates as the goal position
+    #un nest the array
+    goal_position = goal_position[0][0]
+    #convert the goal position to an array, convert from void type to float
+    goal_position = np.array(goal_position.tolist())
+    #remove the first dimension
+    goal_position = goal_position[0]
+
     center_x = np.mean(goal_position[:, 0])
     center_y = np.mean(goal_position[:, 1])
     center = np.array([center_x, center_y])
+    #as a checking mechanism plot the goal posiiton and the center
+    fig, ax = plt.subplots()
+    ax.scatter(goal_position[:, 0], goal_position[:, 1], label = 'goal vertices')
+    ax.scatter(center_x, center_y, label = 'center')
+    plt.legend()
+    plt.title('Goal position and center for rat: ' + rat_id)
+    plt.show()
 
     #calculate the angle between each point and the center
     angles = np.arctan2(goal_position[:, 1] - center_y, goal_position[:, 0] - center_x)
