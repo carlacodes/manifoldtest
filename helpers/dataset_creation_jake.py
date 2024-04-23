@@ -856,6 +856,51 @@ def create_lfp_arrays(lfp_data_dir, model_inputs, window_size = 20):
 
 
     return theta_phase_sin_binned, theta_phase_cos_binned, theta_phase_binned
+def calculate_relative_angle(object_position, goal_position):
+    # object_position and goal_position are tuples or lists containing the x and y coordinates
+    object_x, object_y = object_position
+    goal_x, goal_y = goal_position
+
+    # calculate the difference between the object and goal positions
+    diff_x = goal_x - object_x
+    diff_y = goal_y - object_y
+
+    # calculate the angle
+    angle = np.arctan2(diff_y, diff_x)
+
+    return angle
+def add_angle_rel_to_goal_labels(labels, column_names, rat_id = 'None'):
+    #extract the goal position from the rat_id
+    #load the goal position
+    #construct a dictionary of date_rat
+    rat_date_dict = {'rat_7': '6-12-2019', 'rat_3': '25-3-2019', 'rat_8': '15-10-2019', 'rat_9': '10-12-2021', 'rat_10': '23-11-2021'}
+    date_rat = rat_date_dict[rat_id]
+    goal_position_dir = f'C:/neural_data/{rat_id}/{date_rat}/positional_data/goalCoordinates.mat'
+    goal_position = scipy.io.loadmat(goal_position_dir)
+    goal_position = goal_position['goalCoor']
+    #get the center of the coordinates as the goal position
+    center_x = np.mean(goal_position[:, 0])
+    center_y = np.mean(goal_position[:, 1])
+    center = np.array([center_x, center_y])
+
+    #calculate the angle between each point and the center
+    angles = np.arctan2(goal_position[:, 1] - center_y, goal_position[:, 0] - center_x)
+    #for each loop of the labels, calculate the angle between the position and the center
+    for i in range(labels.shape[0]):
+        #get the position of the rat
+        position = labels[i, 0:2]
+        #calculate the angle between the position and the center
+        angle = calculate_relative_angle(position, center)
+        #add the angle to the labels
+        labels[i, len(column_names)] = angle
+    column_names.append('angle_rel_to_goal')
+
+
+    #add the angles to the labels
+
+
+
+    return labels, column_names
 
 
 
@@ -940,6 +985,7 @@ if __name__ == "__main__":
         # behav_array, var_list_padded = cat_dlc_3d(rearranged_dlc)
 
         labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
+        add_angle_rel_to_goal_labels(labels, column_names)
         # convert labels to float32
         labels = labels.astype(np.float32)
         np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', labels)
