@@ -257,6 +257,12 @@ def train_and_test_on_umap_randcv(
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
+            y_train_shuffled = copy.deepcopy(y_train)
+            np.random.shuffle(y_train_shuffled)
+            y_test_shuffled = copy.deepcopy(y_test)
+            np.random.shuffle(y_test_shuffled)
+
+
             # Apply dimensionality reduction
             X_train_reduced = current_reducer.fit_transform(X_train)
             X_test_reduced = current_reducer.transform(X_test)
@@ -265,14 +271,15 @@ def train_and_test_on_umap_randcv(
             current_regressor.fit(X_train_reduced, y_train)
 
             X_train_reduced_shuffled = X_train_reduced.copy()
-            np.random.shuffle(X_train_reduced_shuffled)
+            # np.random.shuffle(X_train_reduced_shuffled)
 
             X_test_reduced_shuffled = X_test_reduced.copy()
-            np.random.shuffle(X_test_reduced_shuffled)
+            # np.random.shuffle(X_test_reduced_shuffled)
 
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
-            current_regressor_shuffled.fit(X_train_reduced_shuffled, y_train)
+
+            current_regressor_shuffled.fit(X_train_reduced_shuffled, y_train_shuffled)
 
             # Evaluate the regressor: using the default for regressors which is r2
             score = current_regressor.score(X_test_reduced, y_test)
@@ -288,6 +295,16 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
+            #plot the umap embeddings on a 3d scatter plot
+            fig = plt.figure()
+
+            ax = fig.add_subplot(111, projection='3d')
+            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=y_test[:, 0], cmap='viridis')
+            ax.set_title('UMAP test embeddings for fold: ' + str(count))
+            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
+            plt.show()
+
+
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_test, y_pred)
             ax.set_title('y_test vs y_pred for fold: ' + str(count))
@@ -301,6 +318,8 @@ def train_and_test_on_umap_randcv(
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
             plt.show()
+
+
 
 
 
