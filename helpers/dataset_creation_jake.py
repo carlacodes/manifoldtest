@@ -905,8 +905,18 @@ def add_angle_rel_to_goal_labels(labels, column_names, rat_id = 'None'):
         #calculate the angle between the position and the center
         angle = calculate_relative_angle(position, center)
         #add the angle to the labels
-        labels[i, len(column_names)] = angle
+        angle_rounded = np.round(angle, 2)
+        sin_rounded = np.round(np.sin(angle), 3)
+        cos_rounded = np.round(np.cos(angle), 3)
+
+        labels[i, len(column_names)] = angle_rounded
+        #take the sin and cos of the angle
+        labels[i, len(column_names) + 1] = sin_rounded
+        labels[i, len(column_names) + 2] = cos_rounded
+    #add the column names
     column_names.append('angle_rel_to_goal')
+    column_names.append('angle_rel_to_goal_sin')
+    column_names.append('angle_rel_to_goal_cos')
 
 
     #add the angles to the labels
@@ -954,10 +964,10 @@ if __name__ == "__main__":
         # and save as a pickle file
         if use_overlap:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains(dlc_data, window_size=20)
+                create_positional_trains(dlc_data, window_size=250)
         else:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains_no_overlap(dlc_data, window_size=20)
+                create_positional_trains_no_overlap(dlc_data, window_size=250)
         windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
         save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
@@ -1001,7 +1011,10 @@ if __name__ == "__main__":
         new_labels, new_col_names = add_angle_rel_to_goal_labels(labels, column_names, rat_id=f'rat_{rat}')
         # convert labels to float32
         labels = labels.astype(np.float32)
+        new_labels = new_labels.astype(np.float32)
         np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', labels)
+        np.save(f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', new_labels)
+
 
         # concatenate spike trains into np.arrays for training
         model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
