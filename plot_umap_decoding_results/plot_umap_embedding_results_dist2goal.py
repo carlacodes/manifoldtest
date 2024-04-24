@@ -249,7 +249,7 @@ def train_and_test_on_umap_randcv(
     n_timesteps = spks.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
-    savedir = f'C:/neural_data/r2_decoding_figures/umap/{rat_id}/'
+    savedir = f'C:/neural_data/r2_decoding_figures/umap/{rat_id}/dist2goal/'
     #check if the directory exists
     if not os.path.exists(savedir):
         os.makedirs(savedir, exist_ok=True)
