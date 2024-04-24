@@ -11,6 +11,7 @@ from pathlib import Path
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 import numpy as np
+import shap
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
@@ -203,27 +204,15 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
     return folds
 
-def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, y_test, save_dir_path=None, fold_num=None):
+def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None):
     # Create a grid to cover the embedding space
-    x_range = np.linspace(X_test_reduced[:,0].min(), X_test_reduced[:,0].max(), 100)
-    y_range = np.linspace(X_test_reduced[:,1].min(), X_test_reduced[:,1].max(), 100)
-    xx, yy = np.meshgrid(x_range, y_range)
-    grid = np.c_[xx.ravel(), yy.ravel()]
+    explainer = shap.KernelExplainer(knn.predict, X_train_reduced)
 
-    # Predict on the grid
-    predictions = knn.predict(X_test_reduced)
-    #get the first two components of the predictions only
-    predictions_toplot = predictions[:, 0:2]
-    # Reshape predictions to have the same structure as xx and yy
-    predictions_toplot = predictions_toplot.reshape(xx.shape)
+    # Compute SHAP values for the test data
+    shap_values = explainer.shap_values(X_test_reduced)
 
-
-
-    # Plot the grid points colored by their predicted values
-    plt.contourf(xx, yy, predictions_toplot, cmap='viridis')
-    plt.scatter(X_test_reduced[:,0], X_test_reduced[:,1], c=y_test, edgecolors='k')
-    plt.savefig(f'{save_dir_path}/knn_regressor_view_test_foldnum_{fold_num}.png')
-    plt.show()
+    # Visualize the SHAP values
+    shap.summary_plot(shap_values, X_test_reduced)
     return
 
 def train_and_test_on_umap_randcv(
@@ -316,8 +305,7 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
-
-            plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, y_test, save_dir_path=savedir, fold_num=count)
+            plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
             #plot the umap embeddings on a 3d scatter plot
             fig = plt.figure()
 
