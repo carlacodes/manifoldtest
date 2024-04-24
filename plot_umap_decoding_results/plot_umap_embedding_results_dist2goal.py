@@ -335,7 +335,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_pred (dist2goal) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(count) + '.png')
             plt.show()
 
 
