@@ -296,9 +296,16 @@ def train_and_test_on_umap_randcv(
                 int)
             color_data= colormap[data_x_c, data_y_c]
 
+            #get the actual angle relative to goal and create a 1d color map by takin the inverse sin
+            #and inverse cos
+            actual_angle = np.arcsin(y_pred[:, 0])
+
+
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=color_data)
+            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=actual_angle, cmap='viridis')
+            #add a color bar
+            cbar = plt.colorbar(color_data)
             ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(count) + 'rat id:' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
             plt.show()

@@ -305,7 +305,7 @@ def train_and_test_on_umap_randcv(
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=color_data)
-            ax.set_title('UMAP test embeddings color-coded by head angle (allocentric) for fold: ' + str(count) + 'rat id:' +str(rat_id))
+            ax.set_title('UMAP test embeddings color-coded by head angle \n (allocentric) for fold: ' + str(count) + 'rat id:' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
             plt.show()
 
