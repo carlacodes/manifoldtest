@@ -15,14 +15,9 @@ import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
-
-
-''' Modified from Jules Lebert's code
-spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 import os
 import scipy
 import pickle as pkl
-os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 
 # TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
 # 2. change the regressor to GaussianProcessRegressor
@@ -195,7 +190,7 @@ def train_and_test_on_umap_randcv(
     return best_params, mean_score_max
 
 def main():
-    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
+    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_3/25-3-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -233,7 +228,7 @@ def main():
     label_df = pd.DataFrame(labels_for_umap,
                             columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    #zscore dist2goal
+    #z=score dist2goal
     label_df['dist2goal'] = scipy.stats.zscore(label_df['dist2goal'])
 
     regressor = KNeighborsRegressor
@@ -249,12 +244,14 @@ def main():
         'n_jobs': 1,
     }
 
-    regress = ['dist2goal']  # changing to two target variables
+    regress = ['dist2goal']  # changing to one target var
+
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
     filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_dist2goal_{now}.npy'
     filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_dist2goal_{now_day}.npy'
+    savedir = data_dir_path / 'dist2goal_results'
 
 
     best_params, mean_score = train_and_test_on_umap_randcv(
@@ -266,8 +263,6 @@ def main():
         reducer,
         reducer_kwargs,
     )
-    savedir = data_dir_path / 'dist2goal_results'
-
     np.save(savedir / filename, best_params)
     np.save(savedir / filename_mean_score, mean_score)
 

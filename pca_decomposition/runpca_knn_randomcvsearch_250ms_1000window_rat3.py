@@ -10,6 +10,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from pathlib import Path
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
+from sklearn.decomposition import PCA
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
@@ -218,9 +219,6 @@ def train_and_test_on_umap_randcv(
         'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
         'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
         'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-        'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
-        'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
-        'reducer__random_state': [42]
     }
 
     y = bhv[regress].values
@@ -232,7 +230,7 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
 
-    for _ in range(200):  # 100 iterations for RandomizedSearchCV
+    for _ in range(100):  # 100 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
         regressor_kwargs.update(
             {k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
@@ -273,7 +271,7 @@ def train_and_test_on_umap_randcv(
     return best_params, mean_score_max
 
 def main():
-    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
+    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_3/25-3-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -312,33 +310,23 @@ def main():
                             columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
 
-    #z-score the x and y labels based on their mean and std
-    #concatenate the x and y labels
-    xy_labels = np.concatenate(label_df[['x', 'y']].values, axis=0)
-    label_df['x_zscore'] = (label_df['x'] - xy_labels.mean()) / xy_labels.std()
-    label_df['y_zscore'] = (label_df['y'] - xy_labels.mean()) / xy_labels.std()
-
-
     regressor = KNeighborsRegressor
-    regressor_kwargs = {'n_neighbors': 70}
+    regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
 
-    reducer = UMAP
+    reducer = PCA
 
     reducer_kwargs = {
         'n_components': 3,
-        # 'n_neighbors': 70,
-        # 'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
     }
 
-    regress = ['x_zscore', 'y_zscore']  # changing to two target variables
+    regress = ['angle_sin', 'angle_cos']  # changing to two target variables
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_{now}.npy'
-    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_1000windows_jake_fold_xandy_{now_day}.npy'
-
+    filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
+    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
+    save_dir_path = data_dir_path / 'pca_decomposition'
+    save_dir_path.mkdir(parents=True, exist_ok=True)
 
     best_params, mean_score = train_and_test_on_umap_randcv(
         X_for_umap,
@@ -349,8 +337,8 @@ def main():
         reducer,
         reducer_kwargs,
     )
-    np.save(data_dir_path / filename, best_params)
-    np.save(data_dir_path / filename_mean_score, mean_score)
+    np.save(save_dir_path / filename, best_params)
+    np.save(save_dir_path / filename_mean_score, mean_score)
 
 
 if __name__ == '__main__':

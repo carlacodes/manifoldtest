@@ -81,6 +81,84 @@ def process_data_within_split(
 
 
 
+def process_window_within_split(
+        w,
+        spks_train,
+        spks_test,
+        window_size,
+        y_train,
+        y_test,
+        reducer_pipeline,
+        regressor,
+        regressor_kwargs,
+):
+    base_reg = regressor(**regressor_kwargs)
+    reg = MultiOutputRegressor(base_reg)
+    # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
+    window_train = spks_train[w:w + window_size, :]
+    window_train_y = y_train[w:w + window_size, :]
+    # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
+    window_test = spks_test[w:w + window_size, :]
+    window_test_y = y_test[w:w + window_size, :]
+    # scaler = StandardScaler()
+    # # scaler.fit(window_train)
+    # window_train = scaler.transform(window_train)
+    # window_test = scaler.transform(window_test)
+    # print("Before any transformation:", window_train.shape)
+    # make into coordinates for umap
+    sin_values = window_train_y[:, 0]
+    cos_values = window_train_y[:, 1]
+
+    if window_train.shape[0] < window_size:
+        print(f'Window train shape is {window_train.shape[0]} and window size is {window_size}')
+        return
+
+    combined_values = np.array([(sin, cos) for sin, cos in zip(sin_values, cos_values)])
+    coord_list = []
+
+    for i in range(len(combined_values)):
+        coords = combined_values[i]
+
+        # Map values to the range [0, 2] (assuming values are between -1 and 1)
+        mapped_coords = [(val + 1) / 2 for val in coords]
+
+        # Convert mapped coordinates to a single float using a unique multiplier
+        unique_float_representation = sum(val * (10 ** (i + 1)) for i, val in enumerate(mapped_coords))
+        coord_list.append(unique_float_representation)
+    coord_list = np.array(coord_list).reshape(-1, 1)
+
+    # combine coord_list into one number per row
+
+    reducer_pipeline.fit(window_train, y=coord_list)
+    # Transform the reference and non-reference space
+    window_ref_reduced = reducer_pipeline.transform(window_train)
+    window_nref_reduced = reducer_pipeline.transform(window_test)
+
+    # Fit the classifier on the reference space
+    reg.fit(window_ref_reduced, window_train_y)
+
+    # Predict on the testing data
+    y_pred = reg.predict(window_nref_reduced)
+    y_pred_train = reg.predict(window_ref_reduced)
+
+    # Compute the mean squared error and R2 score
+    mse_score_train = mean_squared_error(window_train_y, y_pred_train)
+    r2_score_train = r2_score(window_train_y, y_pred_train)
+
+    mse_score = mean_squared_error(window_test_y, y_pred)
+    r2_score_val = r2_score(window_test_y, y_pred)
+
+    results = {
+        'mse_score_train': mse_score_train,
+        'r2_score_train': r2_score_train,
+        'r2_score_train': r2_score_train,
+        'mse_score': mse_score,
+        'r2_score': r2_score_val,
+        'w': w,
+    }
+
+    return results
+
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps / n_windows_total
@@ -161,7 +239,7 @@ def train_and_test_on_umap_randcv(
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
 
         # Initialize the regressor with current parameters
-        current_regressor = regressor(**regressor_kwargs)
+        current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
 
         # Initialize the reducer with current parameters
         current_reducer = reducer(**reducer_kwargs)
@@ -195,10 +273,10 @@ def train_and_test_on_umap_randcv(
     return best_params, mean_score_max
 
 def main():
-    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
+    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_10/23-11-2021/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
+    labels = np.load(f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
     spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
 
     spike_data_trial = spike_data
@@ -227,14 +305,12 @@ def main():
     # ax[1].set_title('After smoothing')
     # plt.show()
 
-    labels_for_umap = labels[:, 0:6]
+    labels_for_umap = labels[:, 0:9]
     labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
     label_df = pd.DataFrame(labels_for_umap,
-                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore', 'angle_rel_to_goal', 'angle_rel_to_goal_sin', 'angle_rel_to_goal_cos'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    #zscore dist2goal
-    label_df['dist2goal'] = scipy.stats.zscore(label_df['dist2goal'])
 
     regressor = KNeighborsRegressor
     regressor_kwargs = {'n_neighbors': 70}
@@ -249,12 +325,15 @@ def main():
         'n_jobs': 1,
     }
 
-    regress = ['dist2goal']  # changing to two target variables
+    regress = ['angle_rel_to_goal_sin', 'angle_rel_to_goal_cos']  # changing to two target variables
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_dist2goal_{now}.npy'
-    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_dist2goal_{now_day}.npy'
+    filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
+    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
+    save_dir = data_dir_path / 'angle_rel_to_goal'
+    save_dir.mkdir(exist_ok=True)
+
 
 
     best_params, mean_score = train_and_test_on_umap_randcv(
@@ -266,10 +345,8 @@ def main():
         reducer,
         reducer_kwargs,
     )
-    savedir = data_dir_path / 'dist2goal_results'
-
-    np.save(savedir / filename, best_params)
-    np.save(savedir / filename_mean_score, mean_score)
+    np.save(save_dir / filename, best_params)
+    np.save(save_dir / filename_mean_score, mean_score)
 
 
 if __name__ == '__main__':

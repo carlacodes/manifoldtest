@@ -434,22 +434,26 @@ def train_and_test_on_umap_randcv(
             X_test_reduced_mapped_back = current_reducer.inverse_transform(X_test_reduced)
             #plot the projected back data 
             fig, ax = plt.subplots()
-            ax.plot(X_train_reduced_mapped_back[:, 0], label = 'mapped back')
-            ax.plot(X_train[:, 0], label = 'original')
+            ax.plot(X_train_reduced_mapped_back[:, 0], label = 'mapped back', alpha = 0.3)
+            ax.plot(X_train[:, 0], label = 'original', alpha = 0.3)
             ax.set_title('Mapped back data for train data')
             plt.legend()
             plt.savefig(f'/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/mapped_back_train_data_fold_{count}.png')
             #save the X_train_reduced_mapped_back
             np.save(f'/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/X_train_reduced_mapped_back_fold_{count}.npy', X_train_reduced_mapped_back)
+            #save the original X_train:
+            np.save(f'/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/X_train_fold_{count}.npy', X_train)
 
             fig, ax = plt.subplots()
-            ax.plot(X_test_reduced_mapped_back[:, 0], label = 'mapped back')
-            ax.plot(X_test[:, 0], label = 'original')
+            ax.plot(X_test_reduced_mapped_back[:, 0], label = 'mapped back', alpha = 0.3)
+            ax.plot(X_test[:, 0], label = 'original', alpha = 0.3)
             ax.set_title('Mapped back data for test data')
             plt.legend()
             plt.savefig(f'/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/mapped_back_test_data_fold_{count}.png')
             #save the X_test_reduced_mapped_back
             np.save(f'/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/X_test_reduced_mapped_back_fold_{count}.npy', X_test_reduced_mapped_back)
+            np.save(f'/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/X_test_fold_{count}.npy', X_test)
+
 
 
 
