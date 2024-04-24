@@ -203,7 +203,25 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
     return folds
 
+def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, y_test, save_dir_path=None, fold_num=None):
+    # Create a grid to cover the embedding space
+    x_range = np.linspace(X_test_reduced[:,0].min(), X_test_reduced[:,0].max(), 100)
+    y_range = np.linspace(X_test_reduced[:,1].min(), X_test_reduced[:,1].max(), 100)
+    xx, yy = np.meshgrid(x_range, y_range)
+    grid = np.c_[xx.ravel(), yy.ravel()]
 
+    # Predict on the grid
+    predictions = knn.predict(grid)
+
+    # Reshape predictions to have the same structure as xx and yy
+    predictions = predictions.reshape(xx.shape)
+
+    # Plot the grid points colored by their predicted values
+    plt.contourf(xx, yy, predictions, cmap='viridis')
+    plt.scatter(X_test_reduced[:,0], X_test_reduced[:,1], c=y_test, edgecolors='k')
+    plt.savefig(f'{save_dir_path}/knn_regressor_view_test_foldnum_{fold_num}.png')
+    plt.show()
+    return
 
 def train_and_test_on_umap_randcv(
         spks,
@@ -295,6 +313,8 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
+
+            plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, y_test, save_dir_path=savedir, fold_num=count)
             #plot the umap embeddings on a 3d scatter plot
             fig = plt.figure()
 
