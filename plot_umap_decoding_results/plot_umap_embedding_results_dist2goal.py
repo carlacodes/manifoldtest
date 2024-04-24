@@ -211,13 +211,16 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, y_test, save_d
     grid = np.c_[xx.ravel(), yy.ravel()]
 
     # Predict on the grid
-    predictions = knn.predict(grid)
-
+    predictions = knn.predict(X_test_reduced)
+    #get the first two components of the predictions only
+    predictions_toplot = predictions[:, 0:2]
     # Reshape predictions to have the same structure as xx and yy
-    predictions = predictions.reshape(xx.shape)
+    predictions_toplot = predictions_toplot.reshape(xx.shape)
+
+
 
     # Plot the grid points colored by their predicted values
-    plt.contourf(xx, yy, predictions, cmap='viridis')
+    plt.contourf(xx, yy, predictions_toplot, cmap='viridis')
     plt.scatter(X_test_reduced[:,0], X_test_reduced[:,1], c=y_test, edgecolors='k')
     plt.savefig(f'{save_dir_path}/knn_regressor_view_test_foldnum_{fold_num}.png')
     plt.show()
