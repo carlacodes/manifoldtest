@@ -206,10 +206,18 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
 def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None):
     # Create a grid to cover the embedding space
-    explainer = shap.KernelExplainer(knn.predict, X_train_reduced)
+    # Visualize the SHAP values
+    # Visualize the SHAP values
+    K = 100  # Number of samples
+    X_train_reduced_sampled = shap.sample(X_train_reduced, K)
+
+    # Use n_jobs for parallel computation
+    n_jobs = -1  # Use all available cores
+    explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
 
     # Compute SHAP values for the test data
     shap_values = explainer.shap_values(X_test_reduced)
+
 
     # Visualize the SHAP values
     shap.summary_plot(shap_values, X_test_reduced)
