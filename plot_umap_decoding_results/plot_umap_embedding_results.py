@@ -12,6 +12,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 import numpy as np
 import pandas as pd
+from manifold_neural.helpers import visualisation
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
@@ -231,7 +232,7 @@ def train_and_test_on_umap_randcv(
     n_timesteps = spks.shape[0]
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
-    savedir = f'C:/neural_data/r2_decoding_figures/umap/{rat_id}/'
+    savedir = f'C:/neural_data/r2_decoding_figures/umap/{rat_id}/allocentric_angle'
     #check if the directory exists
     if not os.path.exists(savedir):
         os.makedirs(savedir, exist_ok=True)
@@ -291,6 +292,21 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_test, y_pred)
             ax.set_title('y_test vs y_pred for fold: ' + str(count))
+            plt.show()
+            colormap = visualisation.colormap_2d()
+
+            data_x_c = np.interp(y_test[:,0], (y_test[:,0].min(), y_test[:,0].max()), (0, 255)).astype(
+                int)
+            data_y_c = np.interp(y_test[:,1], (y_test[:,1].min(), y_test[:,1].max()), (0, 255)).astype(
+                int)
+            color_data= colormap[data_x_c, data_y_c]
+
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=color_data)
+            ax.set_title('UMAP test embeddings color-coded by head angle (allocentric) for fold: ' + str(count) + 'rat id:' +str(rat_id))
+            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
