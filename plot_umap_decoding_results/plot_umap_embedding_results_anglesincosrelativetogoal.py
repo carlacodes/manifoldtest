@@ -447,15 +447,24 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
     explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
 
     # Compute SHAP values for the test data
-    shap_values = explainer.shap_values(X_train_reduced_sampled)
-    explanation = shap.Explanation(values=shap_values, data=X_train_reduced_sampled)
+    shap_values = explainer.shap_values(X_test_reduced)
 
     # Visualize the SHAP values
-    shap.summary_plot(shap_values[0], X_train_reduced_sampled, plot_type='dot', show = False)
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    shap.summary_plot(shap_values[0], X_test_reduced, plot_type='dot', show = False)
     plt.title('SHAP values for the test data')
-    plt.xlabel('SHAP value (impact on head angle)')
+    plt.xlabel('SHAP value (impact on sin head angle relative to goal)')
     plt.ylabel('UMAP feature')
-    plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{save_dir_path}/shap_values_sin_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    shap.summary_plot(shap_values[1], X_test_reduced, plot_type='dot', show = False)
+    plt.title('SHAP values for the test data')
+    plt.xlabel('SHAP value (impact on cos head angle relative to goal)')
+    plt.ylabel('UMAP feature')
+    plt.savefig(f'{save_dir_path}/shap_values_cos_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+
+
 
 
     return

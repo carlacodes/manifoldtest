@@ -216,11 +216,10 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
     explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
 
     # Compute SHAP values for the test data
-    shap_values = explainer.shap_values(X_train_reduced)
-    explanation = shap.Explanation(values=shap_values, data=X_train_reduced)
+    shap_values = explainer.shap_values(X_test_reduced)
 
     # Visualize the SHAP values
-    shap.summary_plot(shap_values[0], X_train_reduced, plot_type='dot', show = False)
+    shap.summary_plot(shap_values[0], X_test_reduced, plot_type='dot', show = False)
     plt.title('SHAP values for the test data')
     plt.xlabel('SHAP value (impact on distance to goal)')
     plt.ylabel('UMAP feature')
