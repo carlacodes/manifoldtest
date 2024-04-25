@@ -447,7 +447,7 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
     explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
 
     # Compute SHAP values for the test data
-    shap_values = explainer.shap_values(X_test_reduced)
+    shap_values = explainer.shap_values(X_test_reduced, n_jobs=n_jobs)
 
     # Visualize the SHAP values
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
