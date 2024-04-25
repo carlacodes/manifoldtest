@@ -216,21 +216,16 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
     explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
 
     # Compute SHAP values for the test data
-    shap_values = explainer.shap_values(X_test_reduced)
-    explanation = shap.Explanation(values=shap_values, data=X_test_reduced, feature_names=['dist2goal'])
+    shap_values = explainer.shap_values(X_train_reduced)
+    explanation = shap.Explanation(values=shap_values, data=X_train_reduced)
 
     # Visualize the SHAP values
-    shap.summary_plot(shap_values, X_test_reduced)
+    shap.summary_plot(shap_values[0], X_train_reduced, plot_type='dot', show = False)
+    plt.title('SHAP values for the test data')
+    plt.xlabel('SHAP value (impact on distance to goal)')
+    plt.ylabel('UMAP feature')
+    plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png')
 
-    #run a force plot on the data
-    fig, ax = plt.subplots(1, 1)
-    force_plot = shap.force_plot(explainer.expected_value, shap_values[0], [X_test_reduced[0]], show=False)
-    shap.save_html(f'{save_dir_path}/force_plot2.html', force_plot)
-
-    # fig, ax = plt.subplots(1, 1)
-    # shap.plots.beeswarm(explanation)
-    # ax.set_title('SHAP values for KNeighborsRegressor')
-    # plt.show()
 
     return
 
@@ -324,7 +319,7 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
-            # plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
+            plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
             #plot the umap embeddings on a 3d scatter plot
             fig = plt.figure()
 

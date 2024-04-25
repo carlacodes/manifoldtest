@@ -292,7 +292,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_test, y_pred)
             ax.set_title('y_test vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
             colormap = visualisation.colormap_2d()
 
             data_x_c = np.interp(y_test[:,0], (y_test[:,0].min(), y_test[:,0].max()), (0, 255)).astype(
@@ -301,13 +301,15 @@ def train_and_test_on_umap_randcv(
                 int)
             color_data= colormap[data_x_c, data_y_c]
 
+            actual_angle = np.arcsin(y_pred[:, 0])
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=color_data)
+            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=actual_angle, cmap='viridis')
+            cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP test embeddings color-coded by head angle \n (allocentric) for fold: ' + str(count) + 'rat id:' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
@@ -316,7 +318,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 1], label='y_pred', alpha=0.5)
@@ -326,7 +328,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
 
             #do the same for the train data
@@ -334,7 +336,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_train, y_pred_train)
             ax.set_title('y_train vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
@@ -345,7 +347,7 @@ def train_and_test_on_umap_randcv(
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_sin_fold_' + str(count) + '.png')
 
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 1], label='y_pred', alpha=0.5)
@@ -355,7 +357,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_cos_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
 
 
@@ -367,7 +369,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
@@ -377,7 +379,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
                 count) + 'shuffled.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 1], label='y_pred',c='purple',  alpha=0.5)

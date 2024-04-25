@@ -16,23 +16,13 @@ from manifold_neural.helpers import visualisation
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
-
-
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 import os
 import scipy
 import pickle as pkl
+import shap
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
-
-# TODO: 1. change hyperparameters to normalise y = True and kernel = (constant kernel * RBF) + white kernel
-# 2. change the regressor to GaussianProcessRegressor
-# 3. should the umap X_training data be 2d rather than 3d? Also need to z-score the X input data
-# 4. in the 2021 sci advances paper they used 2 fold cross validation
-# 5. for the isomap they used n_neighbours = 20 #
-# 6. they used the gaussian-filtered (omega = 2-time bins) square root of instantenous firing rates for the isomap decomposition
-# 7. bin duration = 512 ms, so about the same as what I have
-# 8. target position was smoothed using a gaussian filter
 
 
 
@@ -289,12 +279,15 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
+
+            plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
+
             colormap = visualisation.colormap_2d()
             data_x_c = np.interp(y_test[:,0], (y_test[:,0].min(), y_test[:,0].max()), (0, 255)).astype(
                 int)
             data_y_c = np.interp(y_test[:,1], (y_test[:,1].min(), y_test[:,1].max()), (0, 255)).astype(
                 int)
-            color_data= colormap[data_x_c, data_y_c]
+            color_data=colormap[data_x_c, data_y_c]
 
             #get the actual angle relative to goal and create a 1d color map by takin the inverse sin
             #and inverse cos
@@ -303,24 +296,24 @@ def train_and_test_on_umap_randcv(
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=actual_angle, cmap='viridis')
+            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=actual_angle, cmap='viridis')
             #add a color bar
-            cbar = plt.colorbar(color_data)
+            cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(count) + 'rat id:' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             #plot the color map
             fig, ax = plt.subplots(1, 1)
             ax.imshow(colormap)
             ax.set_title('Color map for angle relative to goal')
             plt.savefig(f'{savedir}/color_map_fold_{count}.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_test, y_pred)
             ax.set_title('y_test vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
@@ -329,7 +322,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_sinrelativetogoal_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 1], label='y_pred', alpha=0.5)
@@ -339,7 +332,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_cos_reltogoal_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
 
             #do the same for the train data
@@ -347,7 +340,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_train, y_pred_train)
             ax.set_title('y_train vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
@@ -358,7 +351,7 @@ def train_and_test_on_umap_randcv(
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_cos_reltogoal_fold_' + str(count) + '.png')
 
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 1], label='y_pred', alpha=0.5)
@@ -368,7 +361,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_sin_rel_to_goal_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
 
 
@@ -380,7 +373,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
@@ -390,7 +383,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
                 count) + 'shuffled.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 1], label='y_pred',c='purple',  alpha=0.5)
@@ -441,6 +434,31 @@ def load_previous_results(directory_of_interest):
                             with open(f'{param_directory}/{file}', 'rb') as f:
                                 param_dict[rat_id] =  np.load(f'{param_directory}/{file}', allow_pickle=True)
     return param_dict, score_dict
+
+def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None):
+    # Create a grid to cover the embedding space
+    # Visualize the SHAP values
+    # Visualize the SHAP values
+    K = 100  # Number of samples
+    X_train_reduced_sampled = shap.sample(X_train_reduced, K)
+
+    # Use n_jobs for parallel computation
+    n_jobs = -1  # Use all available cores
+    explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
+
+    # Compute SHAP values for the test data
+    shap_values = explainer.shap_values(X_train_reduced)
+    explanation = shap.Explanation(values=shap_values, data=X_train_reduced)
+
+    # Visualize the SHAP values
+    shap.summary_plot(shap_values[0], X_train_reduced, plot_type='dot', show = False)
+    plt.title('SHAP values for the test data')
+    plt.xlabel('SHAP value (impact on head angle)')
+    plt.ylabel('UMAP feature')
+    plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png')
+
+
+    return
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
