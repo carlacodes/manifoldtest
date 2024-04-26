@@ -279,8 +279,9 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
-
-            plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
+            if count == 0:
+                #just plot on the first fold now as an example
+                plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count, rat_id=rat_id)
 
             colormap = visualisation.colormap_2d()
             data_x_c = np.interp(y_test[:,0], (y_test[:,0].min(), y_test[:,0].max()), (0, 255)).astype(
@@ -435,31 +436,33 @@ def load_previous_results(directory_of_interest):
                                 param_dict[rat_id] =  np.load(f'{param_directory}/{file}', allow_pickle=True)
     return param_dict, score_dict
 
-def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None):
+def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None, rat_id = 'None'):
     # Create a grid to cover the embedding space
     # Visualize the SHAP values
     # Visualize the SHAP values
     K = 100  # Number of samples
+    K_vis = 800
     X_train_reduced_sampled = shap.sample(X_train_reduced, K)
+    X_test_reduced_sampled = shap.sample(X_test_reduced, K_vis)
 
     # Use n_jobs for parallel computation
     n_jobs = -1  # Use all available cores
     explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
 
     # Compute SHAP values for the test data
-    shap_values = explainer.shap_values(X_test_reduced, n_jobs=n_jobs)
+    shap_values = explainer.shap_values(X_test_reduced_sampled, n_jobs=n_jobs)
 
     # Visualize the SHAP values
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    shap.summary_plot(shap_values[0], X_test_reduced, plot_type='dot', show = False)
-    plt.title('SHAP values for the test data')
+    shap.summary_plot(shap_values[0], X_test_reduced_sampled, plot_type='dot', show = False)
+    plt.title(f'SHAP values for the test data, rat id: {rat_id}')
     plt.xlabel('SHAP value (impact on sin head angle relative to goal)')
     plt.ylabel('UMAP feature')
     plt.savefig(f'{save_dir_path}/shap_values_sin_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    shap.summary_plot(shap_values[1], X_test_reduced, plot_type='dot', show = False)
-    plt.title('SHAP values for the test data')
+    shap.summary_plot(shap_values[1], X_test_reduced_sampled, plot_type='dot', show = False)
+    plt.title(f'SHAP values for the test data, rat id: {rat_id}')
     plt.xlabel('SHAP value (impact on cos head angle relative to goal)')
     plt.ylabel('UMAP feature')
     plt.savefig(f'{save_dir_path}/shap_values_cos_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
@@ -474,7 +477,7 @@ def main():
     param_dict, score_dict = load_previous_results(
         'angle_rel_to_goal')
     #'C:/neural_data/rat_3/25-3-2019'
-    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',]:
+    for data_dir in [ 'C:/neural_data/rat_7/6-12-2019','C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',]:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
