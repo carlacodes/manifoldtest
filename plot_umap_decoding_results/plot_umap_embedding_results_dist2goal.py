@@ -209,21 +209,25 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
     # Visualize the SHAP values
     # Visualize the SHAP values
     K = 100  # Number of samples
+    K_vis = 800
     X_train_reduced_sampled = shap.sample(X_train_reduced, K)
+    X_test_reduced_sampled = shap.sample(X_test_reduced, K_vis)
+
 
     # Use n_jobs for parallel computation
     n_jobs = -1  # Use all available cores
     explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
 
     # Compute SHAP values for the test data
-    shap_values = explainer.shap_values(X_test_reduced)
+    shap_values = explainer.shap_values(X_test_reduced_sampled)
 
     # Visualize the SHAP values
-    shap.summary_plot(shap_values[0], X_test_reduced, plot_type='dot', show = False)
+    shap.summary_plot(shap_values[0], X_test_reduced_sampled, plot_type='dot', show = False)
     plt.title('SHAP values for the test data')
     plt.xlabel('SHAP value (impact on distance to goal)')
     plt.ylabel('UMAP feature')
     plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png')
+    plt.close('all')
 
 
     return
@@ -318,7 +322,8 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
-            plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
+            if count == 0:
+                plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
             #plot the umap embeddings on a 3d scatter plot
             fig = plt.figure()
 
