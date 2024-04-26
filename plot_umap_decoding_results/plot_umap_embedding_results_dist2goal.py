@@ -323,8 +323,10 @@ def train_and_test_on_umap_randcv(
             fig = plt.figure()
 
             ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=y_pred[:, 0], cmap='viridis')
-            ax.set_title('UMAP test embeddings for fold: ' + str(count))
+            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=y_pred[:, 0], cmap='viridis')
+            #add a color bar
+            cbar = plt.colorbar(sc, ax=ax)
+            ax.set_title('UMAP test embeddings color-coded by dist. to goal \n for fold: ' + str(count) + ' rat id: ' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
             plt.show()
 
@@ -364,6 +366,8 @@ def train_and_test_on_umap_randcv(
                 f'{savedir}/y_pred_vs_y_train_dist2goal_fold_' + str(count) + '.png')
 
             plt.show()
+            plt.close('all')
+
 
 
 
