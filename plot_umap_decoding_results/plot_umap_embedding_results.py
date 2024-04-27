@@ -308,7 +308,7 @@ def train_and_test_on_umap_randcv(
             sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=actual_angle, cmap='viridis')
             cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP test embeddings color-coded by head angle \n (allocentric) for fold: ' + str(count) + 'rat id:' +str(rat_id))
-            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
+            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
             #plt.show()
 
             fig, ax = plt.subplots(1, 1)

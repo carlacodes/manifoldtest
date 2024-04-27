@@ -203,7 +203,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, param_dict, rat_id = None
+        reducer_kwargs, param_dict, rat_id = None, plot_shaps = False
 ):
     # param_grid = {
     #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
@@ -279,7 +279,7 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
-            if count == 0:
+            if plot_shaps and count == 0:
                 #just plot on the first fold now as an example
                 plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count, rat_id=rat_id)
 
@@ -301,7 +301,7 @@ def train_and_test_on_umap_randcv(
             #add a color bar
             cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(count) + 'rat id:' +str(rat_id))
-            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
+            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             #plt.show()
 
             #plot the color map
