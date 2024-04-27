@@ -333,6 +333,24 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_cos_reltogoal_fold_' + str(count) + '.png')
+            #get the actual angle
+            actual_angle = np.arcsin(y_test[0:120, 0])
+            actual_angle_pred = np.arcsin(y_pred[0:120, 0])
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(actual_angle, label='actual angle', alpha=0.5)
+            ax.plot(actual_angle_pred, label='predicted angle', alpha=0.5)
+            ax.set_title('Actual vs predicted sin angle rel. to goal for fold: ' + str(count) + ' r2_score: ' + str(score))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(
+                f'{savedir}/actual_vs_predicted_converted_angle_fold_' + str(count) + '.png', dpi = 300,  bbox_inches='tight')
+            plt.show()
+            plt.close('all')
+
+            #do the same for the shuffled data
+
+
+
             #plt.show()
 
 
@@ -378,7 +396,7 @@ def train_and_test_on_umap_randcv(
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
-            plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c= 'yellow')
+            plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c='darkorange')
             ax.set_title('y_pred (sin head angle rel. to goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
@@ -388,12 +406,30 @@ def train_and_test_on_umap_randcv(
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 1], label='y_pred',c='purple',  alpha=0.5)
-            plt.plot(y_test[:, 1], label='y_test', c='yellow', alpha=0.5)
-            ax.set_title('y_pred (cos head angle rel. to goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            plt.plot(y_test[:, 1], label='y_test', c='darkorange', alpha=0.5)
+            ax.set_title('y_pred (cos head angle rel. to goal) \n for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(
                 count) + 'shuffled.png')
+
+            actual_angle_pred_shuffled = np.arcsin(y_pred_shuffled[:,0])
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(actual_angle[0:120], label='actual angle', alpha=0.5)
+            ax.plot(actual_angle_pred_shuffled[0:120], label='predicted angle', alpha=0.5)
+            ax.set_title('Actual vs predicted sin angle rel. to goal \n for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(
+                f'{savedir}/actual_vs_predicted_converted_angle_fold_' + str(count) + 'shuffled.png', dpi = 300,  bbox_inches='tight')
+            plt.show()
+
+
+
+            plt.close('all')
+
+
+
             count += 1
 
 

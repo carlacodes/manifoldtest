@@ -330,6 +330,21 @@ def train_and_test_on_umap_randcv(
                 f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(count) + '.png')
             #plt.show()
 
+            actual_angle = np.arcsin(y_test[:, 0])
+            actual_angle_pred = np.arcsin(y_pred[:, 0])
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(actual_angle[0:120], label='y_test', alpha=0.5)
+            plt.plot(actual_angle_pred[0:120], label='y_pred', alpha=0.5)
+            ax.set_title('y_pred (head angle, allocentric) for fold: ' + str(count) + ' r2_score: ' + str(score))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(
+                f'{savedir}/y_pred_vs_y_test_actual_angle_fold_' + str(count) + 'radians.png')
+            plt.show()
+
+
+
+
 
             #do the same for the train data
             y_pred_train = current_regressor.predict(X_train_reduced)
@@ -389,6 +404,20 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(
                 count) + 'shuffled.png')
+
+            actual_angle_pred_shuffled = np.arcsin(y_pred_shuffled[:, 0])
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(actual_angle[0:120], label='y_test', alpha=0.5, c='purple')
+            plt.plot(actual_angle_pred_shuffled[0:120], label='y_pred', alpha=0.5, c='darkorange')
+            ax.set_title('y_pred (head angle, allocentric) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(
+                f'{savedir}/y_pred_vs_y_test_actual_angle_fold_' + str(count) + 'radians_shuffled.png', dpi = 300, bbox_inches = 'tight')
+            plt.show()
+            plt.close('all')
+
+
             count += 1
 
 

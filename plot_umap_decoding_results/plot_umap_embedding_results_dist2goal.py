@@ -401,7 +401,7 @@ def train_and_test_on_umap_randcv(
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
-            plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c= 'yellow')
+            plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c= 'darkorange')
             ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
@@ -411,7 +411,7 @@ def train_and_test_on_umap_randcv(
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[0:120, 0], label='y_pred', alpha=0.5, c = 'purple')
-            plt.plot(y_test[0:120, 0], label='y_test', alpha=0.5, c= 'yellow')
+            plt.plot(y_test[0:120, 0], label='y_test', alpha=0.5, c= 'darkorange')
             ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
