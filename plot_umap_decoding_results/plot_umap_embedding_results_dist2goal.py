@@ -239,7 +239,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, param_dict, rat_id = None
+        reducer_kwargs, param_dict, rat_id = None, plot_shaps = False
 ):
     # param_grid = {
     #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
@@ -322,7 +322,7 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
-            if count == 0:
+            if plot_shaps and count == 0:
                 plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
             #plot the umap embeddings on a 3d scatter plot
             fig = plt.figure()
@@ -347,7 +347,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_pred, rat ID:'+ str(rat_id) +'(dist2goal) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
             plt.show()
 
 
@@ -380,7 +380,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_train_dist2goal_120_samples_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_train_dist2goal_120_samples_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
 
             plt.show()
             plt.close('all')
@@ -405,9 +405,20 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
-            plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
-                count) + 'shuffled.png')
+            plt.savefig(f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(
+                count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
             plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            plt.plot(y_pred_shuffled[0:120, 0], label='y_pred', alpha=0.5, c = 'purple')
+            plt.plot(y_test[0:120, 0], label='y_test', alpha=0.5, c= 'yellow')
+            ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(f'{savedir}/y_pred_vs_y_test_dist2goal_first120samples_fold_' + str(
+                count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
+            plt.show()
+            plt.close('all')
 
 
             count += 1
