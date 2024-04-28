@@ -316,7 +316,7 @@ def train_and_test_on_umap_randcv(
                 z=X_test_reduced[:, 2],
                 mode='markers',
                 marker=dict(
-                    size=10,
+                    size=6,
                     color=actual_angle,  # set color to prediction values
                     colorscale='Viridis',  # choose a colorscale
                     opacity=0.8
@@ -329,25 +329,46 @@ def train_and_test_on_umap_randcv(
 
             # Save the figure as an HTML file
             fig.write_html(f'{savedir}/umap_embeddings_fold_interactive_' + str(count) + '.html')
-            # Create a 3D line plot
+
+
             fig = go.Figure(data=[go.Scatter3d(
-                x=X_test_reduced[:, 0],
-                y=X_test_reduced[:, 1],
-                z=X_test_reduced[:, 2],
-                mode='lines',
-                line=dict(
+                x=X_test_reduced_shuffled[:, 0],
+                y=X_test_reduced_shuffled[:, 1],
+                z=X_test_reduced_shuffled[:, 2],
+                mode='markers',
+                marker=dict(
+                    size=6,
                     color=actual_angle,  # set color to prediction values
-                    colorscale='Viridis',  # choose a colorscale
-                    width=2
+                    colorscale='Magma',  # choose a colorscale
+                    opacity=0.8
                 )
             )])
 
             # Set plot title
-            fig.update_layout(title_text='UMAP test embeddings color-coded by angle for fold: ' + str(
+            fig.update_layout(title_text='UMAP test embeddings color-coded by angle (goal-centred), SHUFFLED, for fold: ' + str(
                 count) + ' rat id: ' + str(rat_id))
 
             # Save the figure as an HTML file
-            fig.write_html(f'{savedir}/umap_embeddings_fold_interative_lines_' + str(count) + '.html')
+            fig.write_html(f'{savedir}/umap_embeddings_fold_interactive_SHUFFLED' + str(count) + '.html')
+            # Create a 3D line plot
+            # fig = go.Figure(data=[go.Scatter3d(
+            #     x=X_test_reduced[:, 0],
+            #     y=X_test_reduced[:, 1],
+            #     z=X_test_reduced[:, 2],
+            #     mode='lines',
+            #     line=dict(
+            #         color=actual_angle,  # set color to prediction values
+            #         colorscale='Viridis',  # choose a colorscale
+            #         width=2
+            #     )
+            # )])
+            #
+            # # Set plot title
+            # fig.update_layout(title_text='UMAP test embeddings color-coded by angle for fold: ' + str(
+            #     count) + ' rat id: ' + str(rat_id))
+            #
+            # # Save the figure as an HTML file
+            # fig.write_html(f'{savedir}/umap_embeddings_fold_interative_lines_' + str(count) + '.html')
 
             # Show the figure
             # fig.show()

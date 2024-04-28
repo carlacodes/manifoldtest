@@ -291,9 +291,9 @@ def train_and_test_on_umap_randcv(
             y_train, y_test = y[train_index], y[test_index]
 
             y_train_shuffled = copy.deepcopy(y_train)
-            np.random.shuffle(y_train_shuffled)
+            # np.random.shuffle(y_train_shuffled)
             y_test_shuffled = copy.deepcopy(y_test)
-            np.random.shuffle(y_test_shuffled)
+            # np.random.shuffle(y_test_shuffled)
 
 
             # Apply dimensionality reduction
@@ -304,10 +304,10 @@ def train_and_test_on_umap_randcv(
             current_regressor.fit(X_train_reduced, y_train)
 
             X_train_reduced_shuffled = X_train_reduced.copy()
-            # np.random.shuffle(X_train_reduced_shuffled)
+            np.random.shuffle(X_train_reduced_shuffled)
 
             X_test_reduced_shuffled = X_test_reduced.copy()
-            # np.random.shuffle(X_test_reduced_shuffled)
+            np.random.shuffle(X_test_reduced_shuffled)
 
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
@@ -341,8 +341,6 @@ def train_and_test_on_umap_randcv(
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
             #plt.show()
 
-            fig.show()
-
             # Create a 3D line plot
             fig = go.Figure(data=[go.Scatter3d(
                 x=X_test_reduced[:, 0],
@@ -364,26 +362,49 @@ def train_and_test_on_umap_randcv(
             fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '.html')
 
 
-            # Create a 3D scatter plot
+
             fig = go.Figure(data=[go.Scatter3d(
-                x=X_test_reduced[:, 0],
-                y=X_test_reduced[:, 1],
-                z=X_test_reduced[:, 2],
-                mode='markers',
-                marker=dict(
-                    size=8,
+                x=X_test_reduced_shuffled[:, 0],
+                y=X_test_reduced_shuffled[:, 1],
+                z=X_test_reduced_shuffled[:, 2],
+                mode='lines',
+                line=dict(
                     color=y_pred[:, 0],  # set color to prediction values
-                    colorscale='Viridis',  # choose a colorscale
-                    opacity=0.8
+                    colorscale='Magma',  # choose a colorscale
+                    width=2
                 )
             )])
 
             # Set plot title
-            fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold: ' + str(
+            fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold (shuffled): ' + str(
                 count) + ' rat id: ' + str(rat_id))
 
             # Save the figure as an HTML file
-            fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '.html')
+            fig.write_html(f'{savedir}/umap_embeddings_shuffled_fold_' + str(count) + '.html')
+            #close plotly object
+
+            #
+            #
+            # # Create a 3D scatter plot
+            # fig = go.Figure(data=[go.Scatter3d(
+            #     x=X_test_reduced[:, 0],
+            #     y=X_test_reduced[:, 1],
+            #     z=X_test_reduced[:, 2],
+            #     mode='markers',
+            #     marker=dict(
+            #         size=6,
+            #         color=y_pred[:, 0],  # set color to prediction values
+            #         colorscale='Viridis',  # choose a colorscale
+            #         opacity=0.8
+            #     )
+            # )])
+            #
+            # # Set plot title
+            # fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold: ' + str(
+            #     count) + ' rat id: ' + str(rat_id))
+            #
+            # # Save the figure as an HTML file
+            # fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '.html')
 
             # Show the figure
 
@@ -534,7 +555,7 @@ def main():
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
     var_regress = 'dist2goal'
     big_df = pd.DataFrame()
-    for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
+    for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019', 'C:/neural_data/rat_10/23-11-2021',]:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
