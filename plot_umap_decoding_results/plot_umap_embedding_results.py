@@ -253,15 +253,30 @@ def train_and_test_on_umap_randcv(
 
         # Initialize the reducer with current parameters
         current_reducer = reducer(**reducer_kwargs)
+        current_reducer_shuffled = reducer(**reducer_kwargs)
         count = 0
         scores = []
         scores_shuffled = []
         scores_train = []
         scores_train_shuffled = []
+        # Copy the array
+        spks_shuffled = copy.deepcopy(spks)
+        # Shuffle along the first axis
+        np.random.shuffle(spks_shuffled)
+        # Transpose, shuffle and transpose back to shuffle along the second axis
+        spks_shuffled = spks_shuffled.T
+        np.random.shuffle(spks_shuffled)
+        spks_shuffled = spks_shuffled.T
 
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
+            X_train_shuffled, X_test_shuffled = spks_shuffled[train_index], spks_shuffled[test_index]
             y_train, y_test = y[train_index], y[test_index]
+
+            X_train_shuffled = X_train.copy()
+            np.random.shuffle(X_train_shuffled)
+
+
 
             # Apply dimensionality reduction
             X_train_reduced = current_reducer.fit_transform(X_train)
@@ -270,11 +285,11 @@ def train_and_test_on_umap_randcv(
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
 
-            X_train_reduced_shuffled = X_train_reduced.copy()
-            np.random.shuffle(X_train_reduced_shuffled)
+            X_train_reduced_shuffled = current_reducer_shuffled.fit_transform(X_train_shuffled)
+            # np.random.shuffle(X_train_reduced_shuffled)
 
-            X_test_reduced_shuffled = X_test_reduced.copy()
-            np.random.shuffle(X_test_reduced_shuffled)
+            X_test_reduced_shuffled = current_reducer_shuffled.transform(X_test_shuffled)
+            # np.random.shuffle(X_test_reduced_shuffled)
 
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
@@ -315,7 +330,7 @@ def train_and_test_on_umap_randcv(
             ax.set_ylabel('UMAP 2')
             ax.set_zlabel('UMAP 3')
             cbar = plt.colorbar(sc, ax=ax)
-            ax.set_title('UMAP test embeddings color-coded by head angle \n (allocentric) for fold: ' + str(count) + 'rat id:' +str(rat_id))
+            ax.set_title('UMAP test embeddings color-coded by head angle \n (allocentric) for fold: ' + str(count) + ' rat id: ' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
 
             fig = plt.figure()
@@ -330,6 +345,17 @@ def train_and_test_on_umap_randcv(
                 count) + 'rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/umap_shuffled_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
 
+            #plot the first umap component against its shuffled version
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(X_test_reduced[0:120, 0], label = 'UMAP 1', alpha = 0.5)
+            ax.plot(X_test_reduced_shuffled[0:120, 0], label = 'UMAP 1 SHUFFLED', alpha = 0.5)
+            ax.set_title('UMAP 1 vs UMAP 1 SHUFFLED for fold, head angle (allocentric): ' + str(count))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(f'{savedir}/umap1_vs_umap1_shuffled_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
+            # plt.show()
+
+            # plt.show()
             fig = go.Figure(data=[go.Scatter3d(
                 x=X_test_reduced[:, 0],
                 y=X_test_reduced[:, 1],
@@ -403,12 +429,11 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(actual_angle[0:120], label='y_test', alpha=0.5)
             plt.plot(actual_angle_pred[0:120], label='y_pred', alpha=0.5)
-            ax.set_title('y_pred (head angle, allocentric) for fold: ' + str(count) + ' r2_score: ' + str(score))
+            ax.set_title('y_pred (head angle, allocentric) \n for fold: ' + str(count) + ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_actual_angle_fold_' + str(count) + 'radians.png')
-            plt.show()
 
 
 
@@ -424,7 +449,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
             plt.plot(y_train[:, 0], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (sin head angle) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
+            ax.set_title('y_pred (sin head angle)\n  for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
@@ -435,7 +460,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 1], label='y_pred', alpha=0.5)
             plt.plot(y_train[:, 1], label='y_test', alpha=0.5)
-            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
+            ax.set_title('y_pred (cos head angle) \n for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
@@ -482,7 +507,6 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_actual_angle_fold_' + str(count) + 'radians_shuffled.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
             plt.close('all')
 
 

@@ -277,6 +277,7 @@ def train_and_test_on_umap_randcv(
 
         # Initialize the reducer with current parameters
         current_reducer = reducer(**reducer_kwargs)
+        current_reducer_shuffled = copy.deepcopy(current_reducer)
         count = 0
         scores = []
         scores_shuffled = []
@@ -286,9 +287,20 @@ def train_and_test_on_umap_randcv(
         random_search_results_shuffled = []
         random_search_results_train_shuffled = []
 
+        spks_shuffled = copy.deepcopy(spks)
+        # Shuffle along the first axis
+        np.random.shuffle(spks_shuffled)
+        # Transpose, shuffle and transpose back to shuffle along the second axis
+        spks_shuffled = spks_shuffled.T
+        np.random.shuffle(spks_shuffled)
+        spks_shuffled = spks_shuffled.T
+
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
+
+            X_train_shuffled, X_test_shuffled = spks_shuffled[train_index], spks_shuffled[test_index]
+
 
             y_train_shuffled = copy.deepcopy(y_train)
             # np.random.shuffle(y_train_shuffled)
@@ -303,15 +315,12 @@ def train_and_test_on_umap_randcv(
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
 
-            X_train_reduced_shuffled = X_train_reduced.copy()
-            np.random.shuffle(X_train_reduced_shuffled)
+            X_train_reduced_shuffled = current_reducer_shuffled.fit_transform(X_train_shuffled)
 
-            X_test_reduced_shuffled = X_test_reduced.copy()
-            np.random.shuffle(X_test_reduced_shuffled)
+            X_test_reduced_shuffled = current_reducer_shuffled.transform(X_test_shuffled)
 
             # Fit the regressor
             current_regressor.fit(X_train_reduced, y_train)
-
             current_regressor_shuffled.fit(X_train_reduced_shuffled, y_train_shuffled)
 
             # Evaluate the regressor: using the default for regressors which is r2
@@ -356,6 +365,16 @@ def train_and_test_on_umap_randcv(
             ax.set_title('UMAP SHUFFLED test embeddings color-coded by dist. to goal \n for fold: ' + str(count) + ' rat id: ' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_SHUFFLED_fold_' + str(count) + '.png')
             #plt.show()
+
+
+
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(X_test_reduced[0:120, 0], label = 'UMAP 1', alpha = 0.5)
+            ax.plot(X_test_reduced_shuffled[0:120, 0], label = 'UMAP 1 SHUFFLED', alpha = 0.5)
+            ax.set_title('UMAP 1 vs UMAP 1 SHUFFLED for fold, (distance 2 goal): ' + str(count))
+            ax.set_xlabel('time in SAMPLES')
+            plt.legend()
+            plt.savefig(f'{savedir}/umap1_vs_umap1_shuffled_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
 
             # Create a 3D line plot
             fig = go.Figure(data=[go.Scatter3d(
