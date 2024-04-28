@@ -228,7 +228,7 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
     plt.title('SHAP values for the test data')
     plt.xlabel('SHAP value (impact on distance to goal)')
     plt.ylabel('UMAP feature')
-    plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png')
+    plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
     plt.close('all')
 
 
@@ -381,7 +381,7 @@ def train_and_test_on_umap_randcv(
                 x=X_test_reduced[:, 0],
                 y=X_test_reduced[:, 1],
                 z=X_test_reduced[:, 2],
-                mode='lines',
+                mode='markers',
                 line=dict(
                     color=y_pred[:, 0],  # set color to prediction values
                     colorscale='Viridis',  # choose a colorscale
@@ -409,7 +409,7 @@ def train_and_test_on_umap_randcv(
                 x=X_test_reduced_shuffled[:, 0],
                 y=X_test_reduced_shuffled[:, 1],
                 z=X_test_reduced_shuffled[:, 2],
-                mode='lines',
+                mode='markers',
                 line=dict(
                     color=y_pred[:, 0],  # set color to prediction values
                     colorscale='Magma',  # choose a colorscale
@@ -423,6 +423,7 @@ def train_and_test_on_umap_randcv(
 
             # Save the figure as an HTML file
             fig.write_html(f'{savedir}/umap_embeddings_shuffled_fold_' + str(count) + '.html')
+            fig.show()
             #close plotly object
 
 
@@ -579,6 +580,7 @@ def main():
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
         spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+
 
         spike_data_trial = spike_data
         data_dir_path = Path(data_dir)

@@ -17,7 +17,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
 import plotly.graph_objects as go
-
+import shap
 
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
@@ -36,7 +36,43 @@ os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 # 8. target position was smoothed using a gaussian filter
 
 
+def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None, rat_id = 'None'):
+    # Create a grid to cover the embedding space
+    # Visualize the SHAP values
+    # Visualize the SHAP values
+    K = 100  # Number of samples
+    K_vis = 800
+    X_train_reduced_sampled = shap.sample(X_train_reduced, K)
+    X_test_reduced_sampled = shap.sample(X_test_reduced, K_vis)
 
+    # Use n_jobs for parallel computation
+    n_jobs = -1  # Use all available cores
+    explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
+
+    # Compute SHAP values for the test data
+    shap_values = explainer.shap_values(X_test_reduced_sampled, n_jobs=n_jobs)
+
+    # Visualize the SHAP values
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    shap.summary_plot(shap_values[0], X_test_reduced_sampled, plot_type='dot', show = False)
+    plt.title(f'SHAP values for the test data, rat id: {rat_id}')
+    plt.xlabel('SHAP value (impact on sin head angle allocentric)')
+    plt.ylabel('UMAP feature')
+    plt.savefig(f'{save_dir_path}/shap_values_sin_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    shap.summary_plot(shap_values[1], X_test_reduced_sampled, plot_type='dot', show = False)
+    plt.title(f'SHAP values for the test data, rat id: {rat_id}')
+    plt.xlabel('SHAP value (impact on cos head angle allocentric)')
+    plt.ylabel('UMAP feature')
+    plt.savefig(f'{save_dir_path}/shap_values_cos_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+    plt.close('all')
+
+
+
+
+    return
 def process_data_within_split(
         spks_train,
         spks_test,
@@ -322,6 +358,8 @@ def train_and_test_on_umap_randcv(
             color_data= colormap[data_x_c, data_y_c]
 
             actual_angle = np.arcsin(y_pred[:, 0])
+            if count == 5:
+                plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count, rat_id=rat_id)
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')

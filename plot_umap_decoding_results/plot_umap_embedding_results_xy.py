@@ -12,6 +12,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 import numpy as np
 import pandas as pd
+import shap
 from manifold_neural.helpers import visualisation
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
@@ -80,7 +81,40 @@ def process_data_within_split(
     return results
 
 
+def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None, rat_id = 'None'):
+    # Create a grid to cover the embedding space
+    # Visualize the SHAP values
+    # Visualize the SHAP values
+    K = 100  # Number of samples
+    K_vis = 800
+    X_train_reduced_sampled = shap.sample(X_train_reduced, K)
+    X_test_reduced_sampled = shap.sample(X_test_reduced, K_vis)
 
+    # Use n_jobs for parallel computation
+    n_jobs = -1  # Use all available cores
+    explainer = shap.KernelExplainer(knn.predict, X_train_reduced_sampled, n_jobs=n_jobs)
+
+    # Compute SHAP values for the test data
+    shap_values = explainer.shap_values(X_test_reduced_sampled, n_jobs=n_jobs)
+
+    # Visualize the SHAP values
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    shap.summary_plot(shap_values[0], X_test_reduced_sampled, plot_type='dot', show = False)
+    plt.title(f'SHAP values for the test data, rat id: {rat_id}')
+    plt.xlabel('SHAP value (impact on x relative to goal)')
+    plt.ylabel('UMAP feature')
+    plt.savefig(f'{save_dir_path}/shap_values_x_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    shap.summary_plot(shap_values[1], X_test_reduced_sampled, plot_type='dot', show = False)
+    plt.title(f'SHAP values for the test data, rat id: {rat_id}')
+    plt.xlabel('SHAP value (impact on y relative to goal)')
+    plt.ylabel('UMAP feature')
+    plt.savefig(f'{save_dir_path}/shap_values_y_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+    plt.close('all')
+
+    return
 
 
 def process_window_within_split(
@@ -302,6 +336,10 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
+
+            if count ==9:
+                plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
+
             colormap = visualisation.colormap_2d()
             data_x_c = np.interp(y_test[:,0], (y_test[:,0].min(), y_test[:,0].max()), (0, 255)).astype(
                 int)
@@ -406,7 +444,7 @@ def train_and_test_on_umap_randcv(
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[0:120, 0], label='y_pred', alpha=0.5)
-            plt.plot(y_test[:, 0], label='y_test', alpha=0.5)
+            plt.plot(y_test[0:120, 0], label='y_test', alpha=0.5)
             ax.set_title('y_pred (x position) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
@@ -433,7 +471,7 @@ def train_and_test_on_umap_randcv(
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[0:120, 0], label='y_pred', alpha=0.5)
-            plt.plot(y_train[0:120, 0], label='y_test', alpha=0.5)
+            plt.plot(y_train[0:120, 0], label='y_train', alpha=0.5)
             ax.set_title('y_pred (x position) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
@@ -467,20 +505,20 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
             plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c='darkorange')
-            ax.set_title('y_pred (sin head angle) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_title('y_pred (x) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
-            plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
+            plt.savefig(f'{savedir}/y_pred_vs_y_test_x_fold_' + str(
                 count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
             #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[0:120, 1], label='y_pred',c='purple',  alpha=0.5)
             plt.plot(y_test[0:120, 1], label='y_test', c='darkorange', alpha=0.5)
-            ax.set_title('y_pred (cos head angle) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
+            ax.set_title('y_pred (y) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
-            plt.savefig(f'{savedir}/y_pred_vs_y_test_cos_fold_' + str(
+            plt.savefig(f'{savedir}/y_pred_vs_y_test_y_fold_' + str(
                 count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
             count += 1
 
@@ -515,7 +553,7 @@ def load_previous_results(directory_of_interest):
     param_dict = {}
     score_dict = {}
     # 'C:/neural_data/rat_3/25-3-2019'
-    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
+    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
         rat_id = rat_dir.split('/')[-2]
         param_directory = f'{rat_dir}/{directory_of_interest}'
         #find all the files in the directory
@@ -541,7 +579,7 @@ def main():
     big_df = pd.DataFrame()
     regress_var = ['x_y_zscore']
     #'C:/neural_data/rat_3/25-3-2019'
-    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021','C:/neural_data/rat_3/25-3-2019']:
+    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
