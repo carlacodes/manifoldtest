@@ -382,7 +382,7 @@ def train_and_test_on_umap_randcv(
                 y=X_test_reduced[:, 1],
                 z=X_test_reduced[:, 2],
                 mode='markers',
-                line=dict(
+                marker=dict(
                     color=y_pred[:, 0],  # set color to prediction values
                     colorscale='Viridis',  # choose a colorscale
                     width=2
@@ -410,7 +410,7 @@ def train_and_test_on_umap_randcv(
                 y=X_test_reduced_shuffled[:, 1],
                 z=X_test_reduced_shuffled[:, 2],
                 mode='markers',
-                line=dict(
+                marker=dict(
                     color=y_pred[:, 0],  # set color to prediction values
                     colorscale='Magma',  # choose a colorscale
                     width=2
@@ -423,7 +423,7 @@ def train_and_test_on_umap_randcv(
 
             # Save the figure as an HTML file
             fig.write_html(f'{savedir}/umap_embeddings_shuffled_fold_' + str(count) + '.html')
-            fig.show()
+            # fig.show()
             #close plotly object
 
 
