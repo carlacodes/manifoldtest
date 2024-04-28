@@ -358,7 +358,7 @@ def train_and_test_on_umap_randcv(
             color_data= colormap[data_x_c, data_y_c]
 
             actual_angle = np.arcsin(y_pred[:, 0])
-            if count == 5:
+            if count == 5 and rat_id == 'rat_10':
                 plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count, rat_id=rat_id)
 
             fig = plt.figure()

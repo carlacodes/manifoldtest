@@ -337,7 +337,7 @@ def train_and_test_on_umap_randcv(
 
             y_pred = current_regressor.predict(X_test_reduced)
 
-            if count ==9:
+            if count == 9 and rat_id == 'rat_8':
                 plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
 
             colormap = visualisation.colormap_2d()

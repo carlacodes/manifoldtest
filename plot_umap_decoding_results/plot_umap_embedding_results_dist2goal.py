@@ -385,7 +385,7 @@ def train_and_test_on_umap_randcv(
                 marker=dict(
                     color=y_pred[:, 0],  # set color to prediction values
                     colorscale='Viridis',  # choose a colorscale
-                    size=2
+                    size=6
                 )
             )])
             fig.update_layout(
@@ -413,7 +413,7 @@ def train_and_test_on_umap_randcv(
                 marker=dict(
                     color=y_pred[:, 0],  # set color to prediction values
                     colorscale='Magma',  # choose a colorscale
-                    size=2
+                    size=6
                 )
             )])
 
