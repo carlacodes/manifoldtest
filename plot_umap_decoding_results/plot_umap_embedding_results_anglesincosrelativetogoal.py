@@ -316,7 +316,7 @@ def train_and_test_on_umap_randcv(
                 z=X_test_reduced[:, 2],
                 mode='markers',
                 marker=dict(
-                    size=2,
+                    size=10,
                     color=actual_angle,  # set color to prediction values
                     colorscale='Viridis',  # choose a colorscale
                     opacity=0.8
@@ -324,14 +324,33 @@ def train_and_test_on_umap_randcv(
             )])
 
             # Set plot title
-            fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold: ' + str(
+            fig.update_layout(title_text='UMAP test embeddings color-coded by angle for fold: ' + str(
                 count) + ' rat id: ' + str(rat_id))
 
             # Save the figure as an HTML file
             fig.write_html(f'{savedir}/umap_embeddings_fold_interactive_' + str(count) + '.html')
+            # Create a 3D line plot
+            fig = go.Figure(data=[go.Scatter3d(
+                x=X_test_reduced[:, 0],
+                y=X_test_reduced[:, 1],
+                z=X_test_reduced[:, 2],
+                mode='lines',
+                line=dict(
+                    color=actual_angle,  # set color to prediction values
+                    colorscale='Viridis',  # choose a colorscale
+                    width=2
+                )
+            )])
+
+            # Set plot title
+            fig.update_layout(title_text='UMAP test embeddings color-coded by angle for fold: ' + str(
+                count) + ' rat id: ' + str(rat_id))
+
+            # Save the figure as an HTML file
+            fig.write_html(f'{savedir}/umap_embeddings_fold_interative_lines_' + str(count) + '.html')
 
             # Show the figure
-            fig.show()
+            # fig.show()
 
             #plot the color map
             fig, ax = plt.subplots(1, 1)

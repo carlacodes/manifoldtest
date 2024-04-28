@@ -13,6 +13,8 @@ from umap import UMAP
 import numpy as np
 import shap
 import pandas as pd
+import plotly.graph_objects as go
+
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
@@ -280,6 +282,10 @@ def train_and_test_on_umap_randcv(
         scores_shuffled = []
         scores_train = []
         scores_train_shuffled = []
+        random_search_results_train = []
+        random_search_results_shuffled = []
+        random_search_results_train_shuffled = []
+
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -336,6 +342,50 @@ def train_and_test_on_umap_randcv(
             #plt.show()
 
             fig.show()
+
+            # Create a 3D line plot
+            fig = go.Figure(data=[go.Scatter3d(
+                x=X_test_reduced[:, 0],
+                y=X_test_reduced[:, 1],
+                z=X_test_reduced[:, 2],
+                mode='lines',
+                line=dict(
+                    color=y_pred[:, 0],  # set color to prediction values
+                    colorscale='Viridis',  # choose a colorscale
+                    width=2
+                )
+            )])
+
+            # Set plot title
+            fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold: ' + str(
+                count) + ' rat id: ' + str(rat_id))
+
+            # Save the figure as an HTML file
+            fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '.html')
+
+
+            # Create a 3D scatter plot
+            fig = go.Figure(data=[go.Scatter3d(
+                x=X_test_reduced[:, 0],
+                y=X_test_reduced[:, 1],
+                z=X_test_reduced[:, 2],
+                mode='markers',
+                marker=dict(
+                    size=8,
+                    color=y_pred[:, 0],  # set color to prediction values
+                    colorscale='Viridis',  # choose a colorscale
+                    opacity=0.8
+                )
+            )])
+
+            # Set plot title
+            fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold: ' + str(
+                count) + ' rat id: ' + str(rat_id))
+
+            # Save the figure as an HTML file
+            fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '.html')
+
+            # Show the figure
 
             
 
@@ -434,15 +484,25 @@ def train_and_test_on_umap_randcv(
 
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
+        mean_score_shuffled = np.mean(scores_shuffled)
+        mean_score_train = np.mean(scores_train)
+        mean_score_train_shuffled = np.mean(scores_train_shuffled)
 
         random_search_results.append((params, mean_score))
+        random_search_results_train.append((params, mean_score_train))
+        random_search_results_shuffled.append((params, mean_score_shuffled))
+        random_search_results_train_shuffled.append((params, mean_score_train_shuffled))
+
 
     # Select the best parameters based on mean score
     best_params, _ = max(random_search_results, key=lambda x: x[1])
     _, mean_score_max = max(random_search_results, key=lambda x: x[1])
+    _, mean_score_max_train = max(random_search_results_train, key=lambda x: x[1])
+    _, mean_score_max_shuffled = max(random_search_results_shuffled, key=lambda x: x[1])
+    _, mean_score_max_train_shuffled = max(random_search_results_train_shuffled, key=lambda x: x[1])
 
 
-    return best_params, mean_score_max
+    return best_params, mean_score_max, mean_score_max_train, mean_score_max_shuffled, mean_score_max_train_shuffled
 
 
 
@@ -471,8 +531,9 @@ def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
     param_dict, score_dict = load_previous_results(
         'dist2goal_results')
-
-    #'C:/neural_data/rat_10/23-11-2021'
+    big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
+    var_regress = 'dist2goal'
+    big_df = pd.DataFrame()
     for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -523,7 +584,7 @@ def main():
         save_dir_path = data_dir_path / 'umap_decomposition'/ 'dist2goal_results'
         save_dir_path.mkdir(parents=True, exist_ok=True)
 
-        best_params, mean_score = train_and_test_on_umap_randcv(
+        best_params,mean_score_max, mean_score_max_train, mean_score_max_shuffled, mean_score_max_train_shuffled  = train_and_test_on_umap_randcv(
             X_for_umap,
             label_df,
             regress,
@@ -532,6 +593,14 @@ def main():
             reducer,
             reducer_kwargs, param_dict, rat_id = data_dir.split('/')[-2]
         )
+        results_df = pd.DataFrame({'mean_score_max': [mean_score_max], 'mean_score_max_train': [mean_score_max_train],
+                                   'mean_score_max_shuffled': [mean_score_max_shuffled],
+                                   'mean_score_max_train_shuffled': [mean_score_max_train_shuffled],
+                                   'best_params': [best_params], 'rat_id': [data_dir.split('/')[-2]]})
+        # append to a big dataframe
+        big_df = pd.concat([big_df, results_df], axis=0)
+    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_{var_regress}.csv')
+
         # np.save(save_dir_path / filename, best_params)
         # np.save(save_dir_path / filename_mean_score, mean_score)
 
