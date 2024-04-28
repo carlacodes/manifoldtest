@@ -333,13 +333,17 @@ def train_and_test_on_umap_randcv(
             cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP test embeddings color-coded by dist. to goal \n for fold: ' + str(count) + ' rat id: ' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
+
+            fig.show()
+
+            
 
 
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_test, y_pred)
             ax.set_title('y_test vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
@@ -348,7 +352,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            #plt.show()
 
 
 
@@ -359,7 +363,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_train, y_pred_train)
             ax.set_title('y_train vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
@@ -370,7 +374,7 @@ def train_and_test_on_umap_randcv(
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_dist2goal_fold_' + str(count) + '.png')
 
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             #do a smaller window for plotting purposes
@@ -382,7 +386,7 @@ def train_and_test_on_umap_randcv(
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_dist2goal_120_samples_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
 
-            plt.show()
+            #plt.show()
             plt.close('all')
 
 
@@ -397,7 +401,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
@@ -407,7 +411,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(
                 count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[0:120, 0], label='y_pred', alpha=0.5, c = 'purple')
@@ -417,7 +421,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_dist2goal_first120samples_fold_' + str(
                 count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            #plt.show()
             plt.close('all')
 
 
