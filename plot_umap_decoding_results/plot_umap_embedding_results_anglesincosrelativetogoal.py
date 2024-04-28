@@ -631,7 +631,7 @@ def main():
     param_dict, score_dict = load_previous_results(
         'angle_rel_to_goal')
     big_df = pd.DataFrame()
-    big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/angle_rel_to_goal'
+    big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
 
     #'C:/neural_data/rat_3/25-3-2019'
     for data_dir in [ 'C:/neural_data/rat_7/6-12-2019','C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',]:
