@@ -335,10 +335,26 @@ def train_and_test_on_umap_randcv(
 
             ax = fig.add_subplot(111, projection='3d')
             sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=y_pred[:, 0], cmap='viridis')
+            ax.set_xlabel('UMAP 1')
+            ax.set_ylabel('UMAP 2')
+            ax.set_zlabel('UMAP 3')
             #add a color bar
             cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP test embeddings color-coded by dist. to goal \n for fold: ' + str(count) + ' rat id: ' +str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
+
+
+            fig = plt.figure()
+
+            ax = fig.add_subplot(111, projection='3d')
+            sc = ax.scatter(X_test_reduced_shuffled[:, 0], X_test_reduced_shuffled[:, 1], X_test_reduced_shuffled[:, 2], c=y_pred[:, 0], cmap='magma')
+            ax.set_xlabel('UMAP 1')
+            ax.set_ylabel('UMAP 2')
+            ax.set_zlabel('UMAP 3')
+            #add a color bar
+            cbar = plt.colorbar(sc, ax=ax)
+            ax.set_title('UMAP SHUFFLED test embeddings color-coded by dist. to goal \n for fold: ' + str(count) + ' rat id: ' +str(rat_id))
+            plt.savefig(f'{savedir}/umap_embeddings_SHUFFLED_fold_' + str(count) + '.png')
             #plt.show()
 
             # Create a 3D line plot
@@ -353,6 +369,13 @@ def train_and_test_on_umap_randcv(
                     width=2
                 )
             )])
+            fig.update_layout(
+                scene=dict(
+                    xaxis_title='UMAP 1',
+                    yaxis_title='UMAP 2',
+                    zaxis_title='UMAP 3'
+                )
+            )
 
             # Set plot title
             fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold: ' + str(
@@ -383,30 +406,7 @@ def train_and_test_on_umap_randcv(
             fig.write_html(f'{savedir}/umap_embeddings_shuffled_fold_' + str(count) + '.html')
             #close plotly object
 
-            #
-            #
-            # # Create a 3D scatter plot
-            # fig = go.Figure(data=[go.Scatter3d(
-            #     x=X_test_reduced[:, 0],
-            #     y=X_test_reduced[:, 1],
-            #     z=X_test_reduced[:, 2],
-            #     mode='markers',
-            #     marker=dict(
-            #         size=6,
-            #         color=y_pred[:, 0],  # set color to prediction values
-            #         colorscale='Viridis',  # choose a colorscale
-            #         opacity=0.8
-            #     )
-            # )])
-            #
-            # # Set plot title
-            # fig.update_layout(title_text='UMAP test embeddings color-coded by dist. to goal for fold: ' + str(
-            #     count) + ' rat id: ' + str(rat_id))
-            #
-            # # Save the figure as an HTML file
-            # fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '.html')
 
-            # Show the figure
 
             
 

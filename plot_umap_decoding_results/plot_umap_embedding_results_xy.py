@@ -303,9 +303,25 @@ def train_and_test_on_umap_randcv(
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=color_data)
-            ax.set_title('UMAP test embeddings for fold: ' + str(count))
+            #add x and y labels
+            ax.set_xlabel('UMAP 1')
+            ax.set_ylabel('UMAP 2')
+            ax.set_zlabel('UMAP 3')
+            ax.set_title('UMAP test embeddings for fold (xy position): ' + str(count))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.scatter(X_test_reduced_shuffled[:, 0], X_test_reduced_shuffled[:, 1], X_test_reduced_shuffled[:, 2], c=color_data)
+            #add x and y labels
+            ax.set_xlabel('UMAP 1')
+            ax.set_ylabel('UMAP 2')
+            ax.set_zlabel('UMAP 3')
+            ax.set_title('UMAP test shuffled embeddings for fold (xy position): ' + str(count))
+            plt.savefig(f'{savedir}/umap_embeddings_fold_SHUFFLED_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
+            plt.close('all')
+
+
+
 
 
             fig = go.Figure(data=[go.Scatter3d(
@@ -319,6 +335,14 @@ def train_and_test_on_umap_randcv(
                     width=2
                 )
             )])
+
+            fig.update_layout(
+                scene=dict(
+                    xaxis_title='UMAP 1',
+                    yaxis_title='UMAP 2',
+                    zaxis_title='UMAP 3'
+                )
+            )
 
             # Set plot title
             fig.update_layout(
@@ -359,12 +383,12 @@ def train_and_test_on_umap_randcv(
             ax.set_yticks([0, 255])
             ax.set_yticklabels([y_test[:, 1].min(), y_test[:, 1].max()])
             plt.savefig(f'{savedir}/color_map_fold_{count}.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_test, y_pred)
             ax.set_title('y_test vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[0:120, 0], label='y_pred', alpha=0.5)
@@ -373,7 +397,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_x_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred[0:120, 1], label='y_pred', alpha=0.5)
@@ -383,7 +407,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_y_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            #plt.show()
 
 
             #do the same for the train data
@@ -391,7 +415,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             ax.scatter(y_train, y_pred_train)
             ax.set_title('y_train vs y_pred for fold: ' + str(count))
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[0:120, 0], label='y_pred', alpha=0.5)
@@ -402,7 +426,7 @@ def train_and_test_on_umap_randcv(
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_x_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
 
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[0:120, 1], label='y_pred', alpha=0.5)
@@ -412,7 +436,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_train_y_pos_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            #plt.show()
 
 
 
@@ -424,7 +448,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             plt.savefig(
                 f'{savedir}/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
@@ -434,7 +458,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_sin_fold_' + str(
                 count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
-            plt.show()
+            #plt.show()
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_shuffled[0:120, 1], label='y_pred',c='purple',  alpha=0.5)
