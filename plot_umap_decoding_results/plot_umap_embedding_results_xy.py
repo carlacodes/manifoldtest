@@ -515,7 +515,7 @@ def load_previous_results(directory_of_interest):
     param_dict = {}
     score_dict = {}
     # 'C:/neural_data/rat_3/25-3-2019'
-    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
+    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
         rat_id = rat_dir.split('/')[-2]
         param_directory = f'{rat_dir}/{directory_of_interest}'
         #find all the files in the directory
@@ -541,7 +541,7 @@ def main():
     big_df = pd.DataFrame()
     regress_var = ['x_y_zscore']
     #'C:/neural_data/rat_3/25-3-2019'
-    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',]:
+    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021','C:/neural_data/rat_3/25-3-2019']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
