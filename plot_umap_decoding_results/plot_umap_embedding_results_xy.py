@@ -380,11 +380,11 @@ def train_and_test_on_umap_randcv(
                 x=X_test_reduced[:, 0],
                 y=X_test_reduced[:, 1],
                 z=X_test_reduced[:, 2],
-                mode='lines',
-                line=dict(
+                mode='markers',
+                marker=dict(
                     color=color_data,  # set color to prediction values
                     colorscale='Viridis',  # choose a colorscale
-                    width=2
+                    size=6
                 )
             )])
 
@@ -409,11 +409,11 @@ def train_and_test_on_umap_randcv(
                 x=X_test_reduced_shuffled[:, 0],
                 y=X_test_reduced_shuffled[:, 1],
                 z=X_test_reduced_shuffled[:, 2],
-                mode='lines',
-                line=dict(
+                mode='markers',
+                marker=dict(
                     color=color_data,  # set color to prediction values
                     colorscale='Magma',  # choose a colorscale
-                    width=2
+                    size = 6
                 )
             )])
 
@@ -503,8 +503,8 @@ def train_and_test_on_umap_randcv(
             #plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
-            plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c='darkorange')
+            plt.plot(y_pred_shuffled[0:120, 0], label='y_pred', alpha=0.5, c = 'purple')
+            plt.plot(y_test[0:120, 0], label='y_test', alpha=0.5, c='darkorange')
             ax.set_title('y_pred (x) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()

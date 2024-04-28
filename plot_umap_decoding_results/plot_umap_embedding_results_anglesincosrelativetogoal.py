@@ -294,7 +294,7 @@ def train_and_test_on_umap_randcv(
             scores_train.append(score_train)
 
             y_pred = current_regressor.predict(X_test_reduced)
-            if plot_shaps and count == 0:
+            if plot_shaps and count == 8 and rat_id == 'rat_3':
                 #just plot on the first fold now as an example
                 plot_kneighborsregressor_splits(current_reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count, rat_id=rat_id)
 
