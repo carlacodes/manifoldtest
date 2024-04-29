@@ -437,8 +437,8 @@ def train_and_test_on_umap_randcv(
             #plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred[:, 0], label='y_pred', alpha=0.5)
-            plt.plot(y_test[:, 0], label='y_test', alpha=0.5)
+            plt.plot(y_pred[0:120, 0], label='y_pred', alpha=0.5)
+            plt.plot(y_test[0:120, 0], label='y_test', alpha=0.5)
             ax.set_title('y_pred, rat ID:'+ str(rat_id) +'(dist2goal) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
@@ -458,7 +458,7 @@ def train_and_test_on_umap_randcv(
 
             fig, ax = plt.subplots(1, 1)
             plt.plot(y_pred_train[:, 0], label='y_pred', alpha=0.5)
-            plt.plot(y_train[:, 0], label='y_test', alpha=0.5)
+            plt.plot(y_train[:, 0], label='y_train', alpha=0.5)
             ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
@@ -470,7 +470,7 @@ def train_and_test_on_umap_randcv(
             fig, ax = plt.subplots(1, 1)
             #do a smaller window for plotting purposes
             plt.plot(y_pred_train[0:120, 0], label='y_pred', alpha=0.5)
-            plt.plot(y_train[0:120, 0], label='y_test', alpha=0.5)
+            plt.plot(y_train[0:120, 0], label='y_train', alpha=0.5)
             ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' r2_score: ' + str(score_train))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
@@ -576,7 +576,7 @@ def main():
     var_regress = 'dist2goal'
     big_df = pd.DataFrame()
     #'C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
-    for data_dir in ['C:/neural_data/rat_3/25-3-2019',]:
+    for data_dir in ['C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_3/25-3-2019','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -634,7 +634,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, param_dict, rat_id = data_dir.split('/')[-2], plot_shaps=True
+            reducer_kwargs, param_dict, rat_id = data_dir.split('/')[-2], plot_shaps=False
         )
         results_df = pd.DataFrame({'mean_score_max': [mean_score_max], 'mean_score_max_train': [mean_score_max_train],
                                    'mean_score_max_shuffled': [mean_score_max_shuffled],
@@ -642,7 +642,7 @@ def main():
                                    'best_params': [best_params], 'rat_id': [data_dir.split('/')[-2]]})
         # append to a big dataframe
         big_df = pd.concat([big_df, results_df], axis=0)
-    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_{var_regress}.csv')
+    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_{var_regress}.csv')
 
         # np.save(save_dir_path / filename, best_params)
         # np.save(save_dir_path / filename_mean_score, mean_score)

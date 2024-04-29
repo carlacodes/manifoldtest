@@ -248,7 +248,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, param_dict, rat_id = None
+        reducer_kwargs, param_dict, rat_id = None, plot_shaps = False
 ):
     # param_grid = {
     #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
@@ -337,7 +337,7 @@ def train_and_test_on_umap_randcv(
 
             y_pred = current_regressor.predict(X_test_reduced)
 
-            if count == 9 and rat_id == 'rat_8':
+            if plot_shaps and count == 9 and rat_id == 'rat_8':
                 plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
 
             colormap = visualisation.colormap_2d()
@@ -553,7 +553,7 @@ def load_previous_results(directory_of_interest):
     param_dict = {}
     score_dict = {}
     # 'C:/neural_data/rat_3/25-3-2019'
-    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
+    for rat_dir in ['C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019']:
         rat_id = rat_dir.split('/')[-2]
         param_directory = f'{rat_dir}/{directory_of_interest}'
         #find all the files in the directory
@@ -579,7 +579,7 @@ def main():
     big_df = pd.DataFrame()
     regress_var = ['x_y_zscore']
     #'C:/neural_data/rat_3/25-3-2019'
-    for data_dir in [ 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
+    for data_dir in [ 'C:/neural_data/rat_3/25-3-2019', 'C:/neural_data/rat_10/23-11-2021','C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -650,7 +650,7 @@ def main():
                                    'best_params': [best_params], 'rat_id': [data_dir.split('/')[-2]]})
         # append to a big dataframe
         big_df = pd.concat([big_df, results_df], axis=0)
-    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_{regress_var}.csv')
+    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_{regress_var}.csv')
         # np.save(save_dir_path / filename, best_params)
         # np.save(save_dir_path / filename_mean_score, mean_score)
 
