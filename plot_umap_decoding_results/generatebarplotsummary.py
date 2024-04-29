@@ -42,14 +42,21 @@ def main():
         df_across_var_rat = df_across_var[df_across_var['rat_id'] == rat_id]
         df_across_var_rat = df_across_var_rat.drop(columns=['rat_id'])
         df_across_var_rat = df_across_var_rat.set_index('variable')
+        #organise in order of test R2
+        df_across_var_rat = df_across_var_rat.sort_values(by='mean_score_max', ascending=False)
+        df_across_var_rat = df_across_var_rat.rename(
+            columns={'mean_score_max': 'test R2', 'mean_score_max_train': 'train R2',
+                     'mean_score_max_shuffled': 'shuffled test R2',
+                     'mean_score_max_train_shuffled': 'shuffled train R2'})
+
         #plot the data
         # std_devs = df_across_var_rat[['std_score_max', 'std_score_max_train', 'std_score_max_shuffled', 'std_score_max_train_shuffled']].values.T
-        df_across_var_rat[['mean_score_max', 'mean_score_max_train', 'mean_score_max_shuffled', 'mean_score_max_train_shuffled']].plot(kind='bar', ax=ax,  capsize=5)
+        df_across_var_rat[['test R2', 'train R2', 'shuffled test R2', 'shuffled train R2']].plot(kind='bar', ax=ax, capsize=5)
         ax.set_ylabel('r2')
         ax.set_xlabel('Variable')
         #rotate the xticks by 45 degrees
         plt.xticks(rotation=45)
-        plt.title('R2 decoding results for rat {}'.format(rat_id))
+        plt.title('R2 decoding results for {}'.format(rat_id))
         plt.savefig('C:/neural_data/r2_decoding_figures/umap/umap_decoding_results_summary_rat_{}.png'.format(rat_id), dpi=300, bbox_inches='tight')
         plt.show()
 
@@ -81,7 +88,7 @@ def main():
     plt.title('Mean R2 across rats ')
     plt.savefig('C:/neural_data/r2_decoding_figures/umap/umap_decoding_results_summary.png', dpi=300, bbox_inches='tight')
     plt.show()
-    fig.close('all')
+    plt.close('all')
     return
 
 

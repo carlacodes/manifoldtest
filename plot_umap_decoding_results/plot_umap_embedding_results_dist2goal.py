@@ -291,9 +291,9 @@ def train_and_test_on_umap_randcv(
         # Shuffle along the first axis
         np.random.shuffle(spks_shuffled)
         # Transpose, shuffle and transpose back to shuffle along the second axis
-        spks_shuffled = spks_shuffled.T
-        np.random.shuffle(spks_shuffled)
-        spks_shuffled = spks_shuffled.T
+        # spks_shuffled = spks_shuffled.T
+        # np.random.shuffle(spks_shuffled)
+        # spks_shuffled = spks_shuffled.T
 
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
@@ -642,7 +642,7 @@ def main():
                                    'best_params': [best_params], 'rat_id': [data_dir.split('/')[-2]]})
         # append to a big dataframe
         big_df = pd.concat([big_df, results_df], axis=0)
-    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_{var_regress}.csv')
+    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_rat10_{var_regress}.csv')
 
         # np.save(save_dir_path / filename, best_params)
         # np.save(save_dir_path / filename_mean_score, mean_score)

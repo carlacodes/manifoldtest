@@ -650,7 +650,7 @@ def main():
                                    'best_params': [best_params], 'rat_id': [data_dir.split('/')[-2]]})
         # append to a big dataframe
         big_df = pd.concat([big_df, results_df], axis=0)
-    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_{regress_var}.csv')
+    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_rat3_{regress_var}.csv')
         # np.save(save_dir_path / filename, best_params)
         # np.save(save_dir_path / filename_mean_score, mean_score)
 
