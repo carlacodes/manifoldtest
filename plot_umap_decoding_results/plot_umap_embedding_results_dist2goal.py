@@ -228,7 +228,7 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
     plt.title('SHAP values for the test data, rat ID: ' + str(rat_id))
     plt.xlabel('SHAP value (impact on distance to goal)')
     plt.ylabel('UMAP feature')
-    plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}2904.png', dpi=300, bbox_inches='tight')
     plt.close('all')
 
 
@@ -350,7 +350,7 @@ def train_and_test_on_umap_randcv(
             #add a color bar
             cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP test embeddings color-coded by dist. to goal \n for fold: ' + str(count) + ' rat id: ' +str(rat_id))
-            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png')
+            plt.savefig(f'{savedir}/umap_embeddings_fold_2904' + str(count) + '2904.png')
 
 
             fig = plt.figure()
@@ -363,7 +363,7 @@ def train_and_test_on_umap_randcv(
             #add a color bar
             cbar = plt.colorbar(sc, ax=ax)
             ax.set_title('UMAP SHUFFLED test embeddings color-coded by dist. to goal \n for fold: ' + str(count) + ' rat id: ' +str(rat_id))
-            plt.savefig(f'{savedir}/umap_embeddings_SHUFFLED_fold_' + str(count) + '.png')
+            plt.savefig(f'{savedir}/umap_embeddings_SHUFFLED_fold_2904' + str(count) + '2904.png')
             #plt.show()
 
 
@@ -374,7 +374,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('UMAP 1 vs UMAP 1 SHUFFLED for fold, (distance 2 goal): ' + str(count))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
-            plt.savefig(f'{savedir}/umap1_vs_umap1_shuffled_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
+            plt.savefig(f'{savedir}/umap1_vs_umap1_shuffled_fold_' + str(count) + '2904.png', dpi = 300, bbox_inches = 'tight')
 
             # Create a 3D line plot
             fig = go.Figure(data=[go.Scatter3d(
@@ -401,7 +401,7 @@ def train_and_test_on_umap_randcv(
                 count) + ' rat id: ' + str(rat_id))
 
             # Save the figure as an HTML file
-            fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '.html')
+            fig.write_html(f'{savedir}/umap_embeddings_fold_' + str(count) + '2904.html')
 
 
 
@@ -422,7 +422,7 @@ def train_and_test_on_umap_randcv(
                 count) + ' rat id: ' + str(rat_id))
 
             # Save the figure as an HTML file
-            fig.write_html(f'{savedir}/umap_embeddings_shuffled_fold_' + str(count) + '.html')
+            fig.write_html(f'{savedir}/umap_embeddings_shuffled_fold_' + str(count) + '2904.html')
             # fig.show()
             #close plotly object
 
@@ -442,7 +442,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('y_pred, rat ID:'+ str(rat_id) +'(dist2goal) for fold: ' + str(count)+ ' r2_score: ' + str(score))
             ax.set_xlabel('time in SAMPLES')
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
+                f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(count) + '2904.png', dpi = 300, bbox_inches = 'tight')
             #plt.show()
 
 
@@ -463,7 +463,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_train_dist2goal_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_train_dist2goal_fold_' + str(count) + '2904.png')
 
             #plt.show()
 
@@ -475,7 +475,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_train_dist2goal_120_samples_fold_' + str(count) + '.png', dpi = 300, bbox_inches = 'tight')
+                f'{savedir}/y_pred_vs_y_train_dist2goal_120_samples_fold_' + str(count) + '2904.png', dpi = 300, bbox_inches = 'tight')
 
             #plt.show()
             plt.close('all')
@@ -491,7 +491,7 @@ def train_and_test_on_umap_randcv(
             ax.scatter(y_test, y_pred_shuffled, c='purple')
             ax.set_title('y_test vs y_pred for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             plt.savefig(
-                f'{savedir}/y_pred_vs_y_test_shuffled_fold_' + str(count) + '.png')
+                f'{savedir}/y_pred_vs_y_test_shuffled_fold_' + str(count) + '2904.png')
             #plt.show()
 
             fig, ax = plt.subplots(1, 1)
@@ -501,7 +501,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_dist2goal_fold_' + str(
-                count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
+                count) + 'shuffled2904.png', dpi = 300, bbox_inches = 'tight')
             #plt.show()
 
             fig, ax = plt.subplots(1, 1)
@@ -511,7 +511,7 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
             plt.savefig(f'{savedir}/y_pred_vs_y_test_dist2goal_first120samples_fold_' + str(
-                count) + 'shuffled.png', dpi = 300, bbox_inches = 'tight')
+                count) + 'shuffled2904.png', dpi = 300, bbox_inches = 'tight')
             #plt.show()
             plt.close('all')
 
@@ -642,7 +642,7 @@ def main():
                                    'best_params': [best_params], 'rat_id': [data_dir.split('/')[-2]]})
         # append to a big dataframe
         big_df = pd.concat([big_df, results_df], axis=0)
-    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_rat10_{var_regress}.csv')
+    big_df.to_csv(f'{big_df_savedir}/umap_decomposition_results_2904_{var_regress}.csv')
 
         # np.save(save_dir_path / filename, best_params)
         # np.save(save_dir_path / filename_mean_score, mean_score)
