@@ -206,7 +206,7 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
     return folds
 
-def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None):
+def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=None, fold_num=None,  rat_id = None):
     # Create a grid to cover the embedding space
     # Visualize the SHAP values
     # Visualize the SHAP values
@@ -225,7 +225,7 @@ def plot_kneighborsregressor_splits(reducer, knn, X_test_reduced, X_train_reduce
 
     # Visualize the SHAP values
     shap.summary_plot(shap_values[0], X_test_reduced_sampled, plot_type='dot', show = False)
-    plt.title('SHAP values for the test data')
+    plt.title('SHAP values for the test data, rat ID: ' + str(rat_id))
     plt.xlabel('SHAP value (impact on distance to goal)')
     plt.ylabel('UMAP feature')
     plt.savefig(f'{save_dir_path}/shap_values_fold_{fold_num}.png', dpi=300, bbox_inches='tight')
@@ -338,7 +338,7 @@ def train_and_test_on_umap_randcv(
 
             y_pred = current_regressor.predict(X_test_reduced)
             if plot_shaps and count == 0:
-                plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count)
+                plot_kneighborsregressor_splits(reducer, current_regressor, X_test_reduced, X_train_reduced, y_train, y_test, save_dir_path=savedir, fold_num=count, rat_id = rat_id)
             #plot the umap embeddings on a 3d scatter plot
             fig = plt.figure()
 
@@ -495,8 +495,8 @@ def train_and_test_on_umap_randcv(
             #plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred_shuffled[:, 0], label='y_pred', alpha=0.5, c = 'purple')
-            plt.plot(y_test[:, 0], label='y_test', alpha=0.5, c= 'darkorange')
+            plt.plot(y_pred_shuffled[0:120, 0], label='y_pred', alpha=0.5, c = 'purple')
+            plt.plot(y_test[0:120, 0], label='y_test', alpha=0.5, c= 'darkorange')
             ax.set_title('y_pred (dist2goal) for fold: ' + str(count) + ' shuffled, r2_score: ' + str(score_shuffled))
             ax.set_xlabel('time in SAMPLES')
             plt.legend()
@@ -575,7 +575,8 @@ def main():
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
     var_regress = 'dist2goal'
     big_df = pd.DataFrame()
-    for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021', 'C:/neural_data/rat_3/25-3-2019',]:
+    #'C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
+    for data_dir in ['C:/neural_data/rat_3/25-3-2019',]:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
@@ -633,7 +634,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, param_dict, rat_id = data_dir.split('/')[-2]
+            reducer_kwargs, param_dict, rat_id = data_dir.split('/')[-2], plot_shaps=True
         )
         results_df = pd.DataFrame({'mean_score_max': [mean_score_max], 'mean_score_max_train': [mean_score_max_train],
                                    'mean_score_max_shuffled': [mean_score_max_shuffled],
