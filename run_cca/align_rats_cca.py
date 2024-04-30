@@ -291,7 +291,7 @@ def train_and_test_on_umap_randcv(
             plt.show()
 
             fig, ax = plt.subplots(1, 1)
-            plt.plot(y_pred_shuffled[:, 1], label='y_pred', alpha = 0.5)
+            plt.plot(y_pred_shuffled[:, 1], label='y_pred', alpha=0.5)
             plt.plot(y_test[:, 1], label='y_test', alpha = 0.5)
             ax.set_title('y_pred (cos theta) for fold: ' + str(count) + ' shuffled')
             ax.set_xlabel('time in SAMPLES')

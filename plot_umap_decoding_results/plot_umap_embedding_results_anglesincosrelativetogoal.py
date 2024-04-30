@@ -24,6 +24,7 @@ import pickle as pkl
 import shap
 import plotly.graph_objects as go
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
+from sklearn.cross_decomposition import CCA
 
 
 
@@ -308,6 +309,15 @@ def train_and_test_on_umap_randcv(
             #get the actual angle relative to goal and create a 1d color map by takin the inverse sin
             #and inverse cos
             actual_angle = np.arcsin(y_pred[:, 0])
+
+            # Initialize a CCA model
+            cca = CCA(n_components=1)
+
+            # Fit the model with your data
+            cca.fit(X_test_reduced, y_test)
+
+            # Now, cca.x_weights_ stores the coefficients for each UMAP embedding
+            print("Coefficients: ", cca.x_weights_)
 
 
             fig = plt.figure()
