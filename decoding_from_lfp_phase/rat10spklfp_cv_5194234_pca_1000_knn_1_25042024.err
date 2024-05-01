@@ -1,0 +1,9 @@
+/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/decoding_from_lfp_phase/umap_fromphase_knn_randomcvsearch_20ms_1000window_withspikedata_rat10.py:15: DeprecationWarning: 
+Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+(to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+but was not found to be installed on your system.
+If this would cause problems for you,
+please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+        
+  import pandas as pd
+slurmstepd-enc1-node2: error: *** JOB 5194234 ON enc1-node2 CANCELLED AT 2024-04-26T14:20:15 DUE TO TIME LIMIT ***

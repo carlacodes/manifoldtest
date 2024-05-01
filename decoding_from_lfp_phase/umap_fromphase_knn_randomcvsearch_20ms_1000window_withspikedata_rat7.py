@@ -229,10 +229,11 @@ def train_and_test_on_umap_randcv(
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
+
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
 
-    for i in range(100):  # 100 iterations for RandomizedSearchCV
+    for i in range(200):  # 100 iterations for RandomizedSearchCV
         print(f'at iteration: {i}')
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
         regressor_kwargs.update(
@@ -275,48 +276,35 @@ def train_and_test_on_umap_randcv(
     return best_params, mean_score_max
 
 def main():
-    data_dir = '//ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
+    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_20.npy')
+    labels = np.load(
+        f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_20.npy')
     lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
     spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_20.npy')
 
 
     data_dir_path = Path(data_dir)
 
-
     # check for neurons with constant firing rates
     tolerance = 1e-10  # or any small number that suits your needs
-    if np.any(np.abs(np.std(lfp_data, axis=0)) < tolerance):
-        print('There are neurons with constant firing rates')
-        # remove those neurons
-        lfp_data = lfp_data[:, np.abs(np.std(lfp_data, axis=0)) >= tolerance]
 
     if np.any(np.abs(np.std(spike_data, axis=0)) < tolerance):
         print('There are neurons with constant firing rates')
         # remove those neurons
         spike_data = spike_data[:, np.abs(np.std(spike_data, axis=0)) >= tolerance]
-    # THEN DO THE Z SCORE
-    #concatenate the spike data and lfp data
-    lfp_data = np.concatenate((lfp_data, spike_data), axis=1)
-    #prnt the shape
-    print(f'The shape of the lfp data is {lfp_data.shape}')
-    
-    X_for_umap = scipy.stats.zscore(lfp_data, axis=0)
+
+
+    X_for_umap = scipy.stats.zscore(spike_data, axis=0)
 
     if np.isnan(X_for_umap).any():
         print('There are nans in the data')
 
     X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+    X_for_umap = np.concatenate((X_for_umap, lfp_data), axis=1)
 
-    # as a check, plot the firing rates for a single neuron before and after smoothing
-    # fig, ax = plt.subplots(1, 2)
-    # ax[0].plot(X_for_umap[:, 0])
-    # ax[0].set_title('Before smoothing')
-    # ax[1].plot(X_for_umap_smooth[ :, 0])
-    # ax[1].set_title('After smoothing')
-    # plt.show()
+    #plot the first 120 samples of the first two columns
 
     labels_for_umap = labels[:, 0:6]
     labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
@@ -324,9 +312,18 @@ def main():
     label_df = pd.DataFrame(labels_for_umap,
                             columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
     label_df['time_index'] = np.arange(0, label_df.shape[0])
+    #crop the label_df to only take the first 20,000 samples
+    print(f'The shape of the label_df is {label_df.shape}')
+    label_df = label_df.iloc[:20000, :]
+    # print the shape of the label_df
+    print(f'The shape of the label_df is {label_df.shape}')
+    #dpo the same for the X_for_umap
+    X_for_umap = X_for_umap[:20000, :]
 
     regressor = KNeighborsRegressor
     regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
+
+
 
 
     reducer = UMAP
@@ -343,8 +340,8 @@ def main():
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now}.npy'
-    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
+    filename = f'params_lfp_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now}.npy'
+    filename_mean_score = f'mean_lfp_score_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
     save_dir_path = data_dir_path / 'lfp_phase_manifold_withspkdata'
     save_dir_path.mkdir(parents=True, exist_ok=True)
 
@@ -357,8 +354,8 @@ def main():
         reducer,
         reducer_kwargs,
     )
-    np.save(data_dir_path / filename, best_params)
-    np.save(data_dir_path / filename_mean_score, mean_score)
+    np.save(save_dir_path / filename, best_params)
+    np.save(save_dir_path / filename_mean_score, mean_score)
 
 
 if __name__ == '__main__':

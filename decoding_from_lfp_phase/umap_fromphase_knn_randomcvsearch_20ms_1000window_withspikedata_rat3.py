@@ -232,7 +232,7 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
 
-    for i in range(5):  # 100 iterations for RandomizedSearchCV
+    for i in range(50):  # 100 iterations for RandomizedSearchCV
         print(f'at iteration: {i}')
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
         regressor_kwargs.update(
@@ -343,8 +343,8 @@ def main():
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now}.npy'
-    filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
+    filename = f'params_lfp_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now}.npy'
+    filename_mean_score = f'mean_lfp_score_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
     save_dir_path = data_dir_path / 'lfp_phase_manifold_withspkdata'
     save_dir_path.mkdir(parents=True, exist_ok=True)
 
@@ -357,8 +357,8 @@ def main():
         reducer,
         reducer_kwargs,
     )
-    np.save(data_dir_path / filename, best_params)
-    np.save(data_dir_path / filename_mean_score, mean_score)
+    np.save(save_dir_path / filename, best_params)
+    np.save(save_dir_path / filename_mean_score, mean_score)
 
 
 if __name__ == '__main__':

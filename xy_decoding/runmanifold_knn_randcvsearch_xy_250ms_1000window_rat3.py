@@ -273,7 +273,7 @@ def train_and_test_on_umap_randcv(
     return best_params, mean_score_max
 
 def main():
-    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
+    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_3/25-3-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
