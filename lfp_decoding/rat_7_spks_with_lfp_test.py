@@ -277,7 +277,7 @@ def main():
     labels = np.load(
         f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_20.npy')
     lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_20.npy')
+    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
     #print out the first couple of rows of the lfp_data
     fig, ax = plt.subplots(1, 1)
     ax.plot(lfp_data[0:120, 0], label = 'sin')
@@ -285,24 +285,52 @@ def main():
     ax.set_title('LFP data phase ')
     ax.legend()
     plt.show()
+    #make copies of each the spike data so it fits the shape of the lfp_data
+    #find the ratio in length between the lfp_data and the spike_data
+    ratio = lfp_data.shape[0] / spike_data.shape[0]
+    #round to the nearest integer
+    ratio = int(np.round(ratio))
+    for i in range(0, len(spike_data)):
+        #use np.tile to repeat the spike_data
+        repeated_spike_data = np.tile(spike_data[i], (ratio, 1))
+        #append to a list
+        if i == 0:
+            repeated_spike_data_array = repeated_spike_data
+        else:
+            repeated_spike_data_array = np.vstack((repeated_spike_data_array, repeated_spike_data))
+
+    if len(repeated_spike_data_array) != len(lfp_data):
+        print('The shape of the repeated spike data is not the same as the lfp data')
+        if len(repeated_spike_data_array) > len(lfp_data):
+            print('The shape of the repeated spike data is greater than the lfp data')
+            repeated_spike_data_array = repeated_spike_data_array[:len(lfp_data), :]#
+        else:
+            print('The shape of the repeated spike data is less than the lfp data')
+            lfp_data = lfp_data[:len(repeated_spike_data_array), :]
+
+
+    # extract the 10th trial
+
+
+
 
     data_dir_path = Path(data_dir)
 
     # check for neurons with constant firing rates
     tolerance = 1e-10  # or any small number that suits your needs
 
-    if np.any(np.abs(np.std(spike_data, axis=0)) < tolerance):
+    if np.any(np.abs(np.std(repeated_spike_data_array, axis=0)) < tolerance):
         print('There are neurons with constant firing rates')
         # remove those neurons
-        spike_data = spike_data[:, np.abs(np.std(spike_data, axis=0)) >= tolerance]
+        repeated_spike_data_array = repeated_spike_data_array[:, np.abs(np.std(repeated_spike_data_array, axis=0)) >= tolerance]
 
 
-    X_for_umap = scipy.stats.zscore(spike_data, axis=0)
+    X_for_umap = scipy.stats.zscore(repeated_spike_data_array, axis=0)
 
     if np.isnan(X_for_umap).any():
         print('There are nans in the data')
 
-    X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+    X_for_umap = scipy.ndimage.gaussian_filter(repeated_spike_data_array, 2, axes=0)
     X_for_umap = np.concatenate((X_for_umap, lfp_data), axis=1)
 
     #plot the first 120 samples of the first two columns
