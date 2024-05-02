@@ -964,10 +964,10 @@ if __name__ == "__main__":
         # and save as a pickle file
         if use_overlap:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains(dlc_data, window_size=250)
+                create_positional_trains(dlc_data, window_size=300)
         else:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains_no_overlap(dlc_data, window_size=250)
+                create_positional_trains_no_overlap(dlc_data, window_size=300)
         windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
         save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
@@ -1043,7 +1043,7 @@ if __name__ == "__main__":
         assert np.all(trial_number_tracker_example == trial_list_example)
 
         model_inputs, unit_list = cat_spike_trains(spike_trains)
-        theta_sin_bin, theta_cos_bin, theta_phase_sincos = create_lfp_arrays(Path(spike_dir), model_inputs, window_size=20)
+        theta_sin_bin, theta_cos_bin, theta_phase_sincos = create_lfp_arrays(Path(spike_dir), model_inputs, window_size=window_size)
         # convert model_inputs to float32
         model_inputs = model_inputs.astype(np.float32)
         np.save(f'{spike_dir}/inputs_overlap_{use_overlap}_window_size_{window_size}.npy', model_inputs)

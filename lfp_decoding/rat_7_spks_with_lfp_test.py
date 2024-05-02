@@ -277,7 +277,7 @@ def main():
     labels = np.load(
         f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_20.npy')
     lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_300.npy')
     #print out the first couple of rows of the lfp_data
     fig, ax = plt.subplots(1, 1)
     ax.plot(lfp_data[0:120, 0], label = 'sin')
