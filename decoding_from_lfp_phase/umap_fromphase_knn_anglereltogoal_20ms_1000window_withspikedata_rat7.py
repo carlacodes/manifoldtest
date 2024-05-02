@@ -16,7 +16,9 @@ import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
+from sklearn.pipeline import Pipeline
 import logging
+import sys
 
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
@@ -35,125 +37,44 @@ import pickle as pkl
 # 8. target position was smoothed using a gaussian filter
 
 
-def process_data_within_split(
-        spks_train,
-        spks_test,
-        y_train,
-        y_test,
-        reducer_pipeline,
-        regressor,
-        regressor_kwargs,
-):
-    base_reg = regressor(**regressor_kwargs)
-    reg = MultiOutputRegressor(base_reg)
+class CustomUMAP(BaseEstimator):
+    def __init__(self, n_neighbors=15, n_components=2, metric='euclidean', 
+                 n_epochs=None, learning_rate=1.0, init='spectral', 
+                 min_dist=0.1, spread=1.0, low_memory=False, 
+                 random_state=None, verbose=False):
+        
+        self.n_neighbors = n_neighbors
+        self.n_components = n_components
+        self.metric = metric
+        self.n_epochs = n_epochs
+        self.learning_rate = learning_rate
+        self.init = init
+        self.min_dist = min_dist
+        self.spread = spread
+        self.low_memory = low_memory
+        self.random_state = random_state
+        self.verbose = verbose
 
-    reducer_pipeline.fit(spks_train)
-    spks_train_reduced = reducer_pipeline.transform(spks_train)
-    spks_test_reduced = reducer_pipeline.transform(spks_test)
+    def fit(self, X, y=None):
+        self.model_ = UMAP(n_neighbors=self.n_neighbors,
+                           n_components=self.n_components,
+                           metric=self.metric,
+                           n_epochs=self.n_epochs,
+                           learning_rate=self.learning_rate,
+                           init=self.init,
+                           min_dist=self.min_dist,
+                           spread=self.spread,
+                           low_memory=self.low_memory,
+                           random_state=self.random_state,
+                           verbose=self.verbose)
 
-    reg.fit(spks_train_reduced, y_train)
+        self.model_.fit(X)
+        return self
 
-    y_pred = reg.predict(spks_test_reduced)
-    y_pred_train = reg.predict(spks_train_reduced)
-
-    mse_score_train = mean_squared_error(y_train, y_pred_train)
-    r2_score_train = r2_score(y_train, y_pred_train)
-
-    mse_score = mean_squared_error(y_test, y_pred)
-    r2_score_val = r2_score(y_test, y_pred)
-    # make sure they are all float32
-    mse_score_train = np.float32(mse_score_train)
-    r2_score_train = np.float32(r2_score_train)
-    mse_score = np.float32(mse_score)
-    r2_score_val = np.float32(r2_score_val)
-
-    results = {
-        'mse_score_train': mse_score_train,
-        'r2_score_train': r2_score_train,
-        'mse_score': mse_score,
-        'r2_score': r2_score_val,
-    }
-
-    return results
+    def transform(self, X):
+        return self.model_.transform(X)
 
 
-def process_window_within_split(
-        w,
-        spks_train,
-        spks_test,
-        window_size,
-        y_train,
-        y_test,
-        reducer_pipeline,
-        regressor,
-        regressor_kwargs,
-):
-    base_reg = regressor(**regressor_kwargs)
-    reg = MultiOutputRegressor(base_reg)
-    # window_train = spks_train[:, w:w + window_size, :].reshape(spks_train.shape[0], -1)
-    window_train = spks_train[w:w + window_size, :]
-    window_train_y = y_train[w:w + window_size, :]
-    # window_test = spks_test[:, w:w + window_size, :].reshape(spks_test.shape[0], -1)
-    window_test = spks_test[w:w + window_size, :]
-    window_test_y = y_test[w:w + window_size, :]
-    # scaler = StandardScaler()
-    # # scaler.fit(window_train)
-    # window_train = scaler.transform(window_train)
-    # window_test = scaler.transform(window_test)
-    # print("Before any transformation:", window_train.shape)
-    # make into coordinates for umap
-    sin_values = window_train_y[:, 0]
-    cos_values = window_train_y[:, 1]
-
-    if window_train.shape[0] < window_size:
-        print(f'Window train shape is {window_train.shape[0]} and window size is {window_size}')
-        return
-
-    combined_values = np.array([(sin, cos) for sin, cos in zip(sin_values, cos_values)])
-    coord_list = []
-
-    for i in range(len(combined_values)):
-        coords = combined_values[i]
-
-        # Map values to the range [0, 2] (assuming values are between -1 and 1)
-        mapped_coords = [(val + 1) / 2 for val in coords]
-
-        # Convert mapped coordinates to a single float using a unique multiplier
-        unique_float_representation = sum(val * (10 ** (i + 1)) for i, val in enumerate(mapped_coords))
-        coord_list.append(unique_float_representation)
-    coord_list = np.array(coord_list).reshape(-1, 1)
-
-    # combine coord_list into one number per row
-
-    reducer_pipeline.fit(window_train, y=coord_list)
-    # Transform the reference and non-reference space
-    window_ref_reduced = reducer_pipeline.transform(window_train)
-    window_nref_reduced = reducer_pipeline.transform(window_test)
-
-    # Fit the classifier on the reference space
-    reg.fit(window_ref_reduced, window_train_y)
-
-    # Predict on the testing data
-    y_pred = reg.predict(window_nref_reduced)
-    y_pred_train = reg.predict(window_ref_reduced)
-
-    # Compute the mean squared error and R2 score
-    mse_score_train = mean_squared_error(window_train_y, y_pred_train)
-    r2_score_train = r2_score(window_train_y, y_pred_train)
-
-    mse_score = mean_squared_error(window_test_y, y_pred)
-    r2_score_val = r2_score(window_test_y, y_pred)
-
-    results = {
-        'mse_score_train': mse_score_train,
-        'r2_score_train': r2_score_train,
-        'r2_score_train': r2_score_train,
-        'mse_score': mse_score,
-        'r2_score': r2_score_val,
-        'w': w,
-    }
-
-    return results
 
 
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
@@ -180,23 +101,6 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
         ratio = len(train_ind) / len(test_ind)
         print(f'Ratio of train to test indices is {ratio}')
 
-    ############ PLOT FOLDS ##################
-
-    # n_folds = len(folds)
-    # # create figure with 10 subplots arranged in 2 rows
-    # fig = plt.figure(figsize=(20, 10), dpi=100)
-
-    # for f in range(2):
-    #     ax = fig.add_subplot(2, 1, f + 1)
-    #     train_index = folds[f][0]
-    #     test_index = folds[f][1]
-
-    #     # plot train index as lines from 0 to 1
-    #     ax.vlines(train_index, 0, 1, colors='b', linewidth=0.1)
-    #     ax.vlines(test_index, 1, 2, colors='r', linewidth=0.1)
-
-    #     ax.set_title(f'Fold {f + 1}')
-    #     pass
 
     return folds
 
@@ -208,7 +112,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger
+        reducer_kwargs, logger, save_dir_path
 ):
     param_grid = {
         'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
@@ -228,52 +132,62 @@ def train_and_test_on_umap_randcv(
 
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
+    pipeline = Pipeline([
+        ('reducer', CustomUMAP()),
+        ('estimator', MultiOutputRegressor(regressor()))
+    ])
 
-    for i in range(200):  # 100 iterations for RandomizedSearchCV
-        # print(f'at iteration: {i}')#
-        #instead of printing log the iteration
-        logger.info(f'at iteration: {i}')
-        params = {key: np.random.choice(values) for key, values in param_grid.items()}
-        regressor_kwargs.update(
-            {k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
-        reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
+    # Define the parameter grid
+    # param_grid = {
+    #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
+    #     'reducer__n_components': [2],
+    #     'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+    #     'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
+    #     'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
+    #     'reducer__random_state': [42]
+    # }
+    #get the date
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    log_file = open(f"{save_dir_path}/random_search_{now}.log", "w")
 
-        # Initialize the regressor with current parameters
-        current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
+    # Save the original stdout
+    original_stdout = sys.stdout
 
-        # Initialize the reducer with current parameters
-        current_reducer = reducer(**reducer_kwargs)
+    # Redirect stdout to the log file
+    sys.stdout = log_file
 
-        scores = []
-        for train_index, test_index in custom_folds:
-            X_train, X_test = spks[train_index], spks[test_index]
-            y_train, y_test = y[train_index], y[test_index]
 
-            # Apply dimensionality reduction
-            X_train_reduced = current_reducer.fit_transform(X_train)
-            X_test_reduced = current_reducer.transform(X_test)
+    param_grid = {
+    'estimator__estimator__n_neighbors': (2, 70),  # range of values
+    'reducer__n_components': [2],
+    'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+    'reducer__n_neighbors': (10, 70),  # range of values
+    'reducer__min_dist': (0.0001, 0.3),  # range of values
+    'reducer__random_state': [42]
+    }
 
-            # Fit the regressor
-            current_regressor.fit(X_train_reduced, y_train)
+    # Initialize RandomizedSearchCV
+    bayes_search = BayesSearchCV(
+        pipeline, 
+        search_spaces=param_grid, 
+        n_iter=200, 
+        cv=custom_folds, 
+        verbose=2, 
+        n_jobs=-1, 
+        scoring='r2'
+    )
 
-            # Evaluate the regressor
-            score = current_regressor.score(X_test_reduced, y_test)
-            # print('Score:', score)
-            #instead of printing log the score
-            logger.info(f'Score: {score}')
+    # Fit BayesSearchCV
+    bayes_search.fit(spks, y)
+    sys.stdout = original_stdout
 
-            scores.append(score)
+    log_file.close()
 
-        # Calculate mean score for the current parameter combination
-        mean_score = np.mean(scores)
+    # Get the best parameters and score
+    best_params = bayes_search.best_params_
+    best_score = bayes_search.best_score_
 
-        random_search_results.append((params, mean_score))
-
-    # Select the best parameters based on mean score
-    best_params, _ = max(random_search_results, key=lambda x: x[1])
-    _, mean_score_max = max(random_search_results, key=lambda x: x[1])
-
-    return best_params, mean_score_max
+    return best_params, best_score
 
 
 def main():
@@ -282,7 +196,7 @@ def main():
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(
-        f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_20.npy')
+        f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_20.npy')
     lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
     spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_300.npy')
     #print out the first couple of rows of the lfp_data
@@ -339,11 +253,11 @@ def main():
     # ax[1].set_title('After smoothing')
     # plt.show()
 
-    labels_for_umap = labels[:, 0:6]
+    labels_for_umap = labels[:, 0:9]
     labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
     label_df = pd.DataFrame(labels_for_umap,
-                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore'])
+                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore', 'angle_rel_to_goal', 'angle_rel_to_goal_sin', 'angle_rel_to_goal_cos'])                        
     label_df['time_index'] = np.arange(0, label_df.shape[0])
     # crop the label_df to only take the first 20,000 samples
     print(f'The shape of the label_df is {label_df.shape}')
@@ -395,7 +309,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger
+        reducer_kwargs, logger, save_dir_path
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)
