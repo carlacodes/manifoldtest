@@ -111,16 +111,9 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path
+        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=None
 ):
-    param_grid = {
-        'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
-        'reducer__n_components': [2],
-        'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-        'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
-        'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
-        'reducer__random_state': [42]
-    }
+
 
     y = bhv[regress].values
 
@@ -164,26 +157,47 @@ def train_and_test_on_umap_randcv(
         'reducer__random_state': [42]
     }
 
-    # Initialize RandomizedSearchCV
-    bayes_search = BayesSearchCV(
-        pipeline,
-        search_spaces=param_grid,
-        n_iter=200,
-        cv=custom_folds,
-        verbose=2,
-        n_jobs=-1,
-        scoring='r2'
-    )
+    if use_bayes_search:
+        # Define the parameter grid
+        param_grid = {
+            'estimator__estimator__n_neighbors': (2, 70),  # range of values
+            'reducer__n_components': [2],
+            'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+            'reducer__n_neighbors': (10, 70),  # range of values
+            'reducer__min_dist': (0.0001, 0.3),  # range of values
+            'reducer__random_state': [42]
+        }
 
-    # Fit BayesSearchCV
-    bayes_search.fit(spks, y)
-    sys.stdout = original_stdout
+        # Initialize BayesSearchCV
+        bayes_search = BayesSearchCV(
+            pipeline,
+            search_spaces=param_grid,
+            n_iter=200,
+            cv=custom_folds,
+            verbose=2,
+            n_jobs=-1,
+            scoring='r2'
+        )
 
-    log_file.close()
+        # Fit BayesSearchCV
+        bayes_search.fit(spks, y)
+        sys.stdout = original_stdout
 
-    # Get the best parameters and score
-    best_params = bayes_search.best_params_
-    best_score = bayes_search.best_score_
+        log_file.close()
+
+        # Get the best parameters and score
+        best_params = bayes_search.best_params_
+        best_score = bayes_search.best_score_
+    else:
+        # Manually set the parameters
+        pipeline.set_params(**manual_params)
+
+        # Fit the pipeline
+        pipeline.fit(spks, y)
+
+        # Get the parameters and score
+        best_params = manual_params
+        best_score = pipeline.score(spks, y)
 
     return best_params, best_score
 
@@ -197,7 +211,7 @@ def main():
     lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
     spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_300.npy')
     # print out the first couple of rows of the lfp_data
-    previous_results = DataHandler.load_previous_results(data_dir)
+    previous_results = DataHandler.load_previous_results('lfp_phase_manifold_withspkdata')
 
     # make copies of each the spike data so it fits the shape of the lfp_data
     # find the ratio in length between the lfp_data and the spike_data
@@ -298,6 +312,7 @@ def main():
     # add the handlers to the logger
     logger.addHandler(handler)
     logger.info('Starting the training and testing of the lfp data with the spike data')
+
 
     best_params, mean_score = train_and_test_on_umap_randcv(
         X_for_umap,
