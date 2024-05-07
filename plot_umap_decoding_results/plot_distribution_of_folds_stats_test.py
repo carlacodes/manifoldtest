@@ -572,10 +572,15 @@ def main():
                 results_df = pd.DataFrame()
                 for j, (train_index, test_index) in enumerate(custom_folds_test):
 
-                    t_stat, p_val = scipy.stats.ttest_ind(label_df['dist2goal'].values[train_index], label_df['dist2goal'].values[test_index])
-                    p_val_rounded = round(p_val, 3)
+                    t_stat, p_val = scipy.stats.ttest_ind(label_df['x'].values[train_index], label_df['x'].values[test_index])
+                    t_stat_y, p_val_y = scipy.stats.ttest_ind(label_df['y'].values[train_index], label_df['y'].values[test_index])
+                    #take the mean of the p-values
+                    p_val_rounded = np.round(np.mean([p_val, p_val_y]), 4)
+                    t_stat_rounded = np.round(np.mean([t_stat, t_stat_y]), 4)
+
+
                     #appebd to the results dataframe
-                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 't_stat': t_stat, 'fold_number': j}
+                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 't_stat': t_stat_rounded, 'fold_number': j}
                     results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[0])])
                 #calculate the mean p-value for the window size
                 #take the mean of results_df
@@ -587,7 +592,7 @@ def main():
             #plot the p-values and t-stats against the window size
             fig, ax = plt.subplots(1, 1)
             ax.plot(big_results_df['window_size'], big_results_df['mean_p_value'], label='mean p-value')
-            ax.set_title('Mean p-value vs window size for rat: ' + data_dir_path.name)
+            ax.set_title(f'Mean p-value vs window size for rat: {data_dir_path} and window size: {window_size}')
             ax.set_xlabel('window size')
             ax.set_ylabel('mean p-value')
 
