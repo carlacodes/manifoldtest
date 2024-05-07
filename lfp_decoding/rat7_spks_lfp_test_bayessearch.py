@@ -121,7 +121,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=None
+        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=None, rat_id=None, savedir=None
 ):
 
 
@@ -206,6 +206,7 @@ def train_and_test_on_umap_randcv(
         test_scores = []
 
         # Loop over the custom folds
+        count = 0
         for train_index, test_index in custom_folds:
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
@@ -217,6 +218,8 @@ def train_and_test_on_umap_randcv(
 
             # Fit the pipeline on the training data
             pipeline.fit(spks_train, y_train)
+            fitted_reducer = pipeline.named_steps['reducer']
+            X_test_reduced = fitted_reducer.transform(spks_test)
 
             # Calculate the training score and append it to the list
             train_score = pipeline.score(spks_train, y_train)
@@ -225,6 +228,20 @@ def train_and_test_on_umap_randcv(
             # Calculate the test score and append it to the list
             test_score = pipeline.score(spks_test, y_test)
             test_scores.append(test_score)
+            actual_angle = np.arcsin(y_test[:, 0])
+
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], c=actual_angle, cmap='viridis')
+            ax.set_xlabel('UMAP 1')
+            ax.set_ylabel('UMAP 2')
+            ax.set_zlabel('UMAP 3')
+            #add a color bar
+            cbar = plt.colorbar(sc, ax=ax)
+            ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(count) + 'rat id:' +str(rat_id))
+            plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
+            count += 1
 
         # Calculate the mean training and test scores
         mean_train_score = np.mean(train_scores)
@@ -358,7 +375,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=manual_params
+        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)
