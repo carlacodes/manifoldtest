@@ -935,120 +935,121 @@ if __name__ == "__main__":
     big_dir = 'C:/neural_data/'
     # 3, 8, 9, 10
     for rat in [7, 3, 8, 9, 10]:
-        #get the list of folders directory that have dates
-        print(f'now starting rat:{rat}')
-        dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
-        #check if the folder name is a date by checking if it contains a hyphen
-        date = [d for d in dates if '-' in d][0]
-        data_dir = os.path.join(big_dir, f'rat_{rat}', date)
+        for window_size_instance in [20, 50, 100, 250, 500]:
+            #get the list of folders directory that have dates
+            print(f'now starting rat:{rat}')
+            dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
+            #check if the folder name is a date by checking if it contains a hyphen
+            date = [d for d in dates if '-' in d][0]
+            data_dir = os.path.join(big_dir, f'rat_{rat}', date)
 
-    # data_dir = '/media/jake/DataStorage_6TB/DATA/neural_network/og_honeycomb/rat7/6-12-2019'
+        # data_dir = '/media/jake/DataStorage_6TB/DATA/neural_network/og_honeycomb/rat7/6-12-2019'
 
-    # load spike data
-    # spike_dir = os.path.join(data_dir, 'spike_sorting')
-    # units = load_pickle('units_w_behav_correlates', spike_dir)
+        # load spike data
+        # spike_dir = os.path.join(data_dir, 'spike_sorting')
+        # units = load_pickle('units_w_behav_correlates', spike_dir)
 
-        spike_dir = os.path.join(data_dir, 'physiology_data')
-        units = load_pickle('restricted_units', spike_dir)
-        use_overlap = False
+            spike_dir = os.path.join(data_dir, 'physiology_data')
+            units = load_pickle('restricted_units', spike_dir)
+            use_overlap = False
 
-        # load positional data
-        # dlc_dir = os.path.join(data_dir, 'deeplabcut')
-        # dlc_data = load_pickle('dlc_final', dlc_dir)
+            # load positional data
+            # dlc_dir = os.path.join(data_dir, 'deeplabcut')
+            # dlc_data = load_pickle('dlc_final', dlc_dir)
 
-        dlc_dir = os.path.join(data_dir, 'positional_data')
-        dlc_data = load_pickle('dlc_data', dlc_dir)
-        dlc_data = dlc_data['hComb']
+            dlc_dir = os.path.join(data_dir, 'positional_data')
+            dlc_data = load_pickle('dlc_data', dlc_dir)
+            dlc_data = dlc_data['hComb']
 
-        # create positional and spike trains with overlapping windows
-        # and save as a pickle file
-        if use_overlap:
-            windowed_dlc, window_edges, window_size = \
-                create_positional_trains(dlc_data, window_size=20)
-        else:
-            windowed_dlc, window_edges, window_size = \
-                create_positional_trains_no_overlap(dlc_data, window_size=20)
-        windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
-        save_pickle(windowed_data, 'windowed_data', dlc_dir)
+            # create positional and spike trains with overlapping windows
+            # and save as a pickle file
+            if use_overlap:
+                windowed_dlc, window_edges, window_size = \
+                    create_positional_trains(dlc_data, window_size=window_size_instance)
+            else:
+                windowed_dlc, window_edges, window_size = \
+                    create_positional_trains_no_overlap(dlc_data, window_size=window_size_instance)
+            windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
+            save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
-        windowed_data = load_pickle('windowed_data', dlc_dir)
-        windowed_dlc = windowed_data['windowed_dlc']
-        window_edges = windowed_data['window_edges']
+            windowed_data = load_pickle('windowed_data', dlc_dir)
+            windowed_dlc = windowed_data['windowed_dlc']
+            window_edges = windowed_data['window_edges']
 
-        # create spike trains
-        if use_overlap:
-            spike_trains = create_spike_trains(units, window_edges, window_size=window_size)
-        else:
-            spike_trains = create_spike_trains_no_overlap(units, window_edges, window_size=window_size)
-            # spike_trains_binned = create_spike_trains_trial_binning(units, window_edges, window_size=window_size)
-            # spike_trains_3d = create_spike_trains_merge_into_trial(units, window_size=window_size)
-        save_pickle(spike_trains, f'spike_trains_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
-        spike_trains = load_pickle(f'spike_trains_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+            # create spike trains
+            if use_overlap:
+                spike_trains = create_spike_trains(units, window_edges, window_size=window_size)
+            else:
+                spike_trains = create_spike_trains_no_overlap(units, window_edges, window_size=window_size)
+                # spike_trains_binned = create_spike_trains_trial_binning(units, window_edges, window_size=window_size)
+                # spike_trains_3d = create_spike_trains_merge_into_trial(units, window_size=window_size)
+            save_pickle(spike_trains, f'spike_trains_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+            spike_trains = load_pickle(f'spike_trains_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
 
-        # concatenate data from all trials into np.arrays for training
-        norm_data = False
-        zscore_option = False
-        #rearrange windowed_dlc so it's index by variable number
-        rearranged_dlc = {}
-        for key, df in windowed_dlc.items():
-            variable_name = f"trial_{key.split('_')[1]}"
-            #get the columns of the dataframe
-            columns = df.columns
-            for col in columns:
-                if col not in rearranged_dlc:
-                    rearranged_dlc[col] = []
-                rearranged_dlc[col].append(df[col].values)
-        #convert the lists to np.arrays
+            # concatenate data from all trials into np.arrays for training
+            norm_data = False
+            zscore_option = False
+            #rearrange windowed_dlc so it's index by variable number
+            rearranged_dlc = {}
+            for key, df in windowed_dlc.items():
+                variable_name = f"trial_{key.split('_')[1]}"
+                #get the columns of the dataframe
+                columns = df.columns
+                for col in columns:
+                    if col not in rearranged_dlc:
+                        rearranged_dlc[col] = []
+                    rearranged_dlc[col].append(df[col].values)
+            #convert the lists to np.arrays
 
-        ##3D ROLLING WINDOW:
-        labels_rolling_window, var_list, trial_list = cat_behav_data_3d_rolling_window(rearranged_dlc, length_size=100)
-        #take an example trial_list from the second dimension
+            ##3D ROLLING WINDOW:
+            labels_rolling_window, var_list, trial_list = cat_behav_data_3d_rolling_window(rearranged_dlc, length_size=100)
+            #take an example trial_list from the second dimension
 
-        trial_list_example = trial_list[:,0,:]
-        # behav_array, var_list_padded = cat_dlc_3d(rearranged_dlc)
+            trial_list_example = trial_list[:,0,:]
+            # behav_array, var_list_padded = cat_dlc_3d(rearranged_dlc)
 
-        labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
-        new_labels, new_col_names = add_angle_rel_to_goal_labels(labels, column_names, rat_id=f'rat_{rat}')
-        # convert labels to float32
-        labels = labels.astype(np.float32)
-        new_labels = new_labels.astype(np.float32)
-        np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', labels)
-        np.save(f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', new_labels)
-
-
-        # concatenate spike trains into np.arrays for training
-        model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
-        #make rearranged_dlc into a collection of dictionaries with the same keys
-
-        ##ZERO PADDING:
-        spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
-        spike_array_list, unit_list = cat_spike_trains_3d_with_behav_variable_length(spike_trains, rearranged_dlc)
-        #save the spike_array_list and unit_list
-        save_pickle(spike_array_list, f'{spike_dir}/spike_array_list_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
-        save_pickle(rearranged_dlc, f'{dlc_dir}/rearranged_dlc_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+            labels, column_names = cat_dlc(windowed_dlc, scale_data=norm_data, z_score_data=zscore_option)
+            new_labels, new_col_names = add_angle_rel_to_goal_labels(labels, column_names, rat_id=f'rat_{rat}')
+            # convert labels to float32
+            labels = labels.astype(np.float32)
+            new_labels = new_labels.astype(np.float32)
+            np.save(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', labels)
+            np.save(f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_{norm_data}_zscore_data_{zscore_option}_overlap_{use_overlap}_window_size_{window_size}.npy', new_labels)
 
 
-        #save the spike array and behav array
-        spike_array = spike_array.astype(np.float32)
-        behav_array = behav_array.astype(np.float32)
-        np.save(f'{spike_dir}/spike_array_overlap_zero_padding_rat_{rat}_window_size_{window_size}.npy', spike_array)
-        np.save(f'{spike_dir}/behav_array_overlap_zero_padding_rat_{rat}_window_size_{window_size}.npy', behav_array)
+            # concatenate spike trains into np.arrays for training
+            model_inputs_3d, unit_list = cat_spike_trains_3d(spike_trains)
+            #make rearranged_dlc into a collection of dictionaries with the same keys
+
+            ##ZERO PADDING:
+            spike_array, unit_list, behav_array = cat_spike_trains_3d_with_behav(spike_trains, rearranged_dlc)
+            spike_array_list, unit_list = cat_spike_trains_3d_with_behav_variable_length(spike_trains, rearranged_dlc)
+            #save the spike_array_list and unit_list
+            save_pickle(spike_array_list, f'{spike_dir}/spike_array_list_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+            save_pickle(rearranged_dlc, f'{dlc_dir}/rearranged_dlc_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
 
 
-        ##3D ROLLING WINDOW:
-        model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
-        trial_number_tracker_example = trial_number_tracker[:,0,:]
+            #save the spike array and behav array
+            spike_array = spike_array.astype(np.float32)
+            behav_array = behav_array.astype(np.float32)
+            np.save(f'{spike_dir}/spike_array_overlap_zero_padding_rat_{rat}_window_size_{window_size}.npy', spike_array)
+            np.save(f'{spike_dir}/behav_array_overlap_zero_padding_rat_{rat}_window_size_{window_size}.npy', behav_array)
 
-        #check if the trial number tracker is the same as the trial_list
-        assert np.all(trial_number_tracker_example == trial_list_example)
 
-        model_inputs, unit_list = cat_spike_trains(spike_trains)
-        theta_sin_bin, theta_cos_bin, theta_phase_sincos = create_lfp_arrays(Path(spike_dir), model_inputs, window_size=window_size)
-        # convert model_inputs to float32
-        model_inputs = model_inputs.astype(np.float32)
-        np.save(f'{spike_dir}/inputs_overlap_{use_overlap}_window_size_{window_size}.npy', model_inputs)
-        np.save(f'{spike_dir}/theta_sin_and_cos_bin_overlap_{use_overlap}_window_size_{window_size}.npy', theta_phase_sincos)
-        save_pickle(unit_list, f'unit_list_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+            ##3D ROLLING WINDOW:
+            model_inputs_roving, unit_list_roving, trial_number_tracker = cat_spike_trains_3d_rolling_window(spike_trains, length_size=100)
+            trial_number_tracker_example = trial_number_tracker[:,0,:]
 
-        reshape_model_inputs_and_labels(model_inputs, labels)
-    pass
+            #check if the trial number tracker is the same as the trial_list
+            assert np.all(trial_number_tracker_example == trial_list_example)
+
+            model_inputs, unit_list = cat_spike_trains(spike_trains)
+            theta_sin_bin, theta_cos_bin, theta_phase_sincos = create_lfp_arrays(Path(spike_dir), model_inputs, window_size=window_size)
+            # convert model_inputs to float32
+            model_inputs = model_inputs.astype(np.float32)
+            np.save(f'{spike_dir}/inputs_overlap_{use_overlap}_window_size_{window_size}.npy', model_inputs)
+            np.save(f'{spike_dir}/theta_sin_and_cos_bin_overlap_{use_overlap}_window_size_{window_size}.npy', theta_phase_sincos)
+            save_pickle(unit_list, f'unit_list_overlap_{use_overlap}_window_size_{window_size}', spike_dir)
+
+            reshape_model_inputs_and_labels(model_inputs, labels)
+            pass
