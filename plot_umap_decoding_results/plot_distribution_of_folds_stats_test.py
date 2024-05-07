@@ -566,14 +566,38 @@ def main():
             time_range_for_testing = (0, 1000)
             # create a dataframe to store the results
             results_df = pd.DataFrame()
-            for i in range(0, 2000, 2):
+            big_results_df = pd.DataFrame()
+            for i in range(10, 2000, 10):
                 custom_folds_test = create_folds(n_timesteps, num_folds=10, num_windows=i)
+                results_df = pd.DataFrame()
                 for j, (train_index, test_index) in enumerate(custom_folds_test):
 
                     t_stat, p_val = scipy.stats.ttest_ind(label_df['dist2goal'].values[train_index], label_df['dist2goal'].values[test_index])
                     p_val_rounded = round(p_val, 3)
                     #appebd to the results dataframe
-                    results_df = results_df.append({'window_size': i, 'p_value': p_val_rounded, 't_stat': t_stat, 'fold_number': j}, ignore_index=True)
+                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 't_stat': t_stat, 'fold_number': j}
+                    results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[0])])
+                #calculate the mean p-value for the window size
+                #take the mean of results_df
+                mean_p_val = results_df['p_value'].mean()
+                mean_t_stat = results_df['t_stat'].mean()
+                #append to the big results dataframe
+                window_size_data = {'window_size': i, 'mean_p_value': mean_p_val, 'mean_t_stat': mean_t_stat}
+                big_results_df = pd.concat([big_results_df, pd.DataFrame(window_size_data, index=[0])])
+            #plot the p-values and t-stats against the window size
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(big_results_df['window_size'], big_results_df['mean_p_value'], label='mean p-value')
+            ax.set_title('Mean p-value vs window size for rat: ' + data_dir_path.name)
+            ax.set_xlabel('window size')
+            ax.set_ylabel('mean p-value')
+
+            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_window_size_{data_dir_path.name}.png', dpi=300, bbox_inches='tight')
+            plt.show()
+            plt.close('all')
+
+    return
+
+
 
     #save the big dataframe
 
