@@ -103,6 +103,16 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
     return folds
 
+def format_params(params):
+    formatted_params = {}
+    for key, value in params.items():
+        if key.startswith('estimator__'):
+            # Add another 'estimator__' prefix to the key
+            formatted_key = 'estimator__estimator__' + key[len('estimator__'):]
+        else:
+            formatted_key = key
+        formatted_params[formatted_key] = value
+    return formatted_params
 
 def train_and_test_on_umap_randcv(
         spks,
@@ -190,15 +200,39 @@ def train_and_test_on_umap_randcv(
         best_score = bayes_search.best_score_
     else:
         # Manually set the parameters
-        pipeline.set_params(**manual_params)
 
-        # Fit the pipeline
-        pipeline.fit(spks, y)
+        # Initialize lists to store the scores
+        train_scores = []
+        test_scores = []
 
-        # Get the parameters and score
-        best_params = manual_params
-        best_score = pipeline.score(spks, y)
+        # Loop over the custom folds
+        for train_index, test_index in custom_folds:
+            # Split the data into training and testing sets
+            spks_train, spks_test = spks[train_index], spks[test_index]
+            y_train, y_test = y[train_index], y[test_index]
 
+            # Set the parameters
+            formatted_params = format_params(manual_params)
+            pipeline.set_params(**formatted_params)
+
+            # Fit the pipeline on the training data
+            pipeline.fit(spks_train, y_train)
+
+            # Calculate the training score and append it to the list
+            train_score = pipeline.score(spks_train, y_train)
+            train_scores.append(train_score)
+
+            # Calculate the test score and append it to the list
+            test_score = pipeline.score(spks_test, y_test)
+            test_scores.append(test_score)
+
+        # Calculate the mean training and test scores
+        mean_train_score = np.mean(train_scores)
+        mean_test_score = np.mean(test_scores)
+
+        # Print the mean scores
+        print(f'Mean training score: {mean_train_score}')
+        print(f'Mean test score: {mean_test_score}')
     return best_params, best_score
 
 
@@ -211,7 +245,9 @@ def main():
     lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
     spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_300.npy')
     # print out the first couple of rows of the lfp_data
-    previous_results = DataHandler.load_previous_results('lfp_phase_manifold_withspkdata')
+    previous_results, score_dict = DataHandler.load_previous_results('lfp_phase_manifold_withspkdata')
+    rat_id = data_dir.split('/')[-2]
+    manual_params = previous_results[rat_id]
 
     # make copies of each the spike data so it fits the shape of the lfp_data
     # find the ratio in length between the lfp_data and the spike_data
@@ -312,7 +348,8 @@ def main():
     # add the handlers to the logger
     logger.addHandler(handler)
     logger.info('Starting the training and testing of the lfp data with the spike data')
-
+    #remove numpy array, just get mapping from manual_params
+    manual_params = manual_params.item()
 
     best_params, mean_score = train_and_test_on_umap_randcv(
         X_for_umap,
@@ -321,7 +358,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path
+        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=manual_params
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)
