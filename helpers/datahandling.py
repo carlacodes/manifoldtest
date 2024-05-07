@@ -1,6 +1,7 @@
 import scipy
 import numpy as np
 import pandas as pd
+import os
 
 
 class MathHelper():
@@ -212,4 +213,29 @@ class DataHandler():
             folds.append((train_ind, test_ind))
 
         return folds
+    @staticmethod
+    def load_previous_results(directory_of_interest):
+        param_dict = {}
+        score_dict = {}
+        # 'C:/neural_data/rat_3/25-3-2019'
+        for rat_dir in ['C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_7/6-12-2019',
+                        'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
+                        'C:/neural_data/rat_3/25-3-2019']:
+            rat_id = rat_dir.split('/')[-2]
+            param_directory = f'{rat_dir}/{directory_of_interest}'
+            # find all the files in the directory
+            files = os.listdir(param_directory)
+
+            for window in [1000]:
+                for bin_size in [250]:
+                    # find the file names
+                    for file in files:
+                        if file.__contains__(f'{window}windows'):
+                            if file.__contains__('mean_score'):
+                                score_dict[rat_id] = np.load(f'{param_directory}/{file}')
+                            elif file.__contains__('params'):
+                                with open(f'{param_directory}/{file}', 'rb') as f:
+                                    param_dict[rat_id] = np.load(f'{param_directory}/{file}', allow_pickle=True)
+        return param_dict, score_dict
+
 

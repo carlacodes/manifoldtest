@@ -964,10 +964,10 @@ if __name__ == "__main__":
         # and save as a pickle file
         if use_overlap:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains(dlc_data, window_size=300)
+                create_positional_trains(dlc_data, window_size=20)
         else:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains_no_overlap(dlc_data, window_size=300)
+                create_positional_trains_no_overlap(dlc_data, window_size=20)
         windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
         save_pickle(windowed_data, 'windowed_data', dlc_dir)
 
