@@ -937,7 +937,7 @@ if __name__ == "__main__":
     for rat in [7, 3, 8, 9, 10]:
         for window_size_instance in [20, 50, 100, 250, 500]:
             #get the list of folders directory that have dates
-            print(f'now starting rat:{rat}')
+            print(f'now starting rat:{rat}, and window size: {window_size_instance}')
             dates = os.listdir(os.path.join(big_dir, f'rat_{rat}'))
             #check if the folder name is a date by checking if it contains a hyphen
             date = [d for d in dates if '-' in d][0]
