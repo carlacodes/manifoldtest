@@ -12,15 +12,13 @@ from utilities.load_and_save_data import load_pickle, save_pickle
 from spikes.calculate_spike_pos_hd import interpolate_rads
 from behaviour.load_behaviour import split_dictionary_by_goal, get_goals
 
-sample_freq = 30000 # Hz
-
 
 def smooth_positional_data(dlc_data, window_size=100):  
     # THIS IS JUST A PLACEHOLDER FOR NOW   
     pass
 
 
-def create_positional_trains(dlc_data, window_size=100): # we'll default to 100 ms windows for now
+def create_positional_trains(dlc_data, window_size=100, sample_freq=30000): # we'll default to 100 ms windows for now
 
     # first, get the start and end time of the video
     window_in_samples = window_size * sample_freq / 1000 # convert window size to samples
@@ -368,10 +366,14 @@ def main():
     
     data_dir = 'D:/analysis/carlas_windowed_data/honeycomb_neural_data'
     rat_and_session = ['rat_3/25-3-2019', 'rat_7/6-12-2019', 'rat_8/15-10-2019', 'rat_9/10-12-2021', 'rat_10/23-11-2021']
+    sample_freqs = {'rat_3': 20000, 'rat_7': 30000, 'rat_8': 30000, 'rat_9': 30000, 'rat_10': 30000}
 
     window_sizes = [20, 50, 100, 250, 500]
 
     for rs in rat_and_session:
+
+        rat = rs.split('/')[0]
+        sample_freq = sample_freqs[rat]
 
         # load spike data
         spike_dir = os.path.join(data_dir, rs, 'physiology_data')
@@ -392,7 +394,7 @@ def main():
 
         for window_size in window_sizes:
             windowed_dlc, window_edges, window_size = \
-                create_positional_trains(dlc_data, window_size=window_size)    
+                create_positional_trains(dlc_data, window_size=window_size, sample_freq=sample_freq)    
             windowed_data = {'windowed_dlc': windowed_dlc, 'window_edges': window_edges}
             dlc_train_file_name = f'windowed_dlc_{window_size}'
             save_pickle(windowed_data, dlc_train_file_name, dlc_dir)
