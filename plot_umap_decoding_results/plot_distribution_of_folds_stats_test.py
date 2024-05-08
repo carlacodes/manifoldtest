@@ -544,13 +544,14 @@ def run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedi
 
             X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
-            labels_for_umap = labels[:, 0:9]
+            labels_for_umap = labels[:, 0:5]
             labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
             label_df = pd.DataFrame(labels_for_umap,
-                                    columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore',
-                                             'angle_rel_to_goal', 'angle_rel_to_goal_sin', 'angle_rel_to_goal_cos'])
+                                    columns=[ 'x', 'y', 'dist2goal', 'hd', 'relative_direction_to_goal'])
             label_df['time_index'] = np.arange(0, label_df.shape[0])
+            label_df['angle_sin'] = np.sin(label_df['hd'])
+            label_df['angle_cos'] = np.cos(label_df['hd'])
 
             # z-score x and y
 
