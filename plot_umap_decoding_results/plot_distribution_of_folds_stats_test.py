@@ -523,7 +523,7 @@ def main():
     df_across_windows = pd.DataFrame()
 
     for data_dir in [ 'C:/neural_data/rat_7/6-12-2019','C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021','C:/neural_data/rat_3/25-3-2019']:
-        for window_size in [20, 50, 100, 250, 500]:
+        for window_size in [250]:
             rat_id = data_dir.split('/')[-2]
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -620,18 +620,18 @@ def main():
             #get the first index where the p-value is consistently above 0.2
             #take the difference
             diff = np.diff(threshold_indices)
-            #get the index where the difference is not equal to 10
+            #find the minimum index where every difference after is 10
+            index_saved = None
+            indices_diff_10 = None
+            for i, val in enumerate(diff):
+                if val == 10 and index_saved == None:
+                    indices_diff_10 = i
+                    index_saved = i
+                if val != 10 and i>index_saved:
+                    index_saved = None
+                    indices_diff_10 = None
+            first_index = index_saved
 
-            indices_diff_10 = np.where(diff == 10)[0]
-
-            # Convert the boolean array to a string
-            str_diff = ''.join(['1' if x else '0' for x in diff == 10])
-
-            # Define the sequence of '1's you are looking for. In this case, it's ten '1's in a row.
-            sequence = '1' * int(len(str_diff)*(2/3))
-
-            # Find the first occurrence of the sequence in the string
-            first_index = str_diff.find(sequence)
 
             # If the sequence is found in the string
             if first_index != -1:
@@ -648,13 +648,13 @@ def main():
 
             fig, ax = plt.subplots(1, 1)
             ax.plot(big_results_df['num_windows'], big_results_df['mean_p_value'], label='mean p-value')
-            ax.set_title(f'Mean p-value vs num_windows for rat: {data_dir_path} and window size: {window_size}')
+            ax.set_title(f'Mean p-value vs num_windows for rat: \n  {data_dir_path} and window size: {window_size}')
             ax.set_xlabel('num_windows')
             ax.set_ylabel('mean p-value')
             #append to an animal and
 
             plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_rat_id_{rat_id}_window_size_{window_size}.png', dpi=300, bbox_inches='tight')
-            # plt.show()
+            plt.show()
             plt.close('all')
             #append to the big dataframe
             big_results_df['rat_id'] = rat_id
