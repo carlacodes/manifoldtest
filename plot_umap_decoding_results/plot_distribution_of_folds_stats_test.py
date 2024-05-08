@@ -594,12 +594,12 @@ def main():
 
 
                     #appebd to the results dataframe
-                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 'k_stat': ks_statistic, 'fold_number': j}
+                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 'ks_stat': ks_statistic, 'fold_number': j}
                     results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[i])])
                 #calculate the mean p-value for the window size
                 #take the mean of results_df
                 mean_p_val = results_df['p_value'].mean()
-                mean_t_stat = results_df['t_stat'].mean()
+                mean_t_stat = results_df['ks_stat'].mean()
                 #append to the big results dataframe
                 window_size_data = {'num_windows': i, 'mean_p_value': mean_p_val, 'mean_t_stat': mean_t_stat}
                 big_results_df = pd.concat([big_results_df, pd.DataFrame(window_size_data, index=[i])])
@@ -628,7 +628,7 @@ def main():
             str_diff = ''.join(['1' if x else '0' for x in diff == 10])
 
             # Define the sequence of '1's you are looking for. In this case, it's ten '1's in a row.
-            sequence = '1' * 10
+            sequence = '1' * 22
 
             # Find the first occurrence of the sequence in the string
             first_index = str_diff.find(sequence)
