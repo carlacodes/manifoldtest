@@ -571,7 +571,11 @@ def main():
             results_df = pd.DataFrame()
             big_results_df = pd.DataFrame()
             for i in range(10, 2000, 10):
-                custom_folds_test = create_folds(n_timesteps, num_folds=10, num_windows=i)
+                try:
+                    custom_folds_test = create_folds(n_timesteps, num_folds=10, num_windows=i)
+                except Exception as e:
+                    print('Error in creating the folds, error is: ', e)
+                    continue
                 results_df = pd.DataFrame()
                 for j, (train_index, test_index) in enumerate(custom_folds_test):
 
