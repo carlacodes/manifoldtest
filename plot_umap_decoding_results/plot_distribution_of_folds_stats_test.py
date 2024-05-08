@@ -627,7 +627,10 @@ def main():
                 if val == 10 and index_saved == None:
                     indices_diff_10 = i
                     index_saved = i
-                if val != 10 and i>index_saved:
+                if val != 10 and index_saved == None:
+                    index_saved = None
+                    indices_diff_10 = None
+                elif val != 10 and i>index_saved:
                     index_saved = None
                     indices_diff_10 = None
             first_index = index_saved
@@ -646,7 +649,7 @@ def main():
             #append to an animal and
 
             plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_rat_id_{rat_id}_window_size_{window_size}.png', dpi=300, bbox_inches='tight')
-            plt.show()
+            # plt.show()
             plt.close('all')
             #append to the big dataframe
             big_results_df['rat_id'] = rat_id
