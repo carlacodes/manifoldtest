@@ -628,7 +628,7 @@ def main():
             str_diff = ''.join(['1' if x else '0' for x in diff == 10])
 
             # Define the sequence of '1's you are looking for. In this case, it's ten '1's in a row.
-            sequence = '1' * 22
+            sequence = '1' * int(len(str_diff)*(2/3))
 
             # Find the first occurrence of the sequence in the string
             first_index = str_diff.find(sequence)
