@@ -609,7 +609,33 @@ def main():
             index_above_threshold = big_results_df[big_results_df['mean_p_value'] > threshold]
             #get the applicable thresholds
             threshold_indices = index_above_threshold.index
-            #get the first index where they are consecutively above the threshold
+            #get the first index where they are consecutively above the threshold in intervals in 10
+            #get the first index where the p-value is consistently above 0.2
+            #take the difference
+            diff = np.diff(threshold_indices)
+            #get the index where the difference is not equal to 10
+
+            indices_diff_10 = np.where(diff == 10)[0]
+
+            # Convert the boolean array to a string
+            str_diff = ''.join(['1' if x else '0' for x in diff == 10])
+
+            # Define the sequence of '1's you are looking for. In this case, it's ten '1's in a row.
+            sequence = '1' * 10
+
+            # Find the first occurrence of the sequence in the string
+            first_index = str_diff.find(sequence)
+
+            # If the sequence is found in the string
+            if first_index != -1:
+                # The first index where the difference is consistently 10 is the start of the sequence
+                first_consistent_index = indices_diff_10[first_index]
+            else:
+                first_consistent_index = None
+
+            print(first_consistent_index)
+
+            corresponding_num_windows = threshold_indices[first_consistent_index]
 
 
 
@@ -626,8 +652,14 @@ def main():
             #append to the big dataframe
             big_results_df['rat_id'] = rat_id
             big_results_df['window_size'] = window_size
+            big_results_df['minimum_number_windows'] = corresponding_num_windows
             df_across_windows = pd.concat([df_across_windows, big_results_df])
-
+    #get the mean minimum number of windows
+    df_across_windows['mean_minimum_number_windows'] = df_across_windows.groupby('rat_id')['minimum_number_windows'].transform('mean')
+    df_across_windows['mean_minimum_number_windows_by_windowsize'] = df_across_windows.groupby('window_size')['minimum_number_windows'].transform('mean')
+    df_across_windows['mean_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows['mean_minimum_number_windows'].mean()
+    #export to csv
+    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats.csv')
     return df_across_windows
 
 
