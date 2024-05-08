@@ -524,8 +524,8 @@ def run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedi
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
             labels = np.load(
-                f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_{window_size}.npy')
-            spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_{window_size}.npy')
+                f'{dlc_dir}/labels_{window_size}.npy')
+            spike_data = np.load(f'{spike_dir}/inputs_{window_size}.npy')
 
             spike_data_trial = spike_data
             data_dir_path = Path(data_dir)
@@ -742,8 +742,8 @@ def run_stratified_kfold_test():
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
             labels = np.load(
-                f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_{window_size}.npy')
-            spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_{window_size}.npy')
+                f'{dlc_dir}/labels_{window_size}.npy')
+            spike_data = np.load(f'{spike_dir}/inputs_{window_size}.npy')
 
             spike_data_trial = spike_data
             data_dir_path = Path(data_dir)
@@ -762,13 +762,14 @@ def run_stratified_kfold_test():
 
             X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
-            labels_for_umap = labels[:, 0:9]
+            labels_for_umap = labels[:, 0:5]
             labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
             label_df = pd.DataFrame(labels_for_umap,
-                                    columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore',
-                                             'angle_rel_to_goal', 'angle_rel_to_goal_sin', 'angle_rel_to_goal_cos'])
+                                    columns=[ 'x', 'y', 'dist2goal', 'hd', 'relative_direction_to_goal'])
             label_df['time_index'] = np.arange(0, label_df.shape[0])
+            label_df['angle_sin'] = np.sin(label_df['hd'])
+            label_df['angle_cos'] = np.cos(label_df['hd'])
 
             # z-score x and y
             window_size_df = pd.DataFrame()
