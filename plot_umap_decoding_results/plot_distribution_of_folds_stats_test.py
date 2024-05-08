@@ -579,15 +579,22 @@ def main():
                 results_df = pd.DataFrame()
                 for j, (train_index, test_index) in enumerate(custom_folds_test):
 
-                    t_stat, p_val = scipy.stats.ttest_ind(label_df['x'].values[train_index], label_df['x'].values[test_index])
-                    t_stat_y, p_val_y = scipy.stats.ttest_ind(label_df['y'].values[train_index], label_df['y'].values[test_index])
+
+                    ks_test_result  = scipy.stats.kstest(label_df['x'].values[train_index], label_df['x'].values[test_index])
+                    ks_statistic = ks_test_result[0]
+                    p_val = ks_test_result[1]
+
+                    ks_test_result_y=  scipy.stats.kstest(label_df['y'].values[train_index], label_df['y'].values[test_index])
                     #take the mean of the p-values
+                    p_val_y = ks_test_result_y[1]
+                    ks_statistic_y = ks_test_result_y[0]
+
                     p_val_rounded = np.round(np.mean([p_val, p_val_y]), 4)
-                    t_stat_rounded = np.round(np.mean([t_stat, t_stat_y]), 4)
+                    ks_statistic = np.round(np.mean([ks_statistic, ks_statistic_y]), 4)
 
 
                     #appebd to the results dataframe
-                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 't_stat': t_stat_rounded, 'fold_number': j}
+                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 'k_stat': ks_statistic, 'fold_number': j}
                     results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[i])])
                 #calculate the mean p-value for the window size
                 #take the mean of results_df
@@ -646,7 +653,7 @@ def main():
             ax.set_ylabel('mean p-value')
             #append to an animal and
 
-            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_window_size_{data_dir_path.name}_window_size_{window_size}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_rat_id_{rat_id}_window_size_{window_size}.png', dpi=300, bbox_inches='tight')
             # plt.show()
             plt.close('all')
             #append to the big dataframe
