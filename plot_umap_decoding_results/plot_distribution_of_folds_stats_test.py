@@ -686,6 +686,14 @@ def main():
 
             plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_rat_id_{rat_id}_window_size_{window_size}.png', dpi=300, bbox_inches='tight')
             # plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(big_results_df_angle['num_windows'], big_results_df_angle['mean_p_value'], label='mean p-value')
+            ax.set_title(f'Mean p-value vs num_windows for angle, rat: \n  {data_dir_path} and window size: {window_size}')
+            ax.set_xlabel('num_windows')
+            ax.set_ylabel('mean p-value')
+            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_angle_rat_id_{rat_id}_window_size_{window_size}.png', dpi=300, bbox_inches='tight')
+            #append to an animal and
             plt.close('all')
             #append to the big dataframe
             big_results_df['rat_id'] = rat_id
@@ -702,16 +710,18 @@ def main():
     df_across_windows['mean_minimum_number_windows_by_windowsize'] = df_across_windows.groupby('window_size')['minimum_number_windows'].transform('mean')
     df_across_windows['mean_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows['mean_minimum_number_windows'].mean()
 
-    df_across_windows_angle['mean_minimum_number_windows_across_rats'] = df_across_windows_angle.groupby('rat_id')['mean_minimum_number_windows'].transform('mean')
-    df_across_windows_angle['mean_minimum_number_windows_across_windowsize'] = df_across_windows_angle.groupby('window_size')['mean_minimum_number_windows'].transform('mean')
-    df_across_windows_angle['mean_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows_angle['mean_minimum_number_windows_across_rats'].mean()
+    df_across_windows_angle['mean_minimum_number_windows_across_rats'] = df_across_windows_angle.groupby('rat_id')['minimum_number_windows'].transform('mean')
+    df_across_windows_angle['mean_minimum_number_windows_across_windowsize'] = df_across_windows_angle.groupby('window_size')['minimum_number_windows'].transform('mean')
+    df_across_windows_angle['mean_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows_angle['minimum_number_windows'].mean()
 
 
     np.unique(df_across_windows['mean_minimum_number_windows_across_rats_and_windowsize'])
     np.unique(df_across_windows_angle['mean_minimum_number_windows_across_rats_and_windowsize'])
+    np.unique(df_across_windows_angle['mean_minimum_number_windows_across_windowsize'])
 
     #export to csv
     df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats.csv')
+    df_across_windows_angle.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_angle.csv')
     return df_across_windows
 
 
