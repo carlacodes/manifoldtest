@@ -565,7 +565,7 @@ def main():
 
             #increment over number of windows to get the minimum number of windows where p-value is non-significant
 
-            custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
+            # custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
             time_range_for_testing = (0, 1000)
             # create a dataframe to store the results
             results_df = pd.DataFrame()
@@ -646,7 +646,7 @@ def main():
             ax.set_ylabel('mean p-value')
             #append to an animal and
 
-            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_window_size_{data_dir_path.name}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_window_size_{data_dir_path.name}_window_size_{window_size}.png', dpi=300, bbox_inches='tight')
             # plt.show()
             plt.close('all')
             #append to the big dataframe
