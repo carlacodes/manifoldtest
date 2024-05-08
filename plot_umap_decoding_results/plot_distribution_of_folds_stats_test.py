@@ -633,16 +633,8 @@ def main():
             first_index = index_saved
 
 
-            # If the sequence is found in the string
-            if first_index != -1:
-                # The first index where the difference is consistently 10 is the start of the sequence
-                first_consistent_index = indices_diff_10[first_index]
-            else:
-                first_consistent_index = None
 
-            print(first_consistent_index)
-
-            corresponding_num_windows = threshold_indices[first_consistent_index]
+            corresponding_num_windows = threshold_indices[first_index]
 
 
 
