@@ -25,6 +25,7 @@ import shap
 import plotly.graph_objects as go
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 from sklearn.cross_decomposition import CCA
+from sklearn.model_selection import StratifiedKFold
 
 
 
@@ -725,13 +726,134 @@ def run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedi
     return df_across_windows
 
 
+def run_stratified_kfold_test():
+    # Define the number of cells per dimension
+    df_big = pd.DataFrame()
+    df_big_angle = pd.DataFrame()
+
+    for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_10/23-11-2021',
+                     'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
+                     'C:/neural_data/rat_3/25-3-2019']:
+        rat_id = data_dir.split('/')[-2]
+        df_big_rat = pd.DataFrame()
+        df_big_rat_angle = pd.DataFrame()
+        for window_size in [250]:
+            rat_id = data_dir.split('/')[-2]
+            spike_dir = os.path.join(data_dir, 'physiology_data')
+            dlc_dir = os.path.join(data_dir, 'positional_data')
+            labels = np.load(
+                f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_{window_size}.npy')
+            spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_{window_size}.npy')
+
+            spike_data_trial = spike_data
+            data_dir_path = Path(data_dir)
+
+            # check for neurons with constant firing rates
+            tolerance = 1e-10  # or any small number that suits your needs
+            if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
+                print('There are neurons with constant firing rates')
+                # remove those neurons
+                spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
+            # THEN DO THE Z SCORE
+            X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+
+            if np.isnan(X_for_umap).any():
+                print('There are nans in the data')
+
+            X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+
+            labels_for_umap = labels[:, 0:9]
+            labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+
+            label_df = pd.DataFrame(labels_for_umap,
+                                    columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore',
+                                             'angle_rel_to_goal', 'angle_rel_to_goal_sin', 'angle_rel_to_goal_cos'])
+            label_df['time_index'] = np.arange(0, label_df.shape[0])
+
+            # z-score x and y
+            window_size_df = pd.DataFrame()
+            window_size_df_angle = pd.DataFrame()
+            xy_labels = np.concatenate(label_df[['x', 'y']].values, axis=0)
+            label_df['x_zscore'] = (label_df['x'] - xy_labels.mean()) / xy_labels.std()
+            label_df['y_zscore'] = (label_df['y'] - xy_labels.mean()) / xy_labels.std()
+            n_timesteps = X_for_umap.shape[0]
+            n_cells = 4
+
+            # Create a new column 'region' that represents the cell each data point belongs to
+            label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
+                           pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
+                           pd.cut(label_df['angle_sin'], n_cells, labels=False) * n_cells * n_cells + \
+                           pd.cut(label_df['angle_cos'], n_cells, labels=False) * n_cells * n_cells * n_cells
+            # Now, you can use 'region' for Stratified Cross Validation
+            skf = StratifiedKFold(n_splits=5)
+            results_df = pd.DataFrame()
+            results_df_angle = pd.DataFrame()
+            for train_index, test_index in skf.split(label_df, label_df['region']):
+                # These are your train/test indices
+                print("TRAIN:", train_index, "TEST:", test_index)
+                y_train, y_test = label_df.iloc[train_index], label_df.iloc[test_index]
+
+                #run a ks test on the distributions
+                ks_test_result_x = scipy.stats.ks_2samp(y_train['x'], y_test['x'])
+                ks_test_result_y = scipy.stats.ks_2samp(y_train['y'], y_test['y'])
+                ks_test_result_angle_sin = scipy.stats.ks_2samp(y_train['angle_sin'], y_test['angle_sin'])
+                ks_test_result_angle_cos = scipy.stats.ks_2samp(y_train['angle_cos'], y_test['angle_cos'])
+
+                ks_statistic_x = ks_test_result_x[0]
+                p_val_x = ks_test_result_x[1]
+
+                ks_statistic_y = ks_test_result_y[0]
+                p_val_y = ks_test_result_y[1]
+
+                ks_statistic_angle_sin = ks_test_result_angle_sin[0]
+                p_val_angle_sin = ks_test_result_angle_sin[1]
+
+                ks_statistic_angle_cos = ks_test_result_angle_cos[0]
+                p_val_angle_cos = ks_test_result_angle_cos[1]
+
+
+                #take the mean of the p-values
+                p_val = np.mean([p_val_x, p_val_y])
+                ks_statistic = np.mean([ks_statistic_x, ks_statistic_y])
+
+                p_val_angle = np.mean([p_val_angle_sin, p_val_angle_cos])
+                ks_statistic_angle = np.mean([ks_statistic_angle_sin, ks_statistic_angle_cos])
+                #append to a list
+                results = {'p_value': p_val, 'ks_stat': ks_statistic}
+                results_angle = {'p_value': p_val_angle, 'ks_stat': ks_statistic_angle}
+                results_df = pd.concat([results_df, pd.DataFrame(results, index=[0])])
+                results_df_angle = pd.concat([results_df_angle, pd.DataFrame(results_angle, index=[0])])
+                #append to a dataframe
+            #take the mean
+            indiv_window_size_df = results_df.mean()
+            indiv_window_size_df_angle = results_df_angle.mean()
+
+            window_size_df = pd.concat([window_size_df,indiv_window_size_df])
+            window_size_df_angle = pd.concat([window_size_df_angle,indiv_window_size_df_angle])
+         #append to the big dataframe
+        window_size_df['rat_id'] = rat_id
+        window_size_df['window_size'] = window_size
+        window_size_df_angle['rat_id'] = rat_id
+        window_size_df_angle['window_size'] = window_size
+        df_big_rat = pd.concat([df_big_rat, window_size_df])
+        df_big_rat_angle = pd.concat([df_big_rat_angle, window_size_df_angle])
+        df_big = pd.concat([df_big, df_big_rat])
+        df_big_angle = pd.concat([df_big_angle, df_big_rat_angle])
+        #
+
+
+
+
+
+    return df_big, df_big_angle
+
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
     param_dict, score_dict = load_previous_results(
         'angle_rel_to_goal')
     big_df = pd.DataFrame()
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
-
+    run_stratified_kfold_test()
     run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedir)
     #'C:/neural_data/rat_3/25-3-2019'
 

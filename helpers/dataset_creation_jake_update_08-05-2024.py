@@ -7,11 +7,18 @@ import scipy.io
 
 import sys
 sys.path.append('C:/Users/Jake/Documents/python_code/robot_maze_analysis_code')
-from utilities.get_directories import get_data_dir, get_robot_maze_directory
-from utilities.load_and_save_data import load_pickle, save_pickle
-from spikes.calculate_spike_pos_hd import interpolate_rads
-from behaviour.load_behaviour import split_dictionary_by_goal, get_goals
+# from utilities.get_directories import get_data_dir, get_robot_maze_directory
+# from utilities.load_and_save_data import load_pickle, save_pickle
+# from spikes.calculate_spike_pos_hd import interpolate_rads
+# from behaviour.load_behaviour import split_dictionary_by_goal, get_goals
 
+# code for generating the dataset for use with PyTorch
+import os
+import numpy as np
+import pandas as pd
+from get_directories import get_data_dir, get_robot_maze_directory
+from load_and_save_data import load_pickle, save_pickle
+from calculate_spike_pos_hd import interpolate_rads
 
 def smooth_positional_data(dlc_data, window_size=100):  
     # THIS IS JUST A PLACEHOLDER FOR NOW   
@@ -363,8 +370,9 @@ def calculate_rel_direction_across_trials(dlc_data, goal_coordinates):
 
 
 def main():
-    
-    data_dir = 'D:/analysis/carlas_windowed_data/honeycomb_neural_data'
+    # big_dir = 'C:/neural_data/'
+
+    data_dir = 'C:/neural_data/'
     rat_and_session = ['rat_3/25-3-2019', 'rat_7/6-12-2019', 'rat_8/15-10-2019', 'rat_9/10-12-2021', 'rat_10/23-11-2021']
     sample_freqs = {'rat_3': 20000, 'rat_7': 30000, 'rat_8': 30000, 'rat_9': 30000, 'rat_10': 30000}
 
@@ -421,6 +429,7 @@ def main():
             inputs_file_name = f'inputs_{window_size}'
             np.save(f'{spike_dir}/{inputs_file_name}', model_inputs)
             save_pickle(unit_list, 'unit_list', spike_dir)
+            print('..finished saving for...', rs, window_size)
 
         
 
