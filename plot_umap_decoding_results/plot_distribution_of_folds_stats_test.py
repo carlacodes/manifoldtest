@@ -588,18 +588,30 @@ def main():
 
                     #appebd to the results dataframe
                     trial_data = {'window_size': i, 'p_value': p_val_rounded, 't_stat': t_stat_rounded, 'fold_number': j}
-                    results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[0])])
+                    results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[i])])
                 #calculate the mean p-value for the window size
                 #take the mean of results_df
                 mean_p_val = results_df['p_value'].mean()
                 mean_t_stat = results_df['t_stat'].mean()
                 #append to the big results dataframe
                 window_size_data = {'num_windows': i, 'mean_p_value': mean_p_val, 'mean_t_stat': mean_t_stat}
-                big_results_df = pd.concat([big_results_df, pd.DataFrame(window_size_data, index=[0])])
+                big_results_df = pd.concat([big_results_df, pd.DataFrame(window_size_data, index=[i])])
             #plot the p-values and t-stats against the window size
             #apply a smoothing filter
-            big_results_df['mean_p_value'] = big_results_df['mean_p_value'].rolling(window=10).mean()
-            big_results_df['mean_t_stat'] = big_results_df['mean_t_stat'].rolling(window=10).mean()
+            # big_results_df['mean_p_value'] = big_results_df['mean_p_value'].rolling(window=10).mean()
+            # big_results_df['mean_t_stat'] = big_results_df['mean_t_stat'].rolling(window=10).mean()
+            #calculate the index for when the p-value is consistently above 0.2
+            #get the index where the p-value is consistently above 0.2
+
+            #first threshold for where the p-value is consistently above 0.2
+            threshold = 0.2
+            #get the index where the p-value is consistently above 0.2
+            index_above_threshold = big_results_df[big_results_df['mean_p_value'] > threshold]
+            #get the applicable thresholds
+            threshold_indices = index_above_threshold.index
+            #get the first index where they are consecutively above the threshold
+
+
 
             fig, ax = plt.subplots(1, 1)
             ax.plot(big_results_df['num_windows'], big_results_df['mean_p_value'], label='mean p-value')
@@ -609,7 +621,7 @@ def main():
             #append to an animal and
 
             plt.savefig(f'{big_df_savedir}/mean_p_value_vs_window_size_{data_dir_path.name}.png', dpi=300, bbox_inches='tight')
-            plt.show()
+            # plt.show()
             plt.close('all')
             #append to the big dataframe
             big_results_df['rat_id'] = rat_id
