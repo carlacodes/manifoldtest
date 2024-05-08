@@ -520,8 +520,11 @@ def main():
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
 
     #'C:/neural_data/rat_3/25-3-2019'
+    df_across_windows = pd.DataFrame()
+
     for data_dir in [ 'C:/neural_data/rat_7/6-12-2019','C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021','C:/neural_data/rat_3/25-3-2019']:
         for window_size in [20, 50, 100, 250, 500]:
+            rat_id = data_dir.split('/')[-2]
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
             labels = np.load(f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_{window_size}.npy')
@@ -587,20 +590,29 @@ def main():
                 mean_p_val = results_df['p_value'].mean()
                 mean_t_stat = results_df['t_stat'].mean()
                 #append to the big results dataframe
-                window_size_data = {'window_size': i, 'mean_p_value': mean_p_val, 'mean_t_stat': mean_t_stat}
+                window_size_data = {'num_windows': i, 'mean_p_value': mean_p_val, 'mean_t_stat': mean_t_stat}
                 big_results_df = pd.concat([big_results_df, pd.DataFrame(window_size_data, index=[0])])
             #plot the p-values and t-stats against the window size
+            #apply a smoothing filter
+            big_results_df['mean_p_value'] = big_results_df['mean_p_value'].rolling(window=10).mean()
+            big_results_df['mean_t_stat'] = big_results_df['mean_t_stat'].rolling(window=10).mean()
+
             fig, ax = plt.subplots(1, 1)
-            ax.plot(big_results_df['window_size'], big_results_df['mean_p_value'], label='mean p-value')
-            ax.set_title(f'Mean p-value vs window size for rat: {data_dir_path} and window size: {window_size}')
-            ax.set_xlabel('window size')
+            ax.plot(big_results_df['num_windows'], big_results_df['mean_p_value'], label='mean p-value')
+            ax.set_title(f'Mean p-value vs num_windows for rat: {data_dir_path} and window size: {window_size}')
+            ax.set_xlabel('num_windows')
             ax.set_ylabel('mean p-value')
+            #append to an animal and
 
             plt.savefig(f'{big_df_savedir}/mean_p_value_vs_window_size_{data_dir_path.name}.png', dpi=300, bbox_inches='tight')
             plt.show()
             plt.close('all')
+            #append to the big dataframe
+            big_results_df['rat_id'] = rat_id
+            big_results_df['window_size'] = window_size
+            df_across_windows = pd.concat([df_across_windows, big_results_df])
 
-    return
+    return df_across_windows
 
 
 
