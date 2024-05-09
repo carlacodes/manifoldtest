@@ -892,7 +892,7 @@ def main():
         'angle_rel_to_goal')
     big_df = pd.DataFrame()
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
-    run_stratified_kfold_test()
+    # run_stratified_kfold_test()
     run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedir)
     #'C:/neural_data/rat_3/25-3-2019'
 
