@@ -290,7 +290,7 @@ def main():
     now_day = datetime.now().strftime("%Y-%m-%d")
     filename = f'params_lfp_all_trials_bayessearch_250bin_340windows_jake_fold_sinandcos_{now}.npy'
     filename_mean_score = f'mean_lfp_score_all_trials_bayessearch_250bin_340windows_jake_fold_sinandcos_{now_day}.npy'
-    save_dir_path = data_dir / 'bayes_search_behavvars/'
+    save_dir_path = f'{data_dir}/bayesearch_allvars_{now_day}'
     save_dir_path.mkdir(parents=True, exist_ok=True)
     # initalise a logger
     logger = logging.getLogger(__name__)
@@ -314,7 +314,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
+        reducer_kwargs, logger, save_dir_path, use_bayes_search=True, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)
