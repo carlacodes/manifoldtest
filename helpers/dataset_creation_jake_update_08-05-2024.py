@@ -170,8 +170,8 @@ def cat_dlc(windowed_dlc):
 
     for i, col_name in zip(range(dlc_array.shape[1]), column_names):
         # z-score scaling
-        print(f'z-scoring column {col_name}')
         if col_name not in ['hd', 'relative_direction_to_goal']:
+            print(f'z-scoring column {col_name}')
             dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])
 
     dlc_array = np.round(dlc_array, 3)
