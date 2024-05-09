@@ -637,7 +637,7 @@ def run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedi
             # get the index where the p-value is consistently above 0.2
 
             # first threshold for where the p-value is consistently above 0.2
-            threshold = 0.2
+            threshold = 0.05
             # get the index where the p-value is consistently above 0.2
             index_above_threshold = big_results_df[big_results_df['mean_p_value'] > threshold]
             index_above_threshold_angle = big_results_df_angle[big_results_df_angle['mean_p_value'] > threshold]
@@ -799,6 +799,10 @@ def run_stratified_kfold_test():
                 conseq_test = np.diff(test_index)
                 conseq_train = np.where(conseq_train == 1)[0]
                 conseq_test = np.where(conseq_test == 1)[0]
+                #map back to where these indices are in the original dataframe
+                conseq_train_df = train_index[conseq_train]
+                conseq_test_df = test_index[conseq_test]
+
                 #plot the distribution of the contiguous indices
                 fig, ax = plt.subplots(1, 1)
                 plt.hist(conseq_train, bins = 100, alpha = 0.5, label = 'train')
