@@ -779,7 +779,7 @@ def run_stratified_kfold_test():
             label_df['x_zscore'] = (label_df['x'] - xy_labels.mean()) / xy_labels.std()
             label_df['y_zscore'] = (label_df['y'] - xy_labels.mean()) / xy_labels.std()
             n_timesteps = X_for_umap.shape[0]
-            n_cells = 4
+            n_cells = 9
 
             # Create a new column 'region' that represents the cell each data point belongs to
             label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
@@ -787,12 +787,45 @@ def run_stratified_kfold_test():
                            pd.cut(label_df['angle_sin'], n_cells, labels=False) * n_cells * n_cells + \
                            pd.cut(label_df['angle_cos'], n_cells, labels=False) * n_cells * n_cells * n_cells
             # Now, you can use 'region' for Stratified Cross Validation
-            skf = StratifiedKFold(n_splits=5)
+            skf = StratifiedKFold(n_splits=5, shuffle = False)
             results_df = pd.DataFrame()
             results_df_angle = pd.DataFrame()
-            for train_index, test_index in skf.split(label_df, label_df['region']):
+            for j, (train_index, test_index) in enumerate(skf.split(label_df, label_df['region'])):
                 # These are your train/test indices
-                print("TRAIN:", train_index, "TEST:", test_index)
+                print(" length of TRAIN:", len(train_index), "length of TEST:", len(test_index))
+                #plot the distribution of the indexes
+                #find the number of contiguous indices in the train and test set
+                conseq_train = np.diff(train_index)
+                conseq_test = np.diff(test_index)
+                conseq_train = np.where(conseq_train == 1)[0]
+                conseq_test = np.where(conseq_test == 1)[0]
+                #plot the distribution of the contiguous indices
+                fig, ax = plt.subplots(1, 1)
+                plt.hist(conseq_train, bins = 100, alpha = 0.5, label = 'train')
+                plt.hist(conseq_test, bins = 100, alpha = 0.5, label = 'test')
+                plt.xlabel('index')
+                plt.ylabel('count')
+                plt.legend()
+                plt.title(f'Distribution of contiguous indices for fold number: {j} rat id: {rat_id}')
+                savefig_dir = f'{data_dir_path}/figures'
+                if not os.path.exists(savefig_dir):
+                    os.makedirs(savefig_dir, exist_ok=True)
+                plt.savefig(f'{savefig_dir}/contiguous_indices_fold_number_{j}_ratid_{rat_id}.png')
+                plt.show()
+
+                fig, ax = plt.subplots(1, 1)
+                plt.hist(train_index, bins = 100, alpha = 0.5, label = 'train')
+                plt.hist(test_index, bins = 100, alpha = 0.5, label = 'test')
+                plt.xlabel('index')
+                plt.ylabel('count')
+                plt.legend()
+                plt.title(f'Distribution of train and test indices for fold number: {j} rat id: {rat_id}')
+                savefig_dir = f'{data_dir_path}/figures'
+                if not os.path.exists(savefig_dir):
+                    os.makedirs(savefig_dir, exist_ok=True)
+                plt.savefig(f'{savefig_dir}/train_test_distribution_fold_number_{j}_ratid_{rat_id}.png')
+                plt.show()
+                plt.close('all')
                 y_train, y_test = label_df.iloc[train_index], label_df.iloc[test_index]
 
                 #run a ks test on the distributions
