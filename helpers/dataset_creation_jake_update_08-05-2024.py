@@ -159,13 +159,20 @@ def cat_dlc(windowed_dlc):
         else:
             dlc_array = np.concatenate((dlc_array, temp_array), axis=0)
         
-    # all columns need to be scaled to the range 0-1
-    for i in range(dlc_array.shape[1]) :
-        # dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
-        #                     (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
+    # # all columns need to be scaled to the range 0-1
+    # for i, col_name in zip(dlc_array.shape[1], column_names) :
+    #     # dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
+    #     #                     (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i]))
+    #
+    #     # z-score scaling
+    #     print(f'z-scoring column {col_name}')
+    #     dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])
 
+    for i, col_name in zip(range(dlc_array.shape[1]), column_names):
         # z-score scaling
-        dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])      
+        print(f'z-scoring column {col_name}')
+        if col_name not in ['hd', 'relative_direction_to_goal']:
+            dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])
 
     dlc_array = np.round(dlc_array, 3)
 
