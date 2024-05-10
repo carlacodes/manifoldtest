@@ -433,7 +433,7 @@ def main():
             model_inputs, unit_list = cat_spike_trains(spike_trains)
             # convert model_inputs to float32
             model_inputs = model_inputs.astype(np.float32)
-            inputs_file_name = f'inputs_{window_size}'
+            inputs_file_name = f'inputs_10052024_{window_size}'
             np.save(f'{spike_dir}/{inputs_file_name}', model_inputs)
             save_pickle(unit_list, 'unit_list', spike_dir)
             print('..finished saving for...', rs, window_size)

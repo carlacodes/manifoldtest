@@ -786,7 +786,7 @@ def run_stratified_kfold_test():
                            pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
                            pd.cut(label_df['angle_sin'], n_cells, labels=False) * n_cells * n_cells + \
                            pd.cut(label_df['angle_cos'], n_cells, labels=False) * n_cells * n_cells * n_cells
-            # Now, you can use 'region' for Stratified Cross Validation
+            # No nw, you can use 'region' for Stratified Cross Validation
             skf = StratifiedKFold(n_splits=10, shuffle = False)
             results_df = pd.DataFrame()
             results_df_angle = pd.DataFrame()
@@ -804,18 +804,18 @@ def run_stratified_kfold_test():
                 conseq_test_df = test_index[conseq_test]
 
                 #plot the distribution of the contiguous indices
-                fig, ax = plt.subplots(1, 1)
-                plt.hist(conseq_train, bins = 100, alpha = 0.5, label = 'train')
-                plt.hist(conseq_test, bins = 100, alpha = 0.5, label = 'test')
-                plt.xlabel('index')
-                plt.ylabel('count')
-                plt.legend()
-                plt.title(f'Distribution of contiguous indices for fold number: {j} rat id: {rat_id}')
-                savefig_dir = f'{data_dir_path}/figures'
-                if not os.path.exists(savefig_dir):
-                    os.makedirs(savefig_dir, exist_ok=True)
-                plt.savefig(f'{savefig_dir}/contiguous_indices_fold_number_{j}_ratid_{rat_id}.png')
-                plt.show()
+                # fig, ax = plt.subplots(1, 1)
+                # plt.hist(conseq_train, bins = 100, alpha = 0.5, label = 'train')
+                # plt.hist(conseq_test, bins = 100, alpha = 0.5, label = 'test')
+                # plt.xlabel('index')
+                # plt.ylabel('count')
+                # plt.legend()
+                # plt.title(f'Distribution of contiguous indices for fold number: {j} rat id: {rat_id}')
+                # savefig_dir = f'{data_dir_path}/figures'
+                # if not os.path.exists(savefig_dir):
+                #     os.makedirs(savefig_dir, exist_ok=True)
+                # plt.savefig(f'{savefig_dir}/contiguous_indices_fold_number_{j}_ratid_{rat_id}.png')
+                # plt.show()
 
                 fig, ax = plt.subplots(1, 1)
                 plt.hist(train_index, bins = 100, alpha = 0.5, label = 'train')

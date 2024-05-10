@@ -581,7 +581,10 @@ def main():
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_1203_with_dist2goal_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
         spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-
+        compare_data = np.load(f'{spike_dir}/inputs_250.npy')
+        #check if spike_data is the same as compare_data
+        if np.array_equal(spike_data, compare_data):
+            print('Spike data is the same as compare data')
 
         spike_data_trial = spike_data
         data_dir_path = Path(data_dir)
@@ -594,12 +597,12 @@ def main():
             # remove those neurons
             spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
         # THEN DO THE Z SCORE
-        X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
-
+        # X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+        X_for_umap = spike_data_trial
         if np.isnan(X_for_umap).any():
             print('There are nans in the data')
 
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+        # X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
 
         labels_for_umap = labels[:, 0:6]
