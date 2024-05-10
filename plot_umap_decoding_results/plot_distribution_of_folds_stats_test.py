@@ -787,7 +787,7 @@ def run_stratified_kfold_test():
                            pd.cut(label_df['angle_sin'], n_cells, labels=False) * n_cells * n_cells + \
                            pd.cut(label_df['angle_cos'], n_cells, labels=False) * n_cells * n_cells * n_cells
             # Now, you can use 'region' for Stratified Cross Validation
-            skf = StratifiedKFold(n_splits=5, shuffle = False)
+            skf = StratifiedKFold(n_splits=10, shuffle = False)
             results_df = pd.DataFrame()
             results_df_angle = pd.DataFrame()
             for j, (train_index, test_index) in enumerate(skf.split(label_df, label_df['region'])):
@@ -892,7 +892,7 @@ def main():
         'angle_rel_to_goal')
     big_df = pd.DataFrame()
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
-    # run_stratified_kfold_test()
+    run_stratified_kfold_test()
     run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedir)
     #'C:/neural_data/rat_3/25-3-2019'
 

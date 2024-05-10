@@ -375,7 +375,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_bayes_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
+        reducer_kwargs, logger, save_dir_path, use_bayes_search=True, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)

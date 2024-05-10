@@ -206,7 +206,7 @@ def cat_spike_trains(spike_trains):
     spike_array = np.transpose(spike_array)
 
     # zscore the columns of spike_array
-    spike_array = (spike_array - np.mean(spike_array, axis=0)) / np.std(spike_array, axis=0)
+    # spike_array = (spike_array - np.mean(spike_array, axis=0)) / np.std(spike_array, axis=0)
     
     return spike_array, unit_list
 

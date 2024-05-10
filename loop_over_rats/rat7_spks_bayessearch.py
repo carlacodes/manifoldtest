@@ -147,22 +147,13 @@ def train_and_test_on_umap_randcv(
     # Redirect stdout to the log file
     sys.stdout = log_file
 
-    param_grid = {
-        'estimator__estimator__n_neighbors': (2, 70),  # range of values
-        'reducer__n_components': [2],
-        'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-        'reducer__n_neighbors': (10, 70),  # range of values
-        'reducer__min_dist': (0.0001, 0.3),  # range of values
-        'reducer__random_state': [42]
-    }
-
     if use_bayes_search:
         # Define the parameter grid
         param_grid = {
             'estimator__estimator__n_neighbors': (2, 70),  # range of values
-            'reducer__n_components': [2],
+            'reducer__n_components': (3, 9),
             'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-            'reducer__n_neighbors': (10, 70),  # range of values
+            'reducer__n_neighbors': (2, 70),  # range of values
             'reducer__min_dist': (0.0001, 0.3),  # range of values
             'reducer__random_state': [42]
         }
@@ -243,7 +234,7 @@ def train_and_test_on_umap_randcv(
 
 
 def main():
-    data_dir = 'C:/neural_data/rat_7/6-12-2019'
+    data_dir = 'C:/neural_data/rat_3/25-3-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(
@@ -253,10 +244,18 @@ def main():
     # print out the first couple of rows of the lfp_data
     previous_results, score_dict = DataHandler.load_previous_results('lfp_phase_manifold_withspkdata')
     rat_id = data_dir.split('/')[-2]
-    manual_params = previous_results[rat_id]
+    manual_params = None
 
 
-    X_for_umap = spike_data
+    spike_data_copy = copy.deepcopy(spike_data)
+    tolerance = 1e-10  # or any small number that suits your needs
+    if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
+        print('There are neurons with constant firing rates')
+        # remove those neurons
+        spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
+
+
+    X_for_umap = spike_data_copy
 
 
     labels_for_umap = labels[:, 0:5]
@@ -305,7 +304,7 @@ def main():
     logger.addHandler(handler)
     logger.info('Starting the training and testing of the lfp data with the spike data')
     #remove numpy array, just get mapping from manual_params
-    manual_params = manual_params.item()
+    # manual_params = manual_params.item()
 
     best_params, mean_score = train_and_test_on_umap_randcv(
         X_for_umap,
