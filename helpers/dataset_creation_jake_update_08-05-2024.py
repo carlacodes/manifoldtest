@@ -107,7 +107,7 @@ def create_spike_trains(units, window_edges, window_size, overlap=None):
     return spike_trains
 
 
-def cat_dlc(windowed_dlc):
+def cat_dlc(windowed_dlc, scale_to_angle_range = False):
     # concatenate data from all trials into np.arrays for training
     # we will keep columns x, y, and the 2 distance to goal columns.
     # the hd and relative_direction columns 
@@ -170,9 +170,14 @@ def cat_dlc(windowed_dlc):
 
     for i, col_name in zip(range(dlc_array.shape[1]), column_names):
         # z-score scaling
-        if col_name not in ['hd', 'relative_direction_to_goal']:
+        if col_name not in ['hd', 'relative_direction_to_goal'] and scale_to_angle_range == False:
             print(f'z-scoring column {col_name}')
             dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])
+        elif col_name not in ['hd', 'relative_direction_to_goal'] and scale_to_angle_range == True:
+            #scale to the range -1 to 1
+            print(f'scaling column {col_name} to the range -1 to 1')
+            dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
+                                (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i])) * 2 - 1
 
     dlc_array = np.round(dlc_array, 3)
 
@@ -254,7 +259,7 @@ def create_datasets_from_robot_maze():
 
 
     window_sizes = [100, 250]
-
+    scale_to_angle_range = True
     for window_size in window_sizes:
         # create positional and spike trains 
         # and save as a pickle file
@@ -302,9 +307,9 @@ def create_datasets_from_robot_maze():
             labels_file_name = f'labels_goal{g}_ws{window_size}'
             np.save(f'{dlc_dir}/{labels_file_name}.npy', labels)
 
-        labels = cat_dlc(windowed_dlc)
+        labels = cat_dlc(windowed_dlc, scale_to_angle_range=scale_to_angle_range)
         labels = labels.astype(np.float32)
-        labels_file_name = f'labels_{window_size}'
+        labels_file_name = f'labels_{window_size}_scale_to_angle_range_{scale_to_angle_range}'
         np.save(f'{dlc_dir}/{labels_file_name}.npy', labels)
 
         # concatenate spike trains into np.arrays for training
@@ -384,7 +389,7 @@ def main():
     sample_freqs = {'rat_3': 20000, 'rat_7': 30000, 'rat_8': 30000, 'rat_9': 30000, 'rat_10': 30000}
 
     window_sizes = [20, 50, 100, 250, 500]
-
+    scale_to_angle_range    = True
     for rs in rat_and_session:
 
         rat = rs.split('/')[0]
@@ -418,9 +423,9 @@ def main():
             windowed_dlc = windowed_data['windowed_dlc']
             window_edges = windowed_data['window_edges']
 
-            labels = cat_dlc(windowed_dlc)
+            labels = cat_dlc(windowed_dlc, scale_to_angle_range=scale_to_angle_range)
             labels = labels.astype(np.float32)
-            labels_file_name = f'labels_{window_size}'
+            labels_file_name = f'labels_{window_size}_scale_to_angle_range_{scale_to_angle_range}'
             np.save(f'{dlc_dir}/{labels_file_name}.npy', labels)
 
             # create spike trains
