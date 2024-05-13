@@ -214,7 +214,7 @@ class DataHandler():
 
         return folds
     @staticmethod
-    def load_previous_results(directory_of_interest):
+    def load_previous_results(directory_of_interest, window_size = 1000, bin_size = 250):
         param_dict = {}
         score_dict = {}
         # 'C:/neural_data/rat_3/25-3-2019'
@@ -230,9 +230,13 @@ class DataHandler():
                 if directory.__contains__(directory_of_interest):
                     directory_of_interest = directory
                     break
-                else:
-                    print(f'{rat_id} does not have the directory of interest')
-                    continue
+            if directory_of_interest == None:
+                print(f'{rat_id} does not have the directory of interest')
+                continue
+                # else:
+                #     print(f'{rat_id} does not have the directory of interest')
+                #     continue
+
             # if list_of_directories.__contains__(directory_of_interest):
             #     #get the index
             #     index = list_of_directories.index(directory_of_interest)
@@ -250,8 +254,8 @@ class DataHandler():
             # find all the files in the directory
             files = os.listdir(param_directory)
 
-            for window in [1000]:
-                for bin_size in [250]:
+            for window in [window_size]:
+                for bin_size in [bin_size]:
                     # find the file names
                     for file in files:
                         if file.__contains__(f'{window}windows'):

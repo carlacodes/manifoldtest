@@ -195,14 +195,15 @@ def train_and_test_on_umap_randcv(
 
         # Loop over the custom folds
         count = 0
+        fold_dataframe = pd.DataFrame()
         for train_index, test_index in custom_folds:
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
             # Set the parameters
-            formatted_params = format_params(manual_params)
-            pipeline.set_params(**formatted_params)
+            # formatted_params = format_params(manual_params)
+            pipeline.set_params(**manual_params)
 
             # Fit the pipeline on the training data
             pipeline.fit(spks_train, y_train)
@@ -215,6 +216,19 @@ def train_and_test_on_umap_randcv(
 
             # Calculate the test score and append it to the list
             test_score = pipeline.score(spks_test, y_test)
+            y_pred = pipeline.predict(spks_test)
+            col_list = ['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'angle_sin_goal', 'angle_cos_goal']
+            indiv_results_dataframe = pd.DataFrame(y_pred, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'angle_sin_goal', 'angle_cos_goal'])
+
+            for i in range(y_test.shape[1]):
+                score_indiv = r2_score(y_test[:, i], y_pred[:, i])
+                indiv_results_dataframe[col_list[i]] = score_indiv
+
+                print(f'R2 score for {col_list[i]} is {score_indiv}')
+            #break down the score into its components
+            indiv_results_dataframe['fold'] = count
+            fold_dataframe = pd.concat([fold_dataframe, indiv_results_dataframe], axis=0)
+
             test_scores.append(test_score)
             actual_angle = np.arcsin(y_test[:, 0])
 
@@ -258,9 +272,11 @@ def main():
 
 
     # print out the first couple of rows of the lfp_data
-    previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars')
-    rat_id = data_dir.split('/')[-2]
-    # manual_params = previous_results[rat_id]
+    previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars', window_size=340, bin_size = 250)
+
+    rat_id = data_dir.split('/')[-3]
+    manual_params = previous_results[rat_id]
+    manual_params = manual_params.item()
 
     spike_data_copy = copy.deepcopy(spike_data)
     tolerance = 1e-10  # or any small number that suits your needs
@@ -327,7 +343,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=True, manual_params=None, savedir=save_dir_path, rat_id=rat_id
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)
