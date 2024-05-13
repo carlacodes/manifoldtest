@@ -222,7 +222,21 @@ class DataHandler():
                         'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
                         'C:/neural_data/rat_3/25-3-2019']:
             rat_id = rat_dir.split('/')[-2]
-            param_directory = f'{rat_dir}/{directory_of_interest}'
+            #get all directories which contain the directory of interest
+            list_of_directories = os.listdir(rat_dir)
+            #get the directory of interest
+            if directory_of_interest in list_of_directories:
+                #get the index
+                index = list_of_directories.index(directory_of_interest)
+                #if index is multiple numbers, then choose the first one
+                if type(index) == list:
+                    index = index[0]
+                param_directory = f'{rat_dir}/{list_of_directories[index]}'
+            else:
+                print(f'{rat_id} does not have the directory of interest')
+                continue
+
+            # param_directory = f'{rat_dir}/{directory_of_interest}'
             # find all the files in the directory
             files = os.listdir(param_directory)
 
