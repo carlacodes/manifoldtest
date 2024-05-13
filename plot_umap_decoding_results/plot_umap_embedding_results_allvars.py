@@ -242,7 +242,7 @@ def train_and_test_on_umap_randcv(
 
 
 def main():
-    data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
+    data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(
@@ -258,7 +258,7 @@ def main():
 
 
     # print out the first couple of rows of the lfp_data
-    previous_results, score_dict = DataHandler.load_previous_results('lfp_phase_manifold_withspkdata')
+    previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars')
     rat_id = data_dir.split('/')[-2]
     # manual_params = previous_results[rat_id]
 

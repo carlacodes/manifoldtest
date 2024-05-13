@@ -225,16 +225,26 @@ class DataHandler():
             #get all directories which contain the directory of interest
             list_of_directories = os.listdir(rat_dir)
             #get the directory of interest
-            if directory_of_interest in list_of_directories:
-                #get the index
-                index = list_of_directories.index(directory_of_interest)
-                #if index is multiple numbers, then choose the first one
-                if type(index) == list:
-                    index = index[0]
-                param_directory = f'{rat_dir}/{list_of_directories[index]}'
-            else:
-                print(f'{rat_id} does not have the directory of interest')
-                continue
+            #check if keyword matches any of the directories
+            for directory in list_of_directories:
+                if directory.__contains__(directory_of_interest):
+                    directory_of_interest = directory
+                    break
+                else:
+                    print(f'{rat_id} does not have the directory of interest')
+                    continue
+            # if list_of_directories.__contains__(directory_of_interest):
+            #     #get the index
+            #     index = list_of_directories.index(directory_of_interest)
+            #     #if index is multiple numbers, then choose the first one
+            #     if type(index) == list:
+            #         index = index[0]
+            #     param_directory = f'{rat_dir}/{list_of_directories[index]}'
+            # else:
+            #     print(f'{rat_id} does not have the directory of interest')
+            #     continue
+
+            param_directory = f'{rat_dir}/{directory_of_interest}'
 
             # param_directory = f'{rat_dir}/{directory_of_interest}'
             # find all the files in the directory
