@@ -285,12 +285,13 @@ def main():
         # remove those neurons
         spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-    X_for_umap = tools.apply_lfads_smoothing(spike_data_copy)
+    X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
     X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
 
 
     labels_for_umap = labels[:, 0:5]
-    labels_for_umap = tools.apply_lfads_smoothing(labels_for_umap)
+    #remove the indices
+    labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
 
     label_df = pd.DataFrame(labels_for_umap,
                             columns=['x', 'y', 'dist2goal', 'hd', 'relative_direction_to_goal'])
@@ -299,6 +300,14 @@ def main():
     label_df['angle_cos'] = np.cos(label_df['hd'])
     label_df['angle_sin_goal'] = np.sin(label_df['relative_direction_to_goal'])
     label_df['angle_cos_goal'] = np.cos(label_df['relative_direction_to_goal'])
+
+    #plot angle sin and angle cos to goal
+    fig, ax = plt.subplots()
+    ax.plot(label_df['angle_sin_goal'][:120], label = 'angle_sin_goal')
+    ax.plot(label_df['angle_cos_goal'][:120], label = 'angle_cos_goal')
+    ax.legend()
+    plt.show()
+
 
 
     regressor = KNeighborsRegressor
