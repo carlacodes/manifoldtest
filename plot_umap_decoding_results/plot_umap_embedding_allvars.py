@@ -261,6 +261,7 @@ def main():
     previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_340windows_independentvar_', window_size=340, bin_size = 250)
     rat_id = data_dir.split('/')[-3]
     manual_params = previous_results[rat_id]
+    manual_params = manual_params.item()
 
     spike_data_copy = copy.deepcopy(spike_data)
     tolerance = 1e-10  # or any small number that suits your needs
@@ -319,7 +320,6 @@ def main():
     logger.addHandler(handler)
     logger.info('Starting the training and testing of the lfp data with the spike data')
     #remove numpy array, just get mapping from manual_params
-    # manual_params = manual_params.item()
 
     best_params, mean_score = train_and_test_on_umap_randcv(
         X_for_umap,
@@ -328,7 +328,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, savedir=save_dir_path, rat_id=rat_id
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)
