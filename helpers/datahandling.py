@@ -252,7 +252,11 @@ class DataHandler():
 
             # param_directory = f'{rat_dir}/{directory_of_interest}'
             # find all the files in the directory
-            files = os.listdir(param_directory)
+            try:
+                files = os.listdir(param_directory)
+            except Exception as e:
+                print(f'Error: {e}')
+                continue
 
             for window in [window_size]:
                 for bin_size in [bin_size]:
