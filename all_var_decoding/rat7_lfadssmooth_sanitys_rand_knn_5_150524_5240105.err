@@ -1,0 +1,24 @@
+/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_rat7_zscoredspikes_sanitycheck_lfads_smoothing.py:16: DeprecationWarning: 
+Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+(to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+but was not found to be installed on your system.
+If this would cause problems for you,
+please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+        
+  import pandas as pd
+Traceback (most recent call last):
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_rat7_zscoredspikes_sanitycheck_lfads_smoothing.py", line 367, in <module>
+    main()
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_rat7_zscoredspikes_sanitycheck_lfads_smoothing.py", line 352, in main
+    best_params, mean_score = train_and_test_on_umap_randcv(
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_rat7_zscoredspikes_sanitycheck_lfads_smoothing.py", line 208, in train_and_test_on_umap_randcv
+    random_search.fit(spks, y)
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/base.py", line 1151, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/model_selection/_search.py", line 806, in fit
+    X, y, groups = indexable(X, y, groups)
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/utils/validation.py", line 455, in indexable
+    check_consistent_length(*result)
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/utils/validation.py", line 409, in check_consistent_length
+    raise ValueError(
+ValueError: Found input variables with inconsistent numbers of samples: [14679, 14682]

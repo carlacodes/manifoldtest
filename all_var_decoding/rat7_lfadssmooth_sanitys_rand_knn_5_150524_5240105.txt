@@ -1,0 +1,11 @@
+The two arrays are the same
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679
+Ratio of train to test indices is 13.679

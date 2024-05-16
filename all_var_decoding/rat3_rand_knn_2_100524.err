@@ -1,0 +1,20 @@
+/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_rat3.py:16: DeprecationWarning: 
+Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+(to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+but was not found to be installed on your system.
+If this would cause problems for you,
+please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+        
+  import pandas as pd
+Traceback (most recent call last):
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_rat3.py", line 337, in <module>
+    main()
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_rat3.py", line 253, in main
+    if np.allclose(spike_data, old_spike_data):
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/numpy/core/numeric.py", line 2241, in allclose
+    res = all(isclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan))
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/numpy/core/numeric.py", line 2351, in isclose
+    return within_tol(x, y, atol, rtol)
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/numpy/core/numeric.py", line 2332, in within_tol
+    return less_equal(abs(x-y), atol + rtol * abs(y))
+ValueError: operands could not be broadcast together with shapes (14979,98) (9979,98) 

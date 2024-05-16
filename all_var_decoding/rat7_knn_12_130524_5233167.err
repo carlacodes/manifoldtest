@@ -1,0 +1,253 @@
+/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rat7.py:16: DeprecationWarning: 
+Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+(to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+but was not found to be installed on your system.
+If this would cause problems for you,
+please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+        
+  import pandas as pd
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:273: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited at iteration 73 with accuracies 
+[3.65459499e-06 5.13157144e-06 6.78092840e-06 1.06663212e-05
+ 2.24158072e-05 1.54610026e-05 3.59058178e-05 1.47538346e-05
+ 5.14699590e-06 1.96020710e-05 1.14687537e-04]
+not reaching the requested tolerance 2.2843480110168457e-05.
+Use iteration 73 instead with accuracy 
+2.3109680181553583e-05.
+
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited postprocessing with accuracies 
+[3.65460936e-06 5.13154200e-06 6.78095030e-06 1.06663097e-05
+ 2.24158232e-05 1.54609954e-05 3.59058132e-05 1.47538342e-05
+ 5.14699539e-06 1.96020710e-05 1.14687537e-04]
+not reaching the requested tolerance 2.2843480110168457e-05.
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/spectral.py:550: UserWarning: Spectral initialisation failed! The eigenvector solver
+failed. This is likely due to too small an eigengap. Consider
+adding some noise or jitter to your data.
+
+Falling back to random initialisation!
+  warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:273: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited at iteration 32 with accuracies 
+[1.99197064e-06 3.99000843e-06 3.55616445e-06 9.14993497e-06
+ 1.39896741e-05 2.56629312e-05 5.61179953e-05 1.89517259e-05
+ 1.09415619e-04 1.47546016e-05 4.05220263e-04]
+not reaching the requested tolerance 2.2873282432556152e-05.
+Use iteration 29 instead with accuracy 
+5.528667878098884e-05.
+
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited postprocessing with accuracies 
+[2.02728857e-06 4.23664022e-06 4.18680464e-06 9.52920564e-06
+ 1.23272979e-05 2.81899979e-05 2.38430573e-05 2.93172725e-05
+ 7.11365504e-05 4.82184407e-05 3.75140910e-04]
+not reaching the requested tolerance 2.2873282432556152e-05.
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/spectral.py:550: UserWarning: Spectral initialisation failed! The eigenvector solver
+failed. This is likely due to too small an eigengap. Consider
+adding some noise or jitter to your data.
+
+Falling back to random initialisation!
+  warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/scipy/sparse/_index.py:145: SparseEfficiencyWarning: Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient.
+  self._set_arrayXarray(i, j, x)
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:273: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited at iteration 74 with accuracies 
+[2.32057857e-06 4.04571032e-06 4.97402066e-06 9.45403433e-06
+ 1.26718557e-05 1.38774036e-05 2.62225756e-05 5.22411327e-05
+ 5.86532851e-05 1.61568287e-05 2.11432199e-04]
+not reaching the requested tolerance 2.2992491722106934e-05.
+Use iteration 74 instead with accuracy 
+3.745905674804832e-05.
+
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited postprocessing with accuracies 
+[2.32059217e-06 4.04560400e-06 4.97398293e-06 9.45408593e-06
+ 1.26718794e-05 1.38773633e-05 2.62225903e-05 5.22411324e-05
+ 5.86532849e-05 1.61568287e-05 2.11432199e-04]
+not reaching the requested tolerance 2.2992491722106934e-05.
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/spectral.py:550: UserWarning: Spectral initialisation failed! The eigenvector solver
+failed. This is likely due to too small an eigengap. Consider
+adding some noise or jitter to your data.
+
+Falling back to random initialisation!
+  warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:273: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:273: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited at iteration 40 with accuracies 
+[1.34499046e-06 3.40909004e-06 2.38221664e-06 3.55787025e-06
+ 5.50154570e-06 3.47764219e-06 1.23227820e-05 1.32399685e-05
+ 1.48409900e-05 1.72641945e-05 1.54808881e-04]
+not reaching the requested tolerance 2.3052096366882324e-05.
+Use iteration 40 instead with accuracy 
+2.110456106274303e-05.
+
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/manifold/_spectral_embedding.py:392: UserWarning: Exited postprocessing with accuracies 
+[1.34504349e-06 3.40893541e-06 2.38239927e-06 3.55784513e-06
+ 5.50152917e-06 3.47769375e-06 1.23227839e-05 1.32399675e-05
+ 1.48409908e-05 1.72641945e-05 1.54808881e-04]
+not reaching the requested tolerance 2.3052096366882324e-05.
+  _, diffusion_map = lobpcg(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/spectral.py:550: UserWarning: Spectral initialisation failed! The eigenvector solver
+failed. This is likely due to too small an eigengap. Consider
+adding some noise or jitter to your data.
+
+Falling back to random initialisation!
+  warn(
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/scipy/sparse/_index.py:145: SparseEfficiencyWarning: Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient.
+  self._set_arrayXarray(i, j, x)
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py:1943: UserWarning: n_jobs value -1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(f"n_jobs value {self.n_jobs} overridden to 1 by setting random_state. Use no seed for parallelism.")
+slurmstepd-enc3-node2: error: *** JOB 5233167 ON enc3-node2 CANCELLED AT 2024-05-13T14:02:07 ***
