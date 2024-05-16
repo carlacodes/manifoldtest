@@ -196,6 +196,7 @@ def train_and_test_on_umap_randcv(
 
         # Loop over the custom folds
         count = 0
+        fold_dataframe = pd.DataFrame()
         for train_index, test_index in custom_folds:
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
@@ -216,9 +217,22 @@ def train_and_test_on_umap_randcv(
 
             # Calculate the test score and append it to the list
             test_score = pipeline.score(spks_test, y_test)
+            y_pred = pipeline.predict(spks_test)
+            col_list = ['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'angle_sin_goal', 'angle_cos_goal']
+            indiv_results_dataframe = pd.DataFrame(y_pred, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos',
+                                                                    'angle_sin_goal', 'angle_cos_goal'])
+
+            for i in range(y_test.shape[1]):
+                score_indiv = r2_score(y_test[:, i], y_pred[:, i])
+                indiv_results_dataframe[col_list[i]] = score_indiv
+
+                print(f'R2 score for {col_list[i]} is {score_indiv}')
+            # break down the score into its components
+            indiv_results_dataframe['fold'] = count
+            fold_dataframe = pd.concat([fold_dataframe, indiv_results_dataframe], axis=0)
+
             test_scores.append(test_score)
             actual_angle = np.arcsin(y_test[:, 0])
-
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -226,9 +240,10 @@ def train_and_test_on_umap_randcv(
             ax.set_xlabel('UMAP 1')
             ax.set_ylabel('UMAP 2')
             ax.set_zlabel('UMAP 3')
-            #add a color bar
+            # add a color bar
             cbar = plt.colorbar(sc, ax=ax)
-            ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(count) + 'rat id:' +str(rat_id))
+            ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(
+                count) + 'rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             count += 1
 
