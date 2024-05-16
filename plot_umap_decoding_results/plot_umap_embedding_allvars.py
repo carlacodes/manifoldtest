@@ -218,8 +218,8 @@ def train_and_test_on_umap_randcv(
             # Calculate the test score and append it to the list
             test_score = pipeline.score(spks_test, y_test)
             y_pred = pipeline.predict(spks_test)
-            col_list = ['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'angle_sin_goal', 'angle_cos_goal']
-            indiv_results_dataframe = pd.DataFrame(y_pred, columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos',
+            col_list = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']
+            indiv_results_dataframe = pd.DataFrame(y_pred, columns=['x', 'y',
                                                                     'angle_sin_goal', 'angle_cos_goal'])
 
             for i in range(y_test.shape[1]):
