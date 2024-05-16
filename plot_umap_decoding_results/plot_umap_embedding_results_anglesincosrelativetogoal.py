@@ -25,8 +25,33 @@ import shap
 import plotly.graph_objects as go
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 from sklearn.cross_decomposition import CCA
+from scipy.signal.windows import gaussian
+import matplotlib.pyplot as plt
+from scipy.signal import lfilter
 
 
+def apply_lfads_smoothing(data_in):
+    std_sec = 0.25
+    bin_width_sec = 0.25
+    # Scale the width of the Gaussian by our bin width
+    std = std_sec / bin_width_sec
+    # We need a window length of 3 standard deviations on each side (x2)
+    M = std * 3 * 2
+    window = gaussian(M, std)
+    # Normalize so the window sums to 1
+    window = window / window.sum()
+    # _ = plt.stem(window)
+
+    # Remove convolution artifacts
+    invalid_len = len(window) // 2
+
+    # smth_spikes = {}
+    # for session in spikes:
+    #     # Convolve each session with the gaussian window
+    #     smth_spikes[session] = lfilter(window, 1, spikes[session], axis=1)[:, invalid_len:, :]
+    X_umap_lfads = lfilter(window, 1, data_in, axis=0)[invalid_len:, :]
+    # then z score
+    return X_umap_lfads
 
 def process_data_within_split(
         spks_train,
@@ -661,15 +686,46 @@ def main():
             # remove those neurons
             spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
         # THEN DO THE Z SCORE
-        X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+        X_for_umap = scipy.ndimage.gaussian_filter(spike_data_trial, 2, axes=0)
+
+        X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
+
 
         if np.isnan(X_for_umap).any():
             print('There are nans in the data')
 
-        X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+
+
+
+
+
+
+
+        spike_data_trial_zscore = scipy.stats.zscore(spike_data_trial, axis=0)
+        X_umap_lfads_test = apply_lfads_smoothing(spike_data_trial)
+        X_umap_lfads_test = scipy.stats.zscore(X_umap_lfads_test, axis=0)
+        #plot before and after smoothing
+        fig, ax = plt.subplots(1, 1)
+        ax.plot(X_umap_lfads_test[0:120, 0], label = 'smoothed', alpha = 0.5)
+        ax.plot(spike_data_trial_zscore[0:120, 0], label = 'original', alpha = 0.5)
+        ax.set_title('Original vs smoothed firing rate for neuron 0, using lfads approach')
+        ax.set_xlabel('time in SAMPLES')
+        plt.legend()
+        plt.show()
+
+        #plot before and after smoothing
+        fig, ax = plt.subplots(1, 1)
+        ax.plot(X_for_umap[0:120, 0], label = 'smoothed', alpha = 0.5)
+        ax.plot(spike_data_trial_zscore[0:120, 0], label = 'original', alpha = 0.5)
+        ax.set_title('Original vs smoothed firing rate for neuron 0')
+        ax.set_xlabel('time in SAMPLES')
+        plt.legend()
+        plt.savefig(f'{data_dir}/original_vs_smoothed_firing_rate.png', dpi = 300, bbox_inches = 'tight')
+        plt.show()
 
         labels_for_umap = labels[:, 0:9]
-        labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+        # labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+        labels_for_umap = apply_lfads_smoothing(labels_for_umap)
 
         label_df = pd.DataFrame(labels_for_umap,
                                 columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore',
