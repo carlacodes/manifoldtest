@@ -202,8 +202,8 @@ def train_and_test_on_umap_randcv(
             y_train, y_test = y[train_index], y[test_index]
 
             # Set the parameters
-            formatted_params = format_params(manual_params)
-            pipeline.set_params(**formatted_params)
+            # formatted_params = format_params(manual_params)
+            pipeline.set_params(**manual_params)
 
             # Fit the pipeline on the training data
             pipeline.fit(spks_train, y_train)
