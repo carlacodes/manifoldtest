@@ -262,6 +262,7 @@ def main():
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_250_scale_to_angle_range_True.npy')
+    col_list = np.load(f'{dlc_dir}/col_names_250_scale_to_angle_range_True.npy')
     lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
     spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
     old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
@@ -289,22 +290,18 @@ def main():
     X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
 
 
-    labels_for_umap = labels[:, 0:5]
+    labels_for_umap = labels
     #remove the indices
     labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
 
     label_df = pd.DataFrame(labels_for_umap,
-                            columns=['x', 'y', 'dist2goal', 'hd', 'relative_direction_to_goal'])
+                            columns=col_list)
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-    label_df['angle_sin'] = np.sin(label_df['hd'])
-    label_df['angle_cos'] = np.cos(label_df['hd'])
-    label_df['angle_sin_goal'] = np.sin(label_df['relative_direction_to_goal'])
-    label_df['angle_cos_goal'] = np.cos(label_df['relative_direction_to_goal'])
 
     #plot angle sin and angle cos to goal
     fig, ax = plt.subplots()
-    ax.plot(label_df['angle_sin_goal'][:120], label = 'angle_sin_goal')
-    ax.plot(label_df['angle_cos_goal'][:120], label = 'angle_cos_goal')
+    ax.plot(label_df['sin_relative_direction'][:120], label = 'angle_sin_goal')
+    ax.plot(label_df['cos_relative_direction'][:120], label = 'angle_cos_goal')
     ax.legend()
     plt.show()
 
@@ -323,7 +320,7 @@ def main():
         'n_jobs': 1,
     }
 
-    regress = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']  # changing to two target variables
+    regress = ['x', 'y',  'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")

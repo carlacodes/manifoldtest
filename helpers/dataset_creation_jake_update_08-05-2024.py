@@ -142,16 +142,21 @@ def cat_dlc(windowed_dlc, scale_to_angle_range = False):
         temp_array = np.zeros((num_rows, total_num_cols))
 
         count = 0
+        #declare an empty list to hold the actual column names
+        col_names_actual = np.empty(total_num_cols, dtype='<U22')
         for c in column_names:
             # if c not hd or relative_direction, just add the column to the array
             if c not in ['hd'] and not c.startswith('relative_direction'):
                 temp_array[:, count] = windowed_dlc[k][c].values
+                col_names_actual[count] = c
                 count += 1
 
             else:
                 # angular data needs to be converted to sin and cos             
                 temp_array[:, count] = np.sin(windowed_dlc[k][c].values)
+                col_names_actual[count] = f'sin_{c}'
                 temp_array[:, count+1] = np.cos(windowed_dlc[k][c].values)
+                col_names_actual[count+1] = f'cos_{c}'
                 count += 2
         
         if i == 0:
@@ -181,7 +186,7 @@ def cat_dlc(windowed_dlc, scale_to_angle_range = False):
 
     dlc_array = np.round(dlc_array, 3)
 
-    return dlc_array
+    return dlc_array, col_names_actual
 
 
 def cat_spike_trains(spike_trains):
@@ -423,9 +428,11 @@ def main():
             windowed_dlc = windowed_data['windowed_dlc']
             window_edges = windowed_data['window_edges']
 
-            labels = cat_dlc(windowed_dlc, scale_to_angle_range=scale_to_angle_range)
+            labels, col_names = cat_dlc(windowed_dlc, scale_to_angle_range=scale_to_angle_range)
             labels = labels.astype(np.float32)
             labels_file_name = f'labels_{window_size}_scale_to_angle_range_{scale_to_angle_range}'
+            col_names_file_name = f'col_names_{window_size}_scale_to_angle_range_{scale_to_angle_range}'
+            np.save(f'{dlc_dir}/{col_names_file_name}.npy', col_names)
             np.save(f'{dlc_dir}/{labels_file_name}.npy', labels)
 
             # create spike trains
