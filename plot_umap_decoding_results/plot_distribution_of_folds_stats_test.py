@@ -742,8 +742,8 @@ def run_stratified_kfold_test():
             rat_id = data_dir.split('/')[-2]
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
-            labels = np.load(
-                f'{dlc_dir}/labels_{window_size}.npy')
+            labels = np.load(f'{dlc_dir}/labels_{window_size}_scale_to_angle_range_True.npy')
+            col_list = np.load(f'{dlc_dir}/col_names_{window_size}_scale_to_angle_range_True.npy')
             spike_data = np.load(f'{spike_dir}/inputs_{window_size}.npy')
 
             spike_data_trial = spike_data
@@ -764,7 +764,7 @@ def run_stratified_kfold_test():
             X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
 
             labels_for_umap = labels[:, 0:5]
-            labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+            # labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
 
             label_df = pd.DataFrame(labels_for_umap,
                                     columns=[ 'x', 'y', 'dist2goal', 'hd', 'relative_direction_to_goal'])
@@ -892,7 +892,7 @@ def main():
         'angle_rel_to_goal')
     big_df = pd.DataFrame()
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
-    run_stratified_kfold_test()
+    # run_stratified_kfold_test()
     run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedir)
     #'C:/neural_data/rat_3/25-3-2019'
 
