@@ -935,8 +935,9 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
 
             # Create a new column 'region' that represents the cell each data point belongs to
             label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
-                                 pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
-                                 pd.cut(label_df['hd_goal'], n_cells, labels=False) * n_cells * n_cells
+                                 pd.cut(label_df['y'], n_cells, labels=False) * n_cells
+
+            from scipy.stats import ks_2samp
 
             for i in range(10, 2000, 10):
                 try:
@@ -948,30 +949,46 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                 results_df_angle = pd.DataFrame()
                 for j, (train_index, test_index) in enumerate(custom_folds_test):
 
-                    #create a 3d grid
+                    # create a 3d grid
                     y_train, y_test = label_df.iloc[train_index], label_df.iloc[test_index]
+                    # for each region, calculate the ks test for angle
+                    ks_results = {}
 
+                    # Group the DataFrame by 'region'
+                    grouped_train = y_train.groupby('region')
+                    grouped_test = y_test.groupby('region')
 
-                    ks_statistic = scipy.stats.ks_2samp(y_train['region'], y_test['region'])[0]
-                    p_val = scipy.stats.ks_2samp(y_train['region'], y_test['region'])[1]
-                    #round the p-value
+                    # For each group in train set, perform the KS test with corresponding group in test set
+                    for name, group_train in grouped_train:
+                        if name in grouped_test.groups:  # Check if the group name exists in grouped_test
 
+                            group_test = grouped_test.get_group(name)
+
+                            # Extract the 'hd_goal' column
+                            head_angles_train = group_train['hd_goal']
+                            head_angles_test = group_test['hd_goal']
+
+                            # Perform the KS test
+                            D, p_value = ks_2samp(head_angles_train, head_angles_test)
+                            ks_results[name] = (D, p_value)
+
+                    # Convert the results to a DataFrame for easier viewing
+                    ks_results_df = pd.DataFrame.from_dict(ks_results, orient='index', columns=['D', 'p-value'])
+                    ks_results_df['num_windows'] = i
+                    ks_results_df['fold_number'] = j
+                    #concatenate to the results dataframe
+                    results_df = pd.concat([results_df, ks_results_df])
 
                     # appebd to the results dataframe
-                    trial_data = {'window_size': i, 'p_value': p_val, 'ks_stat': ks_statistic, 'fold_number': j}
-                    results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[i])])
 
-                # calculate the mean p-value for the window size
-                # take the mean of results_df
-                mean_p_val = results_df['p_value'].mean()
-                mean_t_stat = results_df['ks_stat'].mean()
+                #check if all p-values are above 0.05
+                if results_df['p-value'].all() > 0.05:
+                    print('All p-values are above 0.05')
+                    results_df['above_threshold'] = 1
+                else:
+                    results_df['above_threshold'] = 0
+                big_results_df = pd.concat([big_results_df, results_df])
 
-
-
-                # append to the big results dataframe
-                window_size_data = {'num_windows': i, 'mean_p_value': mean_p_val, 'mean_t_stat': mean_t_stat}
-
-                big_results_df = pd.concat([big_results_df, pd.DataFrame(window_size_data, index=[i])])
 
             # plot the p-values and t-stats against the window size
             # apply a smoothing filter
@@ -982,8 +999,11 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
 
             # first threshold for where the p-value is consistently above 0.2
             threshold = 0.05
-            # get the index where the p-value is consistently above 0.2
-            index_above_threshold = big_results_df[big_results_df['mean_p_value'] > threshold]
+            #scan every instance of p-value to make sure it is above threshold
+
+
+            # # get the index where the p-value is consistently above 0.2
+            index_above_threshold = big_results_df[big_results_df['above_threshold'] > 0]
 
             # get the applicable thresholds
             threshold_indices = index_above_threshold.index
