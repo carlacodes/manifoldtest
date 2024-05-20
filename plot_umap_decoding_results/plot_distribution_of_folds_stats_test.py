@@ -26,7 +26,7 @@ import plotly.graph_objects as go
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 from sklearn.cross_decomposition import CCA
 from sklearn.model_selection import StratifiedKFold
-
+from helpers import tools
 
 
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
@@ -885,6 +885,186 @@ def run_stratified_kfold_test():
 
 
     return df_big, df_big_angle
+
+
+def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir):
+    df_across_windows = pd.DataFrame()
+    df_across_windows_angle = pd.DataFrame()
+    for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_10/23-11-2021',
+                     'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
+                     'C:/neural_data/rat_3/25-3-2019']:
+        for window_size in [250]:
+            rat_id = data_dir.split('/')[-2]
+            spike_dir = os.path.join(data_dir, 'physiology_data')
+            dlc_dir = os.path.join(data_dir, 'positional_data')
+            labels = np.load(f'{dlc_dir}/labels_250_scale_to_angle_range_True.npy')
+            col_list = np.load(f'{dlc_dir}/col_names_250_scale_to_angle_range_True.npy')
+            spike_data = np.load(f'{spike_dir}/inputs_{window_size}.npy')
+
+            spike_data_trial = spike_data
+            data_dir_path = Path(data_dir)
+
+            X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+            X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
+
+            labels_for_umap = labels
+            # remove the indices
+            labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
+
+            label_df = pd.DataFrame(labels_for_umap,
+                                    columns=col_list)
+            label_df['time_index'] = np.arange(0, label_df.shape[0])
+
+
+            big_results_df = pd.DataFrame()
+            big_results_df_angle = pd.DataFrame()
+            n_timesteps = X_for_umap.shape[0]
+            for i in range(10, 2000, 10):
+                try:
+                    custom_folds_test = create_folds(n_timesteps, num_folds=10, num_windows=i)
+                except Exception as e:
+                    print('Error in creating the folds, error is: ', e)
+                    continue
+                results_df = pd.DataFrame()
+                results_df_angle = pd.DataFrame()
+                for j, (train_index, test_index) in enumerate(custom_folds_test):
+
+                    #create a 3d grid
+
+                    ks_statistic_angle_cos = ks_test_result_cos[0]
+                    p_val_angle_cos = ks_test_result_cos[1]
+
+                    # take the mean of the p-values
+                    p_val_y = ks_test_result_y[1]
+                    ks_statistic_y = ks_test_result_y[0]
+
+                    p_val_rounded = np.round(np.mean([p_val, p_val_y]), 4)
+                    ks_statistic = np.round(np.mean([ks_statistic, ks_statistic_y]), 4)
+
+                    p_val_rounded_angle = np.round(np.mean([p_val_angle_sin, p_val_angle_cos]), 4)
+                    ks_statistic_angle = np.round(np.mean([ks_statistic_angle_sin, ks_statistic_angle_cos]), 4)
+                    # append to the results dataframe
+                    trial_data_angle = {'window_size': i, 'p_value': p_val_rounded_angle, 'ks_stat': ks_statistic_angle,
+                                        'fold_number': j}
+
+                    # appebd to the results dataframe
+                    trial_data = {'window_size': i, 'p_value': p_val_rounded, 'ks_stat': ks_statistic, 'fold_number': j}
+                    results_df = pd.concat([results_df, pd.DataFrame(trial_data, index=[i])])
+
+                    results_df_angle = pd.concat([results_df_angle, pd.DataFrame(trial_data_angle, index=[i])])
+                # calculate the mean p-value for the window size
+                # take the mean of results_df
+                mean_p_val = results_df['p_value'].mean()
+                mean_t_stat = results_df['ks_stat'].mean()
+
+                mean_p_val_angle = results_df_angle['p_value'].mean()
+                mean_t_stat_angle = results_df_angle['ks_stat'].mean()
+
+                # append to the big results dataframe
+                window_size_data = {'num_windows': i, 'mean_p_value': mean_p_val, 'mean_t_stat': mean_t_stat}
+                window_size_data_angle = {'num_windows': i, 'mean_p_value': mean_p_val_angle,
+                                          'mean_t_stat': mean_t_stat_angle}
+
+                big_results_df = pd.concat([big_results_df, pd.DataFrame(window_size_data, index=[i])])
+                big_results_df_angle = pd.concat(
+                    [big_results_df_angle, pd.DataFrame(window_size_data_angle, index=[i])])
+            # plot the p-values and t-stats against the window size
+            # apply a smoothing filter
+            # big_results_df['mean_p_value'] = big_results_df['mean_p_value'].rolling(window=10).mean()
+            # big_results_df['mean_t_stat'] = big_results_df['mean_t_stat'].rolling(window=10).mean()
+            # calculate the index for when the p-value is consistently above 0.2
+            # get the index where the p-value is consistently above 0.2
+
+            # first threshold for where the p-value is consistently above 0.2
+            threshold = 0.05
+            # get the index where the p-value is consistently above 0.2
+            index_above_threshold = big_results_df[big_results_df['mean_p_value'] > threshold]
+            index_above_threshold_angle = big_results_df_angle[big_results_df_angle['mean_p_value'] > threshold]
+
+            # get the applicable thresholds
+            threshold_indices = index_above_threshold.index
+            threshold_indices_angle = index_above_threshold_angle.index
+            diff = np.diff(threshold_indices)
+            diff_angle = np.diff(threshold_indices_angle)
+            # find the minimum index where every difference after is 10
+            index_saved = None
+            for i, val in enumerate(diff):
+                if val == 10 and index_saved == None:
+                    index_saved = i
+                if val != 10 and index_saved == None:
+                    index_saved = None
+                elif val != 10 and i > index_saved:
+                    index_saved = None
+            first_index = index_saved
+
+            for i, val in enumerate(diff_angle):
+                if val == 10 and index_saved == None:
+                    index_saved = i
+                if val != 10 and index_saved == None:
+                    index_saved = None
+                elif val != 10 and i > index_saved:
+                    index_saved = None
+            first_index_angle = index_saved
+
+            corresponding_num_windows = threshold_indices[first_index]
+            corresponding_num_windows_angle = threshold_indices_angle[first_index_angle]
+
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(big_results_df['num_windows'], big_results_df['mean_p_value'], label='mean p-value')
+            ax.set_title(f'Mean p-value vs num_windows for rat: \n  {data_dir_path} and window size: {window_size}')
+            ax.set_xlabel('num_windows')
+            ax.set_ylabel('mean p-value')
+            # append to an animal and
+
+            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_rat_id_{rat_id}_window_size_{window_size}.png',
+                        dpi=300, bbox_inches='tight')
+            # plt.show()
+
+            fig, ax = plt.subplots(1, 1)
+            ax.plot(big_results_df_angle['num_windows'], big_results_df_angle['mean_p_value'], label='mean p-value')
+            ax.set_title(
+                f'Mean p-value vs num_windows for angle, rat: \n  {data_dir_path} and window size: {window_size}')
+            ax.set_xlabel('num_windows')
+            ax.set_ylabel('mean p-value')
+            plt.savefig(
+                f'{big_df_savedir}/mean_p_value_vs_num_windows_angle_rat_id_{rat_id}_window_size_{window_size}.png',
+                dpi=300, bbox_inches='tight')
+            # append to an animal and
+            plt.close('all')
+            # append to the big dataframe
+            big_results_df['rat_id'] = rat_id
+            big_results_df['window_size'] = window_size
+            big_results_df['minimum_number_windows'] = corresponding_num_windows
+            df_across_windows = pd.concat([df_across_windows, big_results_df])
+
+            big_results_df_angle['rat_id'] = rat_id
+            big_results_df_angle['window_size'] = window_size
+            big_results_df_angle['minimum_number_windows'] = corresponding_num_windows_angle
+            df_across_windows_angle = pd.concat([df_across_windows_angle, big_results_df_angle])
+    # get the mean minimum number of windows
+    df_across_windows['mean_minimum_number_windows'] = df_across_windows.groupby('rat_id')[
+        'minimum_number_windows'].transform('mean')
+    df_across_windows['mean_minimum_number_windows_by_windowsize'] = df_across_windows.groupby('window_size')[
+        'minimum_number_windows'].transform('mean')
+    df_across_windows['mean_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows[
+        'mean_minimum_number_windows'].mean()
+
+    df_across_windows_angle['mean_minimum_number_windows_across_rats'] = df_across_windows_angle.groupby('rat_id')[
+        'minimum_number_windows'].transform('mean')
+    df_across_windows_angle['mean_minimum_number_windows_across_windowsize'] = \
+    df_across_windows_angle.groupby('window_size')['minimum_number_windows'].transform('mean')
+    df_across_windows_angle['mean_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows_angle[
+        'minimum_number_windows'].mean()
+
+    np.unique(df_across_windows['mean_minimum_number_windows_across_rats_and_windowsize'])
+    np.unique(df_across_windows_angle['mean_minimum_number_windows_across_rats_and_windowsize'])
+    np.unique(df_across_windows_angle['mean_minimum_number_windows_across_windowsize'])
+
+    # export to csv
+    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats.csv')
+    df_across_windows_angle.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_angle.csv')
+    return df_across_windows
+
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019'
