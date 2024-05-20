@@ -218,8 +218,8 @@ def train_and_test_on_umap_randcv(
             # Calculate the test score and append it to the list
             test_score = pipeline.score(spks_test, y_test)
             y_pred = pipeline.predict(spks_test)
-            col_list = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']
-            indiv_results_dataframe = pd.DataFrame(y_pred, columns=['x', 'y',
+            col_list = ['angle_sin_goal', 'angle_cos_goal']
+            indiv_results_dataframe = pd.DataFrame(y_pred, columns=[
                                                                     'angle_sin_goal', 'angle_cos_goal'])
 
             for i in range(y_test.shape[1]):
@@ -274,7 +274,7 @@ def main():
 
 
     # print out the first couple of rows of the lfp_data
-    previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_340windows_1000iter_independentvar_2024-05-17', window_size=340, bin_size = 250)
+    previous_results, score_dict = DataHandler.load_previous_results('randsearch_sincostogoal_lfadssmooth_340windows_1000iter_independentvar_2024-05-17', window_size=340, bin_size = 250)
     rat_id = data_dir.split('/')[-3]
     manual_params = previous_results[rat_id]
     manual_params = manual_params.item()
@@ -320,13 +320,13 @@ def main():
         'n_jobs': 1,
     }
 
-    regress = ['x', 'y',  'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
+    regress = ['cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
     filename = f'params_all_trials_randsearch_250bin_340windows_jake_fold_allvars_{now}.npy'
     filename_mean_score = f'mean_score_all_trials_randsearch_250bin_340windows_jake_fold_{now}.npy'
-    save_dir_path = Path(f'{data_dir}/randsearch_allvars_lfadssmooth_340windows_1000iter_independentvar_{now_day}')
+    save_dir_path = Path(f'{data_dir}/randsearch_sincostogoal_340windows_1000iter_independentvar_{now_day}')
     save_dir_path.mkdir(parents=True, exist_ok=True)
     # initalise a logger
     logger = logging.getLogger(__name__)
