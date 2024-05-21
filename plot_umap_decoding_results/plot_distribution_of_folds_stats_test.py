@@ -1028,16 +1028,16 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             corresponding_index = threshold_indices[first_index]
             corresponding_num_windows = big_results_df['num_windows'].values[corresponding_index]
 
-            fig, ax = plt.subplots(1, 1)
-            ax.plot(big_results_df['num_windows'], big_results_df['mean_p_value'], label='mean p-value')
-            ax.set_title(f'Mean p-value vs num_windows for rat: \n  {data_dir_path} and window size: {window_size}')
-            ax.set_xlabel('num_windows')
-            ax.set_ylabel('mean p-value')
-            # append to an animal and
-
-            plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_rat_id_{rat_id}_window_size_{window_size}.png',
-                        dpi=300, bbox_inches='tight')
-            # plt.show()
+            # fig, ax = plt.subplots(1, 1)
+            # ax.plot(big_results_df['num_windows'], big_results_df['mean_p_value'], label='mean p-value')
+            # ax.set_title(f'Mean p-value vs num_windows for rat: \n  {data_dir_path} and window size: {window_size}')
+            # ax.set_xlabel('num_windows')
+            # ax.set_ylabel('mean p-value')
+            # # append to an animal and
+            #
+            # plt.savefig(f'{big_df_savedir}/mean_p_value_vs_num_windows_rat_id_{rat_id}_window_size_{window_size}.png',
+            #             dpi=300, bbox_inches='tight')
+            # # plt.show()
 
 
             # append to an animal and
