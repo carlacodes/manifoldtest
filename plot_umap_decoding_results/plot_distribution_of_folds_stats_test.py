@@ -969,9 +969,9 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                     train_grouped_for_testing = train_grouped.values
                     test_grouped_for_testing = test_grouped.values
                     ks_results = ks_2samp(train_grouped_for_testing, test_grouped_for_testing)
-                    ks_results = {'D': 0.2, 'p-value': 0.05}
+                    ks_results_dict = {'D': ks_results[0], 'p-value': ks_results[1]}
 
-                    ks_results_df = pd.DataFrame.from_dict(ks_results, orient='index').T
+                    ks_results_df = pd.DataFrame.from_dict(ks_results_dict, orient='index').T
                     ks_results_df['num_windows'] = i
                     ks_results_df['fold_number'] = j
                     #concatenate to the results dataframe
@@ -1010,7 +1010,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             # get the applicable thresholds
             threshold_indices = index_above_threshold.index
             diff = np.diff(threshold_indices)
-            # find the minimum index where every difference after is 10
+            # find the minimum index where every difference after is 1
             index_saved = None
             for h, val in enumerate(diff):
                 if val == 1 and index_saved == None:
