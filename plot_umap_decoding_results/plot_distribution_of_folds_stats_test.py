@@ -27,6 +27,7 @@ os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
 from sklearn.cross_decomposition import CCA
 from sklearn.model_selection import StratifiedKFold
 from helpers import tools
+from scipy.stats import wilcoxon
 
 
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
@@ -931,7 +932,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             # Sort by position and angle
             # sorted_df = label_df.sort_values(by=['position', 'hd_goal'])
 
-            n_cells = 8
+            n_cells = 2
             # Create a new column 'region' that represents the cell each data point belongs to
             label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
                                  pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
@@ -968,8 +969,20 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                     #convert train_grouped and test_grouped to an array for the ks test
                     train_grouped_for_testing = train_grouped.values
                     test_grouped_for_testing = test_grouped.values
-                    ks_results = ks_2samp(train_grouped_for_testing, test_grouped_for_testing)
-                    ks_results_dict = {'D': ks_results[0], 'p-value': ks_results[1]}
+                    # fig,ax = plt.subplots(1, 1)
+                    # ax.plot(train_grouped_for_testing, label='train')
+                    # ax.plot(test_grouped_for_testing, label='test')
+                    # ax.set_title(f'Number of samples in each region for fold number: {j} rat id: {rat_id}')
+                    # ax.set_xlabel('region')
+                    # ax.set_ylabel('count')
+                    # ax.legend()
+                    # plt.show()
+                    plt.close('all')
+                    # ks_results = ks_2samp(train_grouped_for_testing, test_grouped_for_testing)
+
+                    stat, p = wilcoxon(train_grouped_for_testing, test_grouped_for_testing)
+
+                    ks_results_dict = {'D':stat , 'p-value':p}
 
                     ks_results_df = pd.DataFrame.from_dict(ks_results_dict, orient='index').T
                     ks_results_df['num_windows'] = i
@@ -1022,7 +1035,9 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             first_index = index_saved
 
 
-
+            if first_index == None:
+                print('No p-values are above 0.05')
+                continue
             corresponding_index = threshold_indices[first_index]
             corresponding_num_windows = big_results_df['num_windows'].values[corresponding_index]
 
