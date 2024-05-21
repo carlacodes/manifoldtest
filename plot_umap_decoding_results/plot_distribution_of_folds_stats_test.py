@@ -1025,7 +1025,8 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
 
 
 
-            corresponding_num_windows = threshold_indices[first_index]
+            corresponding_index = threshold_indices[first_index]
+            corresponding_num_windows = big_results_df['num_windows'].values[corresponding_index]
 
             fig, ax = plt.subplots(1, 1)
             ax.plot(big_results_df['num_windows'], big_results_df['mean_p_value'], label='mean p-value')
