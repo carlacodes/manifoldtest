@@ -982,7 +982,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                 #check if all p-values are above 0.05
                 p_values = results_df['p-value'].values
                 #check how many times p-values are below 0.05
-                if np.sum(p_values < 0.05) == 0:
+                if np.sum(p_values > 0.05) == 0:
                     print('All p-values are above 0.05')
                     results_df['above_threshold'] = 1
                 else:
