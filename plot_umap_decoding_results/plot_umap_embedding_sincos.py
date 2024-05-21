@@ -123,7 +123,7 @@ def train_and_test_on_umap_randcv(
     # Create your custom folds
     n_timesteps = spks.shape[0]
 
-    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=340)
+    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=1000)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('reducer', CustomUMAP()),
@@ -274,7 +274,7 @@ def main():
 
 
     # print out the first couple of rows of the lfp_data
-    previous_results, score_dict = DataHandler.load_previous_results('randsearch_sincostogoal_lfadssmooth_340windows_1000iter_independentvar_2024-05-17', window_size=340, bin_size = 250)
+    previous_results, score_dict = DataHandler.load_previous_results('randsearch_sincostogoal_lfadssmooth_1000windows_1000iter_independentvar_2024-05-20', window_size=340, bin_size = 250)
     rat_id = data_dir.split('/')[-3]
     manual_params = previous_results[rat_id]
     manual_params = manual_params.item()
@@ -286,13 +286,16 @@ def main():
         # remove those neurons
         spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-    X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+    # X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+    X_for_umap = spike_data_copy
+    # apply gaussian smoothing as a comparison
+    X_for_umap = scipy.ndimage.gaussian_filter1d(X_for_umap, sigma=2, axis=0)
     X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
 
 
     labels_for_umap = labels
     #remove the indices
-    labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
+    # labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
 
     label_df = pd.DataFrame(labels_for_umap,
                             columns=col_list)

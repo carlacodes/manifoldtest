@@ -932,7 +932,6 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             # sorted_df = label_df.sort_values(by=['position', 'hd_goal'])
 
             n_cells = 8
-
             # Create a new column 'region' that represents the cell each data point belongs to
             label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
                                  pd.cut(label_df['y'], n_cells, labels=False) * n_cells
@@ -960,17 +959,17 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
 
                     # For each group in train set, perform the KS test with corresponding group in test set
                     for name, group_train in grouped_train:
-                        if name in grouped_test.groups:  # Check if the group name exists in grouped_test
+                        # if name in grouped_test.groups:  # Check if the group name exists in grouped_test
 
-                            group_test = grouped_test.get_group(name)
+                        group_test = grouped_test.get_group(name)
 
-                            # Extract the 'hd_goal' column
-                            head_angles_train = group_train['hd_goal']
-                            head_angles_test = group_test['hd_goal']
+                        # Extract the 'hd_goal' column
+                        head_angles_train = group_train['hd_goal']
+                        head_angles_test = group_test['hd_goal']
 
-                            # Perform the KS test
-                            D, p_value = ks_2samp(head_angles_train, head_angles_test)
-                            ks_results[name] = (D, p_value)
+                        # Perform the KS test
+                        D, p_value = ks_2samp(head_angles_train, head_angles_test)
+                        ks_results[name] = (D, p_value)
 
                     # Convert the results to a DataFrame for easier viewing
                     ks_results_df = pd.DataFrame.from_dict(ks_results, orient='index', columns=['D', 'p-value'])
