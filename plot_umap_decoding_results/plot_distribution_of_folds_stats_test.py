@@ -1014,12 +1014,12 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             diff = np.diff(threshold_indices)
             # find the minimum index where every difference after is 10
             index_saved = None
-            for i, val in enumerate(diff):
-                if val == 10 and index_saved == None:
-                    index_saved = i
-                if val != 10 and index_saved == None:
+            for h, val in enumerate(diff):
+                if val == 1 and index_saved == None:
+                    index_saved = h
+                if val != 1 and index_saved == None:
                     index_saved = None
-                elif val != 10 and i > index_saved:
+                elif val != 1 and h > index_saved:
                     index_saved = None
             first_index = index_saved
 
