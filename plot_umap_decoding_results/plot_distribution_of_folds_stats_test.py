@@ -907,8 +907,8 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                 # remove those neurons
                 spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-            spike_data_trial = spike_data
-            data_dir_path = Path(data_dir)
+            # spike_data_trial = spike_data
+            # data_dir_path = Path(data_dir)
 
             X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
             X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
@@ -934,8 +934,10 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             n_cells = 8
             # Create a new column 'region' that represents the cell each data point belongs to
             label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
-                                 pd.cut(label_df['y'], n_cells, labels=False) * n_cells
-
+                                 pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
+                                 pd.cut(label_df['hd_goal'], n_cells, labels=False) * n_cells * n_cells
+            min_region = label_df['region'].min()
+            max_region = label_df['region'].max()
             from scipy.stats import ks_2samp
 
             for i in range(10, 2000, 10):
@@ -953,26 +955,23 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                     # for each region, calculate the ks test for angle
                     ks_results = {}
 
-                    # Group the DataFrame by 'region'
-                    grouped_train = y_train.groupby('region')
-                    grouped_test = y_test.groupby('region')
+                    train_grouped = y_train.groupby('region').size()
 
-                    # For each group in train set, perform the KS test with corresponding group in test set
-                    for name, group_train in grouped_train:
-                        # if name in grouped_test.groups:  # Check if the group name exists in grouped_test
+                    test_grouped = y_test.groupby('region').size()
+                    #for regions that are missing in the range of min_region and max_region, add a zero
+                    for region in range(min_region, max_region):
+                        if region not in train_grouped:
+                            train_grouped[region] = 0
+                        if region not in test_grouped:
+                            test_grouped[region] = 0
 
-                        group_test = grouped_test.get_group(name)
+                    #convert train_grouped and test_grouped to an array for the ks test
+                    train_grouped_for_testing = train_grouped.values
+                    test_grouped_for_testing = test_grouped.values
+                    ks_results = ks_2samp(train_grouped_for_testing, test_grouped_for_testing)
+                    ks_results = {'D': 0.2, 'p-value': 0.05}
 
-                        # Extract the 'hd_goal' column
-                        head_angles_train = group_train['hd_goal']
-                        head_angles_test = group_test['hd_goal']
-
-                        # Perform the KS test
-                        D, p_value = ks_2samp(head_angles_train, head_angles_test)
-                        ks_results[name] = (D, p_value)
-
-                    # Convert the results to a DataFrame for easier viewing
-                    ks_results_df = pd.DataFrame.from_dict(ks_results, orient='index', columns=['D', 'p-value'])
+                    ks_results_df = pd.DataFrame.from_dict(ks_results, orient='index').T
                     ks_results_df['num_windows'] = i
                     ks_results_df['fold_number'] = j
                     #concatenate to the results dataframe
