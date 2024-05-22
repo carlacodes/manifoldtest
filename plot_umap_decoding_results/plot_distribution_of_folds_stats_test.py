@@ -1069,6 +1069,15 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
     df_across_windows['mean_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows[
         'mean_minimum_number_windows'].mean()
 
+    #get the maximum as well
+    df_across_windows['max_minimum_number_windows'] = df_across_windows.groupby('rat_id')[
+        'minimum_number_windows'].transform('max')
+    df_across_windows['max_minimum_number_windows_by_windowsize'] = df_across_windows.groupby('window_size')[
+        'minimum_number_windows'].transform('max')
+    df_across_windows['max_minimum_number_windows_across_rats_and_windowsize'] = df_across_windows[
+        'max_minimum_number_windows'].max()
+
+
 
 
     np.unique(df_across_windows['mean_minimum_number_windows_across_rats_and_windowsize'])
