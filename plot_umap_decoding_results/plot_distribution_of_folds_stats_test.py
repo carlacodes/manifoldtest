@@ -900,7 +900,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             dlc_dir = os.path.join(data_dir, 'positional_data')
             labels = np.load(f'{dlc_dir}/labels_250_scale_to_angle_range_True.npy')
             col_list = np.load(f'{dlc_dir}/col_names_250_scale_to_angle_range_True.npy')
-            spike_data = np.load(f'{spike_dir}/inputs_{window_size}.npy')
+            spike_data = np.load(f'{spike_dir}/inputs_10052024_{window_size}.npy')
             spike_data_copy = copy.deepcopy(spike_data)
             tolerance = 1e-10  # or any small number that suits your needs
             if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
@@ -996,7 +996,6 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                     #concatenate to the results dataframe
                     results_df = pd.concat([results_df, ks_results_df])
 
-                    # appebd to the results dataframe
 
                 #check if all p-values are above 0.05
                 p_values = results_df['p-value'].values
@@ -1016,13 +1015,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             # calculate the index for when the p-value is consistently above 0.2
             # get the index where the p-value is consistently above 0.2
 
-            # first threshold for where the p-value is consistently above 0.2
-            threshold = 0.05
-            #scan every instance of p-value to make sure it is above threshold
-            #reset index of big_results_df
             big_results_df = big_results_df.reset_index()
-
-
             # # get the index where the p-value is consistently above 0.2
             index_above_threshold = big_results_df[big_results_df['above_threshold'] > 0]
 
