@@ -568,7 +568,7 @@ def run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedi
 
             big_results_df = pd.DataFrame()
             big_results_df_angle = pd.DataFrame()
-            for i in range(10, 2000, 10):
+            for i in range(10, 10000, 10):
                 try:
                     custom_folds_test = create_folds(n_timesteps, num_folds=10, num_windows=i)
                 except Exception as e:
