@@ -960,7 +960,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
 
                     test_grouped = y_test.groupby('region').size()
                     #for regions that are missing in the range of min_region and max_region, add a zero
-                    for region in range(min_region, max_region):
+                    for region in range(min_region, max_region+1):
                         if region not in train_grouped:
                             train_grouped[region] = 0
                         if region not in test_grouped:
@@ -968,7 +968,11 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
 
                     #convert train_grouped and test_grouped to an array for the ks test
                     train_grouped_for_testing = train_grouped.values
+                    #normalise
+                    train_grouped_for_testing = train_grouped_for_testing / np.sum(train_grouped_for_testing)
+
                     test_grouped_for_testing = test_grouped.values
+                    test_grouped_for_testing = test_grouped_for_testing / np.sum(test_grouped_for_testing)
                     # fig,ax = plt.subplots(1, 1)
                     # ax.plot(train_grouped_for_testing, label='train')
                     # ax.plot(test_grouped_for_testing, label='test')
@@ -979,6 +983,8 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
                     # plt.show()
                     plt.close('all')
                     # ks_results = ks_2samp(train_grouped_for_testing, test_grouped_for_testing)
+                    len(train_grouped_for_testing)
+                    len(test_grouped_for_testing)
 
                     stat, p = wilcoxon(train_grouped_for_testing, test_grouped_for_testing)
 
