@@ -932,7 +932,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             # Sort by position and angle
             # sorted_df = label_df.sort_values(by=['position', 'hd_goal'])
 
-            n_cells = 2
+            n_cells = 8
             # Create a new column 'region' that represents the cell each data point belongs to
             label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
                                  pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
