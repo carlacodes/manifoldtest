@@ -264,7 +264,7 @@ def create_datasets_from_robot_maze():
 
 
     window_sizes = [100, 250]
-    scale_to_angle_range = True
+    scale_to_angle_range = False
     for window_size in window_sizes:
         # create positional and spike trains 
         # and save as a pickle file
@@ -394,7 +394,7 @@ def main():
     sample_freqs = {'rat_3': 20000, 'rat_7': 30000, 'rat_8': 30000, 'rat_9': 30000, 'rat_10': 30000}
 
     window_sizes = [20, 50, 100, 250, 500]
-    scale_to_angle_range    = True
+    scale_to_angle_range    = False
     for rs in rat_and_session:
 
         rat = rs.split('/')[0]

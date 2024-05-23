@@ -894,7 +894,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
     for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_10/23-11-2021',
                      'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
                      'C:/neural_data/rat_3/25-3-2019']:
-        for window_size in [250]:
+        for window_size in [100]:
             rat_id = data_dir.split('/')[-2]
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -941,7 +941,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             max_region = label_df['region'].max()
             from scipy.stats import ks_2samp
 
-            for i in range(10, 2000, 10):
+            for i in range(10, 10000, 10):
                 try:
                     custom_folds_test = create_folds(n_timesteps, num_folds=10, num_windows=i)
                 except Exception as e:
@@ -1084,7 +1084,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
     np.unique(df_across_windows['mean_minimum_number_windows_by_windowsize'])
 
     # export to csv
-    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid.csv')
+    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid_100windows_noscaling_justzscore.csv')
     return df_across_windows
 
 
