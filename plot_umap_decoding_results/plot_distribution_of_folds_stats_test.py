@@ -899,7 +899,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
             labels = np.load(f'{dlc_dir}/labels_{window_size}_scale_to_angle_range_{scale_to_angle_range}.npy')
-            col_list = np.load(f'{dlc_dir}/col_names_{window_size}_scale_to_angle_range_True.npy')
+            col_list = np.load(f'{dlc_dir}/col_names_{window_size}_scale_to_angle_range_{scale_to_angle_range}.npy')
             spike_data = np.load(f'{spike_dir}/inputs_10052024_{window_size}.npy')
             spike_data_copy = copy.deepcopy(spike_data)
             tolerance = 1e-10  # or any small number that suits your needs
