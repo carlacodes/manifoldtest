@@ -1096,7 +1096,7 @@ def main():
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
     # run_stratified_kfold_test()
     # run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedir)
-    run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir)
+    run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range=True)
     #'C:/neural_data/rat_3/25-3-2019'
 
 
