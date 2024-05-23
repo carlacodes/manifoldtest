@@ -1084,7 +1084,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
     np.unique(df_across_windows['mean_minimum_number_windows_by_windowsize'])
 
     # export to csv
-    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_{scale_to_angle_range}.csv')
+    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid_100windows_scale_to_angle_range_{scale_to_angle_range}.csv')
     return df_across_windows
 
 
