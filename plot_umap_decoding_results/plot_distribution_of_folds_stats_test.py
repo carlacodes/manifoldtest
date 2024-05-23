@@ -888,7 +888,7 @@ def run_stratified_kfold_test():
     return df_big, df_big_angle
 
 
-def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir):
+def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range = False):
     df_across_windows = pd.DataFrame()
     df_across_windows_angle = pd.DataFrame()
     for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_10/23-11-2021',
@@ -898,8 +898,8 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             rat_id = data_dir.split('/')[-2]
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
-            labels = np.load(f'{dlc_dir}/labels_250_scale_to_angle_range_True.npy')
-            col_list = np.load(f'{dlc_dir}/col_names_250_scale_to_angle_range_True.npy')
+            labels = np.load(f'{dlc_dir}/labels_{window_size}_scale_to_angle_range_{scale_to_angle_range}.npy')
+            col_list = np.load(f'{dlc_dir}/col_names_{window_size}_scale_to_angle_range_True.npy')
             spike_data = np.load(f'{spike_dir}/inputs_10052024_{window_size}.npy')
             spike_data_copy = copy.deepcopy(spike_data)
             tolerance = 1e-10  # or any small number that suits your needs
@@ -1084,7 +1084,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
     np.unique(df_across_windows['mean_minimum_number_windows_by_windowsize'])
 
     # export to csv
-    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid_100windows_noscaling_justzscore.csv')
+    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid_100windows_scale_to_angle_range_{scale_to_angle_range}.csv')
     return df_across_windows
 
 
