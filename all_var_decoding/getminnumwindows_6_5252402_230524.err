@@ -1,4 +1,4 @@
-/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/angle_rel_to_goal_decoding/angletogoal_randomcvsearch_250ms_1000window_rat3.py:14: DeprecationWarning: 
+/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/get_min_num_windows_parallel.py:14: DeprecationWarning: 
 Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
 (to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
 but was not found to be installed on your system.

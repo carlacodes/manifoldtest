@@ -260,7 +260,7 @@ def train_and_test_on_umap_randcv(
             score = current_regressor.score(X_test_reduced, y_test)
             # print('Score:', score)
             #instead of printing log the score
-            logger.info(f'Score: {score}')
+            logger.info(f'Score: {score} and the params are {params}')
 
             scores.append(score)
 

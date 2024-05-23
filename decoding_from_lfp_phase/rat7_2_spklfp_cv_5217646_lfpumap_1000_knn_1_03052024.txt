@@ -1,0 +1,14 @@
+The shape of the repeated spike data is not the same as the lfp data
+The shape of the repeated spike data is less than the lfp data
+The shape of the label_df is (183633, 7)
+The shape of the label_df is (91817, 7)
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888
+Ratio of train to test indices is 9.201888888888888

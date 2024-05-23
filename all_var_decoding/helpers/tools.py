@@ -31,7 +31,6 @@ from scipy.signal.windows import gaussian
 import matplotlib.pyplot as plt
 from scipy.signal import lfilter
 
-
 def apply_lfads_smoothing(data_in):
     std_sec = 0.25
     bin_width_sec = 0.25
@@ -52,5 +51,9 @@ def apply_lfads_smoothing(data_in):
     #     # Convolve each session with the gaussian window
     #     smth_spikes[session] = lfilter(window, 1, spikes[session], axis=1)[:, invalid_len:, :]
     X_umap_lfads = lfilter(window, 1, data_in, axis=0)[invalid_len:, :]
+
+    removed_row_indices = np.arange(0, invalid_len)
+
+
     # then z score
-    return X_umap_lfads
+    return X_umap_lfads, removed_row_indices

@@ -19,6 +19,8 @@ from skopt import BayesSearchCV
 from sklearn.pipeline import Pipeline
 import logging
 import sys
+from sklearn.base import BaseEstimator
+
 
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
@@ -159,7 +161,7 @@ def train_and_test_on_umap_randcv(
 
     param_grid = {
     'estimator__estimator__n_neighbors': (2, 70),  # range of values
-    'reducer__n_components': [2],
+    'reducer__n_components': (2,9),
     'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
     'reducer__n_neighbors': (10, 70),  # range of values
     'reducer__min_dist': (0.0001, 0.3),  # range of values
@@ -172,7 +174,7 @@ def train_and_test_on_umap_randcv(
         search_spaces=param_grid, 
         n_iter=200, 
         cv=custom_folds, 
-        verbose=2, 
+        verbose=3, 
         n_jobs=-1, 
         scoring='r2'
     )
@@ -285,8 +287,8 @@ def main():
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_lfp_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now}.npy'
-    filename_mean_score = f'mean_lfp_score_all_trials_randomizedsearchcv_20bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
+    filename = f'params_lfp_all_trials_bayesearchcv_20bin_1000windows_jake_fold_sinandcos_{now}.npy'
+    filename_mean_score = f'mean_lfp_score_all_trials_bayessearchcv_20bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
     save_dir_path = data_dir_path / 'lfp_phase_manifold_withspkdata'
     save_dir_path.mkdir(parents=True, exist_ok=True)
     #initalise a logger
