@@ -112,7 +112,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000
 ):
 
 
@@ -123,7 +123,7 @@ def train_and_test_on_umap_randcv(
     # Create your custom folds
     n_timesteps = spks.shape[0]
 
-    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=2800)
+    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('reducer', CustomUMAP()),
@@ -275,10 +275,12 @@ def main():
 
     # print out the first couple of rows of the lfp_data
     #randsearch_allvars_lfadssmooth_empiricalwindows_1000iter_independentvar_2024-05-24
-    previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindows_1000iter')
+    previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindows_1000iter')
     rat_id = data_dir.split('/')[-3]
     manual_params = previous_results[rat_id]
     manual_params = manual_params.item()
+
+    num_windows = num_windows_dict[rat_id]
 
     spike_data_copy = copy.deepcopy(spike_data)
     tolerance = 1e-10  # or any small number that suits your needs
@@ -350,7 +352,7 @@ def main():
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id, num_windows = num_windows
     )
     np.save(save_dir_path / filename, best_params)
     np.save(save_dir_path / filename_mean_score, mean_score)

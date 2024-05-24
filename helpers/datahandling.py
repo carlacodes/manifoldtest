@@ -217,6 +217,7 @@ class DataHandler():
     def load_previous_results(directory_of_interest):
         param_dict = {}
         score_dict = {}
+        num_window_dict = {}
         # 'C:/neural_data/rat_3/25-3-2019'
         for rat_dir in ['C:/neural_data/rat_10/23-11-2021', 'C:/neural_data/rat_7/6-12-2019',
                         'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
@@ -253,11 +254,11 @@ class DataHandler():
 
             # param_directory = f'{rat_dir}/{directory_of_interest}'
             # find all the files in the directory
-            # try:
-            files = os.listdir(param_directory)
-            # except Exception as e:
-            #     print(f'Error: {e}')
-            #     continue
+            try:
+                files = os.listdir(param_directory)
+            except Exception as e:
+                print(f'Error: {e}')
+                continue
 
             # for window in [window_size]:
             #     for bin_size in [bin_size]:
@@ -265,9 +266,15 @@ class DataHandler():
             for file in files:
                 if file.__contains__('mean_score'):
                     score_dict[rat_id] = np.load(f'{param_directory}/{file}')
+                    #separate the string to get the number of windows
+                    num_windows = (file.split('windows')[-1].split('.')[0])
+                    num_windows = num_windows.split('_')[0]
+                    #convert to int
+                    num_windows = int(num_windows)
+                    num_window_dict[rat_id] = num_windows
                 elif file.__contains__('params'):
                     with open(f'{param_directory}/{file}', 'rb') as f:
                         param_dict[rat_id] = np.load(f'{param_directory}/{file}', allow_pickle=True)
-        return param_dict, score_dict
+        return param_dict, score_dict, num_window_dict
 
 
