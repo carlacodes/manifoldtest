@@ -262,7 +262,7 @@ class DataHandler():
                 for bin_size in [bin_size]:
                     # find the file names
                     for file in files:
-                        if file.__contains__(f'{window}windows'):
+                        if file.__contains__(f'{window}windows') or file.__contains__(f'numwindows{window}'):
                             if file.__contains__('mean_score'):
                                 score_dict[rat_id] = np.load(f'{param_directory}/{file}')
                             elif file.__contains__('params'):

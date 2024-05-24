@@ -274,7 +274,7 @@ def main():
 
 
     # print out the first couple of rows of the lfp_data
-    previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_340windows_1000iter_independentvar_2024-05-17', window_size=340, bin_size = 250)
+    previous_results, score_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindows_1000iter_independentvar_2024-05-23', window_size=2800, bin_size = 250)
     rat_id = data_dir.split('/')[-3]
     manual_params = previous_results[rat_id]
     manual_params = manual_params.item()
