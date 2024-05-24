@@ -214,7 +214,7 @@ class DataHandler():
 
         return folds
     @staticmethod
-    def load_previous_results(directory_of_interest, window_size = 1000, bin_size = 250):
+    def load_previous_results(directory_of_interest):
         param_dict = {}
         score_dict = {}
         # 'C:/neural_data/rat_3/25-3-2019'
@@ -226,11 +226,12 @@ class DataHandler():
             list_of_directories = os.listdir(rat_dir)
             #get the directory of interest
             #check if keyword matches any of the directories
+            directory_of_interest_find = None
             for directory in list_of_directories:
                 if directory.__contains__(directory_of_interest):
-                    directory_of_interest = directory
+                    directory_of_interest_find = directory
                     break
-            if directory_of_interest == None:
+            if directory_of_interest_find == None:
                 print(f'{rat_id} does not have the directory of interest')
                 continue
                 # else:
@@ -248,26 +249,25 @@ class DataHandler():
             #     print(f'{rat_id} does not have the directory of interest')
             #     continue
 
-            param_directory = f'{rat_dir}/{directory_of_interest}'
+            param_directory = f'{rat_dir}/{directory_of_interest_find}'
 
             # param_directory = f'{rat_dir}/{directory_of_interest}'
             # find all the files in the directory
-            try:
-                files = os.listdir(param_directory)
-            except Exception as e:
-                print(f'Error: {e}')
-                continue
+            # try:
+            files = os.listdir(param_directory)
+            # except Exception as e:
+            #     print(f'Error: {e}')
+            #     continue
 
-            for window in [window_size]:
-                for bin_size in [bin_size]:
+            # for window in [window_size]:
+            #     for bin_size in [bin_size]:
                     # find the file names
-                    for file in files:
-                        if file.__contains__(f'{window}windows') or file.__contains__(f'numwindows{window}'):
-                            if file.__contains__('mean_score'):
-                                score_dict[rat_id] = np.load(f'{param_directory}/{file}')
-                            elif file.__contains__('params'):
-                                with open(f'{param_directory}/{file}', 'rb') as f:
-                                    param_dict[rat_id] = np.load(f'{param_directory}/{file}', allow_pickle=True)
+            for file in files:
+                if file.__contains__('mean_score'):
+                    score_dict[rat_id] = np.load(f'{param_directory}/{file}')
+                elif file.__contains__('params'):
+                    with open(f'{param_directory}/{file}', 'rb') as f:
+                        param_dict[rat_id] = np.load(f'{param_directory}/{file}', allow_pickle=True)
         return param_dict, score_dict
 
 
