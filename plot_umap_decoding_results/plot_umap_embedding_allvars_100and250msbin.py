@@ -119,6 +119,7 @@ def train_and_test_on_umap_randcv(
     y = bhv[regress].values
 
     rat_dataframe = pd.DataFrame()
+    rat_dataframe_shuffle = pd.DataFrame()
 
     random_search_results = []
 
@@ -128,6 +129,11 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
+        ('reducer', CustomUMAP()),
+        ('estimator', MultiOutputRegressor(regressor()))
+    ])
+
+    pipeline_shuffle = Pipeline([
         ('reducer', CustomUMAP()),
         ('estimator', MultiOutputRegressor(regressor()))
     ])
@@ -194,44 +200,74 @@ def train_and_test_on_umap_randcv(
         best_params = manual_params
         # Initialize lists to store the scores
         train_scores = []
+        train_scores_shuffle = []
         test_scores = []
+        test_scores_shuffle = []
 
         # Loop over the custom folds
         count = 0
         fold_dataframe = pd.DataFrame()
+        fold_dataframe_shuffle = pd.DataFrame()
+
+        spks_shuffle = copy.deepcopy(spks)
+        np.random.shuffle(spks_shuffle)
+
+        y_shuffle = copy.deepcopy(y)
+        np.random.shuffle(y_shuffle)
+
+
         for train_index, test_index in custom_folds:
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
+            spks_train_shuffle, spks_test_shuffle = spks_shuffle[train_index], spks_shuffle[test_index]
+            y_train_shuffle, y_test_shuffle = y_shuffle[train_index], y_shuffle[test_index]
+
             # Set the parameters
             # formatted_params = format_params(manual_params)
             pipeline.set_params(**manual_params)
+            pipeline_shuffle.set_params(**manual_params)
 
             # Fit the pipeline on the training data
             pipeline.fit(spks_train, y_train)
+            pipeline_shuffle.fit(spks_train_shuffle, y_train_shuffle)
             fitted_reducer = pipeline.named_steps['reducer']
+            fitted_reducer_shuffle = pipeline_shuffle.named_steps['reducer']
             X_test_reduced = fitted_reducer.transform(spks_test)
+            X_test_reduced_shuffle = fitted_reducer_shuffle.transform(spks_test_shuffle)
 
             # Calculate the training score and append it to the list
             train_score = pipeline.score(spks_train, y_train)
+            train_scores_shuffle.append(pipeline_shuffle.score(spks_train_shuffle, y_train_shuffle))
             train_scores.append(train_score)
 
             # Calculate the test score and append it to the list
             test_score = pipeline.score(spks_test, y_test)
+            test_scores_shuffle.append(pipeline_shuffle.score(spks_test_shuffle, y_test_shuffle))
+
             y_pred = pipeline.predict(spks_test)
+            y_pred_shuffle = pipeline_shuffle.predict(spks_test_shuffle)
+
             col_list = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']
             indiv_results_dataframe = pd.DataFrame(y_pred, columns=['x', 'y',
+                                                                    'angle_sin_goal', 'angle_cos_goal'])
+            indiv_results_dataframe_shuffle = pd.DataFrame(y_pred_shuffle, columns=['x', 'y',
                                                                     'angle_sin_goal', 'angle_cos_goal'])
 
             for i in range(y_test.shape[1]):
                 score_indiv = r2_score(y_test[:, i], y_pred[:, i])
+                score_indiv_shuffle = r2_score(y_test_shuffle[:, i], y_pred_shuffle[:, i])
                 indiv_results_dataframe[col_list[i]] = score_indiv
+                indiv_results_dataframe_shuffle[col_list[i]] = score_indiv_shuffle
 
                 print(f'R2 score for {col_list[i]} is {score_indiv}')
             # break down the score into its components
             indiv_results_dataframe['fold'] = count
+            indiv_results_dataframe_shuffle['fold'] = count
+
             fold_dataframe = pd.concat([fold_dataframe, indiv_results_dataframe], axis=0)
+            fold_dataframe_shuffle = pd.concat([fold_dataframe_shuffle, indiv_results_dataframe_shuffle], axis=0)
 
             test_scores.append(test_score)
             actual_angle = np.arcsin(y_test[:, 0])
@@ -252,6 +288,10 @@ def train_and_test_on_umap_randcv(
         # Calculate the mean training and test scores
         mean_train_score = np.mean(train_scores)
         mean_test_score = np.mean(test_scores)
+        mean_train_score_shuffle = np.mean(train_scores_shuffle)
+        mean_test_score_shuffle = np.mean(test_scores_shuffle)
+
+
         rat_dataframe = pd.concat([rat_dataframe, indiv_results_dataframe], axis=0)
         rat_dataframe['rat_id'] = rat_id
         rat_dataframe['mean_test_score'] = mean_test_score
@@ -260,15 +300,24 @@ def train_and_test_on_umap_randcv(
         # Print the mean scores
         print(f'Mean training score: {mean_train_score}')
         print(f'Mean test score: {mean_test_score}')
+
+        rat_dataframe_shuffle = pd.concat([rat_dataframe_shuffle, indiv_results_dataframe_shuffle], axis=0)
+        rat_dataframe_shuffle['rat_id'] = rat_id
+        rat_dataframe_shuffle['mean_test_score'] = mean_test_score_shuffle
+        rat_dataframe_shuffle['mean_train_score'] = mean_train_score_shuffle
+
+
+
         best_score = mean_test_score
         #append to a dataframe
-    return best_params, best_score,rat_dataframe
+    return best_params, best_score,rat_dataframe, rat_dataframe_shuffle
 
 
 def run_umap_pipeline_across_rats():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/']
     across_dir_dataframe = pd.DataFrame()
+    across_dir_dataframe_shuffled = pd.DataFrame()
     bin_size = 250
     for data_dir in data_dir_list:
         spike_dir = os.path.join(data_dir, 'physiology_data')
@@ -359,7 +408,7 @@ def run_umap_pipeline_across_rats():
         logger.info('Starting the training and testing of the lfp data with the spike data')
         #remove numpy array, just get mapping from manual_params
 
-        best_params, mean_score, rat_dataframe = train_and_test_on_umap_randcv(
+        best_params, mean_score, rat_dataframe, rat_dataframe_shuffled = train_and_test_on_umap_randcv(
             X_for_umap,
             label_df,
             regress,
@@ -372,7 +421,9 @@ def run_umap_pipeline_across_rats():
         np.save(save_dir_path / filename_mean_score, mean_score)
         #append to larger dataframe
         across_dir_dataframe = pd.concat([across_dir_dataframe, rat_dataframe], axis=0)
+        across_dir_dataframe_shuffled = pd.concat([across_dir_dataframe_shuffled, rat_dataframe_shuffled], axis=0)
      #save to csv
+    across_dir_dataframe['mean_test_score_across_rats'] = across_dir_dataframe['mean_test_score'].mean()
     across_dir_dataframe.to_csv(f'{data_dir}/across_dir_dataframe_bin_size_{bin_size}.csv')
     return across_dir_dataframe
 
