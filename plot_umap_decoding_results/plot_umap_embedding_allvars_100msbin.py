@@ -191,7 +191,7 @@ def train_and_test_on_umap_randcv(
         best_score = random_search.best_score_
     else:
         # Manually set the parameters
-
+        best_params = manual_params
         # Initialize lists to store the scores
         train_scores = []
         test_scores = []
@@ -260,6 +260,7 @@ def train_and_test_on_umap_randcv(
         # Print the mean scores
         print(f'Mean training score: {mean_train_score}')
         print(f'Mean test score: {mean_test_score}')
+        best_score = mean_test_score
         #append to a dataframe
     return best_params, best_score,rat_dataframe
 
