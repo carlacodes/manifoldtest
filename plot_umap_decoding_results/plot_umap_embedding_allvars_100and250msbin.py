@@ -425,6 +425,8 @@ def run_umap_pipeline_across_rats():
      #save to csv
     across_dir_dataframe['mean_test_score_across_rats'] = across_dir_dataframe['mean_test_score'].mean()
     across_dir_dataframe.to_csv(f'{data_dir}/across_dir_dataframe_bin_size_{bin_size}.csv')
+    across_dir_dataframe_shuffled['mean_test_score_across_rats'] = across_dir_dataframe_shuffled['mean_test_score'].mean()
+    across_dir_dataframe_shuffled.to_csv(f'{data_dir}/across_dir_dataframe_shuffled_bin_size_{bin_size}.csv')
     return across_dir_dataframe
 
 
