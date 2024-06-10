@@ -118,6 +118,8 @@ def train_and_test_on_umap_randcv(
 
     y = bhv[regress].values
 
+    rat_dataframe = pd.DataFrame()
+
     random_search_results = []
 
     # Create your custom folds
@@ -250,112 +252,121 @@ def train_and_test_on_umap_randcv(
         # Calculate the mean training and test scores
         mean_train_score = np.mean(train_scores)
         mean_test_score = np.mean(test_scores)
+        rat_dataframe = pd.concat([rat_dataframe, indiv_results_dataframe], axis=0)
+        rat_dataframe['rat_id'] = rat_id
+        rat_dataframe['mean_test_score'] = mean_test_score
+        rat_dataframe['mean_train_score'] = mean_train_score
 
         # Print the mean scores
         print(f'Mean training score: {mean_train_score}')
         print(f'Mean test score: {mean_test_score}')
-    return best_params, best_score
+        #append to a dataframe
+    return best_params, best_score,rat_dataframe
 
 
 def main():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    spike_dir = os.path.join(data_dir, 'physiology_data')
-    dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(f'{dlc_dir}/labels_250_scale_to_angle_range_False.npy')
-    col_list = np.load(f'{dlc_dir}/col_names_250_scale_to_angle_range_False.npy')
-    lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
-    old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-    #check if they are the same array
-    if np.allclose(spike_data, old_spike_data):
-        print('The two arrays are the same')
-    else:
-        print('The two arrays are not the same')
+    data_dir_list = [data_dir]
+    across_dir_dataframe = pd.DataFrame()
+    for data_dir in data_dir_list:
+        spike_dir = os.path.join(data_dir, 'physiology_data')
+        dlc_dir = os.path.join(data_dir, 'positional_data')
+        labels = np.load(f'{dlc_dir}/labels_100_scale_to_angle_range_False.npy')
+        col_list = np.load(f'{dlc_dir}/col_names_100_scale_to_angle_range_False.npy')
+        spike_data = np.load(f'{spike_dir}/inputs_10052024_100.npy')
+        old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_100.npy')
+        #check if they are the same array
+        if np.allclose(spike_data, old_spike_data):
+            print('The two arrays are the same')
+        else:
+            print('The two arrays are not the same')
 
 
-    # print out the first couple of rows of the lfp_data
-    #randsearch_allvars_lfadssmooth_empiricalwindows_1000iter_independentvar_2024-05-24
-    previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_')
-    rat_id = data_dir.split('/')[-3]
-    manual_params = previous_results[rat_id]
-    manual_params = manual_params.item()
+        # print out the first couple of rows of the lfp_data
+        #randsearch_allvars_lfadssmooth_empiricalwindows_1000iter_independentvar_2024-05-24
+        previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
+        rat_id = data_dir.split('/')[-3]
+        manual_params = previous_results[rat_id]
+        manual_params = manual_params.item()
 
-    num_windows = num_windows_dict[rat_id]
+        num_windows = num_windows_dict[rat_id]
 
-    spike_data_copy = copy.deepcopy(spike_data)
-    tolerance = 1e-10  # or any small number that suits your needs
-    if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
-        print('There are neurons with constant firing rates')
-        # remove those neurons
-        spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
+        spike_data_copy = copy.deepcopy(spike_data)
+        tolerance = 1e-10  # or any small number that suits your needs
+        if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
+            print('There are neurons with constant firing rates')
+            # remove those neurons
+            spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-    X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
-    X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
-
-
-    labels_for_umap = labels
-    #remove the indices
-    labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
-
-    label_df = pd.DataFrame(labels_for_umap,
-                            columns=col_list)
-    label_df['time_index'] = np.arange(0, label_df.shape[0])
-
-    #plot angle sin and angle cos to goal
-    fig, ax = plt.subplots()
-    ax.plot(label_df['sin_relative_direction'][:120], label = 'angle_sin_goal')
-    ax.plot(label_df['cos_relative_direction'][:120], label = 'angle_cos_goal')
-    ax.legend()
-    plt.show()
+        X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+        X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
 
 
+        labels_for_umap = labels
+        #remove the indices
+        labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
 
-    regressor = KNeighborsRegressor
-    regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
+        label_df = pd.DataFrame(labels_for_umap,
+                                columns=col_list)
+        label_df['time_index'] = np.arange(0, label_df.shape[0])
 
-    reducer = UMAP
+        #plot angle sin and angle cos to goal
+        fig, ax = plt.subplots()
+        ax.plot(label_df['sin_relative_direction'][:120], label = 'angle_sin_goal')
+        ax.plot(label_df['cos_relative_direction'][:120], label = 'angle_cos_goal')
+        ax.legend()
+        plt.show()
 
-    reducer_kwargs = {
-        'n_components': 3,
-        # 'n_neighbors': 70,
-        # 'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
-    }
 
-    regress = ['x', 'y',  'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
 
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_all_trials_randsearch_250bin_340windows_jake_fold_allvars_{now}.npy'
-    filename_mean_score = f'mean_score_all_trials_randsearch_250bin_340windows_jake_fold_{now}.npy'
-    save_dir_path = Path(f'{data_dir}/randsearch_allvars_lfadssmooth_340windows_1000iter_independentvar_{now_day}')
-    save_dir_path.mkdir(parents=True, exist_ok=True)
-    # initalise a logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    # create a file handler
-    handler = logging.FileHandler(save_dir_path / f'rand_search_cv_{now}.log')
-    handler.setLevel(logging.INFO)
-    # create a logging format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(handler)
-    logger.info('Starting the training and testing of the lfp data with the spike data')
-    #remove numpy array, just get mapping from manual_params
+        regressor = KNeighborsRegressor
+        regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
 
-    best_params, mean_score = train_and_test_on_umap_randcv(
-        X_for_umap,
-        label_df,
-        regress,
-        regressor,
-        regressor_kwargs,
-        reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id, num_windows = num_windows
-    )
-    np.save(save_dir_path / filename, best_params)
-    np.save(save_dir_path / filename_mean_score, mean_score)
+        reducer = UMAP
+
+        reducer_kwargs = {
+            'n_components': 3,
+            # 'n_neighbors': 70,
+            # 'min_dist': 0.3,
+            'metric': 'euclidean',
+            'n_jobs': 1,
+        }
+
+        regress = ['x', 'y',  'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
+
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        now_day = datetime.now().strftime("%Y-%m-%d")
+        filename = f'params_all_trials_randsearch_100bin_340windows_jake_fold_allvars_{now}.npy'
+        filename_mean_score = f'mean_score_all_trials_randsearch_100bin_340windows_jake_fold_{now}.npy'
+        save_dir_path = Path(f'{data_dir}/randsearch_allvars_lfadssmooth_340windows_1000iter_independentvar_{now_day}')
+        save_dir_path.mkdir(parents=True, exist_ok=True)
+        # initalise a logger
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
+        # create a file handler
+        handler = logging.FileHandler(save_dir_path / f'rand_search_cv_{now}.log')
+        handler.setLevel(logging.INFO)
+        # create a logging format
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        # add the handlers to the logger
+        logger.addHandler(handler)
+        logger.info('Starting the training and testing of the lfp data with the spike data')
+        #remove numpy array, just get mapping from manual_params
+
+        best_params, mean_score, rat_dataframe = train_and_test_on_umap_randcv(
+            X_for_umap,
+            label_df,
+            regress,
+            regressor,
+            regressor_kwargs,
+            reducer,
+            reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id, num_windows = num_windows
+        )
+        np.save(save_dir_path / filename, best_params)
+        np.save(save_dir_path / filename_mean_score, mean_score)
+        #append to larger dataframe
+        across_dir_dataframe = pd.concat([across_dir_dataframe, rat_dataframe], axis=0)
 
 
 if __name__ == '__main__':
