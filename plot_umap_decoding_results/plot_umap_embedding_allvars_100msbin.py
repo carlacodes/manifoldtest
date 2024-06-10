@@ -267,7 +267,7 @@ def train_and_test_on_umap_randcv(
 
 def run_umap_pipeline_across_rats():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/','C:/neural_data/rat_3/25-3-2019/']
+    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/']
     across_dir_dataframe = pd.DataFrame()
     for data_dir in data_dir_list:
         spike_dir = os.path.join(data_dir, 'physiology_data')
@@ -277,10 +277,10 @@ def run_umap_pipeline_across_rats():
         spike_data = np.load(f'{spike_dir}/inputs_10052024_100.npy')
         old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_100.npy')
         #check if they are the same array
-        if np.allclose(spike_data, old_spike_data):
-            print('The two arrays are the same')
-        else:
-            print('The two arrays are not the same')
+        # if np.allclose(spike_data, old_spike_data):
+        #     print('The two arrays are the same')
+        # else:
+        #     print('The two arrays are not the same')
 
 
         # print out the first couple of rows of the lfp_data
@@ -368,6 +368,8 @@ def run_umap_pipeline_across_rats():
         np.save(save_dir_path / filename_mean_score, mean_score)
         #append to larger dataframe
         across_dir_dataframe = pd.concat([across_dir_dataframe, rat_dataframe], axis=0)
+     #save to csv
+    across_dir_dataframe.to_csv(f'{data_dir}/across_dir_dataframe.csv')
     return across_dir_dataframe
 
 
