@@ -367,7 +367,7 @@ def run_umap_pipeline_across_rats():
         np.save(save_dir_path / filename_mean_score, mean_score)
         #append to larger dataframe
         across_dir_dataframe = pd.concat([across_dir_dataframe, rat_dataframe], axis=0)
-        return across_dir_dataframe
+    return across_dir_dataframe
 
 
 if __name__ == '__main__':
