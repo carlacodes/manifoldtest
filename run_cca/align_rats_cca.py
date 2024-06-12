@@ -17,6 +17,7 @@ from manifold_neural.helpers import cca_tools
 from manifold_neural.helpers import visualisation
 from numpy import mean, std, var, sqrt
 import scipy.linalg as linalg
+from scipy.spatial import procrustes
 
 
 
@@ -456,6 +457,10 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
                 #apply cca to the reduced data
                 A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_2, fullReturn=True)
+                data_1, data2, disparity = procrustes(X_test_reduced_1, X_test_reduced_2)
+                tss = np.sum((X_test_reduced_1 - np.mean(X_test_reduced_1, axis=0)) ** 2)
+                r_squared_procrustes = 1 - disparity / tss
+
                 #get the mean of the correlation coefficients
                 avg_corr = np.mean(r)
 
@@ -469,7 +474,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 # avg_corr = np.mean(correlation)
                 print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
                 #add the correlation coefficient to a dictionary
-                corr_dict[rat_id_1 + '_' + rat_id_2] = r
+                corr_dict[rat_id_1 + '_' + rat_id_2] = r_squared_procrustes
 
                 #for each pair plot the resultant data
                 fig, ax = plt.subplots(1, 1)
@@ -532,7 +537,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
 
 
-    return
+    return corr_dict
 
 def run_gcca_on_rat_data(data_store, param_dict, fold_store):
     regressor_kwargs = {'n_neighbors': 70}

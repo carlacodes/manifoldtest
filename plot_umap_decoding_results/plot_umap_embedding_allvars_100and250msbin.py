@@ -352,9 +352,16 @@ def run_umap_pipeline_across_rats():
             # remove those neurons
             spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-        # X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+        X_for_umap_smoothed, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
         X_for_umap = spike_data_copy
         X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
+        # X_for_umap_smoothed = scipy.stats.zscore(X_for_umap_smoothed, axis=0)
+        # #plot the X_for_umap_smoothed and X_for_umap
+        # fig, ax = plt.subplots()
+        # ax.plot(X_for_umap_smoothed[:, 10], label='smoothed', alpha=0.5)
+        # ax.plot(X_for_umap[removed_indices[-1]:, 10], label='unsmoothed', alpha =0.5)
+        # ax.legend()
+        # plt.show()
 
 
         labels_for_umap = labels
