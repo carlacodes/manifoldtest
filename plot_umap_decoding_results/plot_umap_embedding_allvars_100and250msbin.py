@@ -315,7 +315,7 @@ def train_and_test_on_umap_randcv(
 
 def run_umap_pipeline_across_rats():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/']
+    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/', 'C:/neural_data/rat_3/25-3-2019/']
     across_dir_dataframe = pd.DataFrame()
     across_dir_dataframe_shuffled = pd.DataFrame()
     bin_size = 250
@@ -352,13 +352,14 @@ def run_umap_pipeline_across_rats():
             # remove those neurons
             spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-        X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+        # X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+        X_for_umap = spike_data_copy
         X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
 
 
         labels_for_umap = labels
         #remove the indices
-        labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
+        # labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
 
         label_df = pd.DataFrame(labels_for_umap,
                                 columns=col_list)
