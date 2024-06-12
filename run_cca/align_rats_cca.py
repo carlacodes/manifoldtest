@@ -457,9 +457,11 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
 
                 #apply cca to the reduced data
                 A, B, r, U, V = cca_tools.canoncorr(X_test_reduced_1, X_test_reduced_2, fullReturn=True)
-                data_1, data2, disparity = procrustes(X_test_reduced_1, X_test_reduced_2)
-                tss = np.sum((X_test_reduced_1 - np.mean(X_test_reduced_1, axis=0)) ** 2)
-                r_squared_procrustes = 1 - disparity / tss
+                # data_1, data2, disparity = procrustes(X_test_reduced_1, X_test_reduced_2)
+                R, scale = scipy.linalg.orthogonal_procrustes(X_test_reduced_1, X_test_reduced_2)
+
+                aligned_data_1 = np.dot(X_test_reduced_1, R)
+                aligned_data_2 = np.dot(X_test_reduced_2, R)
 
                 #get the mean of the correlation coefficients
                 avg_corr = np.mean(r)
@@ -474,7 +476,11 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 # avg_corr = np.mean(correlation)
                 print(f'The average correlation coefficient is {avg_corr} between rats: {rat_id_1} and {rat_id_2}')
                 #add the correlation coefficient to a dictionary
-                corr_dict[rat_id_1 + '_' + rat_id_2] = r_squared_procrustes
+
+
+                correlation, _ = pearsonr(aligned_data_1.flatten(), aligned_data_2.flatten())
+
+                corr_dict[rat_id_1 + '_' + rat_id_2] = correlation
 
                 #for each pair plot the resultant data
                 fig, ax = plt.subplots(1, 1)
