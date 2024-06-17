@@ -244,7 +244,28 @@ def train_and_test_on_umap_randcv(
             diagrams = rips.fit_transform(X_test_reduced)
 
             # Plot the persistence diagram
-            rips.plot(diagrams)
+            rips.plot(diagrams, show = True )
+
+            radii = np.linspace(0.1, 1.0, 10)  # Change this to your desired radii
+            diagrams = []
+
+            for radius in radii:
+                # Subsample the data
+                subsample = X_test_reduced[X_test_reduced[:, 0] ** 2 + X_test_reduced[:, 1] ** 2 < radius ** 2]
+
+                # Compute the persistence diagram for the subsample
+                diagram = ripser(subsample)['dgms']
+                diagrams.append(diagram)
+
+            fig = plt.figure(figsize=(20, 20))
+
+            # Plot each diagram in a separate subplot
+            for i, diagram in enumerate(diagrams):
+                ax = fig.add_subplot(len(radii), 1, i + 1)
+                Rips().plot(diagram, ax=ax)
+
+            # Show the figure
+            plt.show()
 
             # Calculate the training score and append it to the list
             train_score = pipeline.score(spks_train, y_train)
