@@ -461,7 +461,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 R, scale = scipy.linalg.orthogonal_procrustes(X_test_reduced_1, X_test_reduced_2)
 
                 aligned_data_1 = np.dot(X_test_reduced_1, R)
-                aligned_data_2 = np.dot(X_test_reduced_2, R)
+                # aligned_data_2 = np.dot(X_test_reduced_2, R)
 
                 #get the mean of the correlation coefficients
                 avg_corr = np.mean(r)
@@ -478,7 +478,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                 #add the correlation coefficient to a dictionary
 
 
-                correlation, _ = pearsonr(aligned_data_1.flatten(), aligned_data_2.flatten())
+                correlation, _ = pearsonr(aligned_data_1.flatten(), X_test_reduced_2.flatten())
 
                 corr_dict[rat_id_1 + '_' + rat_id_2] = correlation
 
@@ -539,10 +539,7 @@ def run_cca_on_rat_data(data_store, param_dict, fold_store):
                             bbox_inches='tight', dpi=300)
                 plt.show()
 
-
-
-
-
+    print(corr_dict)
     return corr_dict
 
 def run_gcca_on_rat_data(data_store, param_dict, fold_store):
@@ -684,7 +681,7 @@ def main():
     param_dict['rat_9'] = params_1000_window_250bin_rat9
     param_dict['rat_10'] = params_1000_window_250bin_rat10
     param_dict['rat_7'] = params_1000_window_250bin_rat7
-    run_cca_on_rat_data(data_store_big, param_dict, fold_store)
+    output_corr = run_cca_on_rat_data(data_store_big, param_dict, fold_store)
     run_gcca_on_rat_data(data_store_big, param_dict, fold_store)
 
 

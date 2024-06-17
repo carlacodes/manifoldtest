@@ -29,7 +29,8 @@ import os
 import scipy
 import pickle as pkl
 from sklearn.base import BaseEstimator
-
+from ripser import ripser
+from ripser import Rips
 
 class CustomUMAP(BaseEstimator):
     def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
@@ -237,6 +238,14 @@ def train_and_test_on_umap_randcv(
             X_test_reduced = fitted_reducer.transform(spks_test)
             X_test_reduced_shuffle = fitted_reducer_shuffle.transform(spks_test_shuffle)
 
+            rips = Rips()
+
+            # Compute the persistence diagram
+            diagrams = rips.fit_transform(X_test_reduced)
+
+            # Plot the persistence diagram
+            rips.plot(diagrams)
+
             # Calculate the training score and append it to the list
             train_score = pipeline.score(spks_train, y_train)
             train_scores_shuffle.append(pipeline_shuffle.score(spks_train_shuffle, y_train_shuffle))
@@ -354,7 +363,7 @@ def run_umap_pipeline_across_rats():
 
         X_for_umap_smoothed, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
         X_for_umap = spike_data_copy
-        X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
+        # X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
         # X_for_umap_smoothed = scipy.stats.zscore(X_for_umap_smoothed, axis=0)
         # #plot the X_for_umap_smoothed and X_for_umap
         # fig, ax = plt.subplots()
