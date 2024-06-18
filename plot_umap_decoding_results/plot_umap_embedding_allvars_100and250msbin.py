@@ -200,7 +200,11 @@ def train_and_test_on_umap_randcv(
         best_score = random_search.best_score_
     else:
         # Manually set the parameters
+        manual_params['reducer__metric'] = 'cosine'
+
         best_params = manual_params
+        #add cosine metric to the reducer kwargs
+
         # Initialize lists to store the scores
         train_scores = []
         train_scores_shuffle = []
@@ -241,36 +245,33 @@ def train_and_test_on_umap_randcv(
             X_test_reduced_shuffle = fitted_reducer_shuffle.transform(spks_test_shuffle)
 
             rips = Rips()
-
-            # Compute the persistence diagram
             diagrams = rips.fit_transform(X_test_reduced)
-
-            # Plot the persistence diagram
             rips.plot(diagrams)
-
-            radii = np.linspace(0.1, 1.0, 10)  # Change this to your desired radii
-            diagrams = []
-
-            for radius in radii:
-                # Subsample the data
-                subsample = X_test_reduced[X_test_reduced[:, 0] ** 2 + X_test_reduced[:, 1] ** 2 < radius ** 2]
-
-                # Compute the persistence diagram for the subsample if it is not empty
-                if subsample.size > 0:
-                    diagram = ripser(subsample)['dgms']
-                    diagrams.append(diagram)
-                else:
-                    print(f"No points found for radius {radius}. Skipping this radius.")
-
-            fig = plt.figure(figsize=(20, 20))
-
-            # Plot each diagram in a separate subplot
-            for i, diagram in enumerate(diagrams):
-                ax = fig.add_subplot(len(radii), 1, i + 1)
-                Rips().plot(diagram, ax=ax)
-
-            # Show the figure
             plt.show()
+
+            # radii = np.linspace(0.1, 1.0, 10)  # Change this to your desired radii
+            # diagrams = []
+            #
+            # for radius in radii:
+            #     # Subsample the data
+            #     subsample = X_test_reduced[X_test_reduced[:, 0] ** 2 + X_test_reduced[:, 1] ** 2 < radius ** 2]
+            #
+            #     # Compute the persistence diagram for the subsample if it is not empty
+            #     if subsample.size > 0:
+            #         diagram = ripser(subsample)['dgms']
+            #         diagrams.append(diagram)
+            #     else:
+            #         print(f"No points found for radius {radius}. Skipping this radius.")
+            #
+            # fig = plt.figure(figsize=(20, 20))
+            #
+            # # Plot each diagram in a separate subplot
+            # for i, diagram in enumerate(diagrams):
+            #     ax = fig.add_subplot(len(radii), 1, i + 1)
+            #     Rips().plot(diagram, ax=ax)
+            #
+            # # Show the figure
+            # plt.show()
 
             # Calculate the training score and append it to the list
             train_score = pipeline.score(spks_train, y_train)
