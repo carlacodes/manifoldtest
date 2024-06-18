@@ -4,7 +4,6 @@ from datetime import datetime
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
-from sklearn.pipeline import Pipeline
 # from helpers.datahandling import DataHandler
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
@@ -15,7 +14,6 @@ from sklearn.decomposition import PCA
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
 from sklearn.pipeline import Pipeline
 import logging
@@ -32,6 +30,28 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import scipy.stats
 import numpy as np
 
+
+from sklearn.model_selection import KFold
+from sklearn.base import clone
+
+class CustomKFold(KFold):
+    def __init__(self, n_splits=5, *, shuffle=False, random_state=None, smoother=None):
+        super().__init__(n_splits, shuffle, random_state)
+        self.smoother = smoother
+
+    def split(self, X, y=None, groups=None):
+        for train_index, test_index in super().split(X, y, groups):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            # Apply the smoothing function to the training and testing data
+            X_train, removed_indices_train = self.smoother.transform(X_train)
+            y_train = np.delete(y_train, removed_indices_train, axis=0)
+
+            X_test, removed_indices_test = self.smoother.transform(X_test)
+            y_test = np.delete(y_test, removed_indices_test, axis=0)
+
+            yield train_index, test_index
 class LFADSSmoother(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
@@ -190,19 +210,19 @@ def train_and_test_on_umap_randcv(
     # ])
 
 
-    # Initialize the transformers
     smoother = LFADSSmoother()
-    index_remover = TargetIndexRemover(smoother)
 
-    # Create a custom transformer that applies both transformers
-    custom_transformer = CustomTransformer(smoother, index_remover)
+    # Initialize the custom splitter
+    custom_cv = CustomKFold(n_splits=5, smoother=smoother)
 
-    # Create a pipeline with the custom transformer and UMAP
+    # Initialize RandomizedSearchCV with the custom splitter
+    # Example, you can use your custom folds here
     pipeline = Pipeline([
-        ('custom', custom_transformer),
-        ('umap', CustomUMAP())
+        ('reducer', CustomUMAP()),
+        ('estimator', MultiOutputRegressor(regressor()))
     ])
 
+    #
     # Define the parameter grid
     # param_grid = {
     #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
@@ -246,7 +266,7 @@ def train_and_test_on_umap_randcv(
             pipeline,
             param_distributions=param_grid,
             n_iter=1000,
-            cv=custom_folds,
+            cv=custom_cv,
             verbose=3,
             n_jobs=-1,
             scoring='r2'
