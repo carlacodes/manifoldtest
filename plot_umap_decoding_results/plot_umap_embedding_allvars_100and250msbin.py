@@ -31,7 +31,9 @@ import pickle as pkl
 from sklearn.base import BaseEstimator
 from ripser import ripser
 from ripser import Rips
+plt.rcParams.update(plt.rcParamsDefault)
 
+# plt.rcParams['text.usetex'] = False
 class CustomUMAP(BaseEstimator):
     def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
                  n_epochs=None, learning_rate=1.0, init='spectral',
@@ -244,7 +246,7 @@ def train_and_test_on_umap_randcv(
             diagrams = rips.fit_transform(X_test_reduced)
 
             # Plot the persistence diagram
-            rips.plot(diagrams, show = True )
+            rips.plot(diagrams)
 
             radii = np.linspace(0.1, 1.0, 10)  # Change this to your desired radii
             diagrams = []
@@ -253,9 +255,12 @@ def train_and_test_on_umap_randcv(
                 # Subsample the data
                 subsample = X_test_reduced[X_test_reduced[:, 0] ** 2 + X_test_reduced[:, 1] ** 2 < radius ** 2]
 
-                # Compute the persistence diagram for the subsample
-                diagram = ripser(subsample)['dgms']
-                diagrams.append(diagram)
+                # Compute the persistence diagram for the subsample if it is not empty
+                if subsample.size > 0:
+                    diagram = ripser(subsample)['dgms']
+                    diagrams.append(diagram)
+                else:
+                    print(f"No points found for radius {radius}. Skipping this radius.")
 
             fig = plt.figure(figsize=(20, 20))
 
