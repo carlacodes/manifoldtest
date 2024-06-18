@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 from sklearn.pipeline import Pipeline
 # from helpers.datahandling import DataHandler
 from scipy.stats import randint
+from sklearn.decomposition import PCA
+import sympy as sp
+
 from sklearn.neighbors import KNeighborsRegressor
 from manifold_neural.helpers.datahandling import DataHandler
 from pathlib import Path
@@ -69,6 +72,20 @@ class CustomUMAP(BaseEstimator):
 
     def transform(self, X):
         return self.model_.transform(X)
+
+
+# Define the calculate_torsion function
+def calculate_torsion(x, y, z, t):
+    dx = sp.diff(x, t)
+    dy = sp.diff(y, t)
+    dz = sp.diff(z, t)
+    ddx = sp.diff(dx, t)
+    ddy = sp.diff(dy, t)
+    ddz = sp.diff(dz, t)
+    numerator = dx*ddy - ddx*dy + dy*ddz - ddy*dz + dz*ddx - ddz*dx
+    denominator = (dx**2 + dy**2 + dz**2)**(3/2)
+    torsion = numerator / denominator
+    return torsion
 
 
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
@@ -248,6 +265,17 @@ def train_and_test_on_umap_randcv(
             diagrams = rips.fit_transform(X_test_reduced)
             rips.plot(diagrams)
             plt.show()
+
+            # Apply PCA to reduce the dimensionality to 3
+            pca = PCA(n_components=3)
+            X_test_reduced_3d = pca.fit_transform(X_test_reduced)
+
+            t = sp.symbols('t')
+            x = sp.interpolate(X_test_reduced_3d[:, 0], t)
+            y = sp.interpolate(X_test_reduced_3d[:, 1], t)
+            z = sp.interpolate(X_test_reduced_3d[:, 2], t)
+            # Calculate the torsion
+            torsion = calculate_torsion(x, y, z, t)
 
             # radii = np.linspace(0.1, 1.0, 10)  # Change this to your desired radii
             # diagrams = []
