@@ -160,6 +160,10 @@ class Pipeline(pipeline.Pipeline):
             score_params = {}
             if sample_weight is not None:
                 score_params["sample_weight"] = sample_weight
+            if len(Xt) < len(y):
+                #get the difference
+                diff = len(y) - len(Xt)
+                y = y[diff:]
             return self.steps[-1][1].score(Xt, y, **score_params)
 
         # metadata routing is enabled.
