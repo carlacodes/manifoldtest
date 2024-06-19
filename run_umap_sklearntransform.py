@@ -4,7 +4,6 @@ from datetime import datetime
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
-from sklearn.pipeline import _fit_transform_one
 # from helpers.datahandling import DataHandler
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
@@ -84,7 +83,7 @@ class Pipeline(pipeline.Pipeline):
         # Setup the memory
         memory = check_memory(self.memory)
 
-        fit_transform_one_cached = memory.cache(_fit_transform_one)
+        fit_transform_one_cached = memory.cache(pipeline._fit_transform_one)
 
         for step_idx, name, transformer in self._iter(
             with_final=False, filter_passthrough=False
@@ -134,11 +133,12 @@ class Pipeline(pipeline.Pipeline):
     #     return self
 
     def fit(self, X, y=None, **params):
-
+        print('y before fit:', y)
         routed_params = self._check_method_params(method="fit", props=params)
         Xt = self._fit(X, y, routed_params)
         if isinstance(Xt, tuple):  ###### unpack X if is tuple: X = (X,y)
             Xt, y = Xt
+        print('y after fit:', y)
         with _print_elapsed_time("Pipeline", self._log_message(len(self.steps) - 1)):
             if self._final_estimator != "passthrough":
                 last_step_params = routed_params[self.steps[-1][0]]
@@ -155,10 +155,10 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        print(f"LFADSSmoother: y before transformation: {y}")
+        print(f"LFADSSmoother: X before transformation: {X}")
         X, self.removed_indices = tools.apply_lfads_smoothing(X)
         X = scipy.stats.zscore(X, axis=0)
-        print(f"LFADSSmoother: y after transformation: {y}")
+        print(f"LFADSSmoother: X after transformation: {X}")
         return X, y
 
 
