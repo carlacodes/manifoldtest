@@ -160,7 +160,32 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
         print('The shape of the smoothed data is:', X.shape)
         assert X.size > 0, "The input numpy array is empty."
         assert not np.isnan(X).any(), "NaN values in X after LFADSSmoother"
-        return X
+        return X, y
+
+
+# class IndexRemover(BaseEstimator, TransformerMixin):
+#     def __init__(self, smoother):
+#         self.smoother = smoother
+#
+#     def fit(self, X, y=None):
+#         return self
+#
+#     def fit_transform(self, X, y=None):
+#         X, y = self.transform(X, y)
+#         return X, y
+#
+#     def transform(self, X, y=None):
+#         if y is not None:
+#             y = self.remove_indices(y)
+#         assert X.size > 0, "The input numpy array is empty."
+#         print('The shape of the data after removing the indices is:', X.shape)
+#         print('The shape of the labels after removing the indices is:', y.shape)
+#         assert not np.isnan(X).any(), "NaN values in X after IndexRemover"
+#         assert not np.isnan(y).any(), "NaN values in y after IndexRemover"
+#         return X, y
+#
+#     def remove_indices(self, y):
+#         return np.delete(y, self.smoother.removed_indices, axis=0)
 
 
 class IndexRemover(BaseEstimator, TransformerMixin):
@@ -170,22 +195,14 @@ class IndexRemover(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
-    def fit_transform(self, X, y=None):
-        X, y = self.transform(X, y)
-        return X, y
-
     def transform(self, X, y=None):
         if y is not None:
             y = self.remove_indices(y)
-        assert X.size > 0, "The input numpy array is empty."
-        print('The shape of the data after removing the indices is:', X.shape)
-        print('The shape of the labels after removing the indices is:', y.shape)
-        assert not np.isnan(X).any(), "NaN values in X after IndexRemover"
-        assert not np.isnan(y).any(), "NaN values in y after IndexRemover"
         return X, y
 
     def remove_indices(self, y):
         return np.delete(y, self.smoother.removed_indices, axis=0)
+
 
 class CustomUMAP(BaseEstimator):
     def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
@@ -352,6 +369,9 @@ def train_and_test_on_umap_randcv(
         params = param_list[0]
         pipeline.set_params(**params)
         pipeline.fit(spks, y)
+        #get the train and test scores
+        train_score = pipeline.score(spks, y)
+
         #
         # # Get the best parameters and score
         # best_params = random_search.best_params_
