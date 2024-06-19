@@ -297,7 +297,7 @@ def train_and_test_on_umap_randcv(
 
 def main():
     # data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
-    base_dir = '/ceph/scratch/carlag/honeycomb_neural_data/'
+    base_dir = 'C:/neural_data/honeycomb_neural_data/'
 
     for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
@@ -317,7 +317,7 @@ def main():
         #     print('The two arrays are not the same')
 
         window_df = pd.read_csv(
-            f'/ceph/scratch/carlag/honeycomb_neural_data/mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_False.csv')
+            f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_False.csv')
         # find the rat_id
         rat_id = data_dir.split('/')[-2]
         # filter for window_size
