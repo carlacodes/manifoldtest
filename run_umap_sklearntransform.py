@@ -413,7 +413,6 @@ def train_and_test_on_umap_randcv(
         #     'reducer__random_state': [42]
         # }
         smoother = LFADSSmoother()
-        index_remover = IndexRemover(smoother)
 
         pipeline = Pipeline([
             ('smoother', smoother),
@@ -430,32 +429,32 @@ def train_and_test_on_umap_randcv(
 
         # Initialize BayesSearchCV
         # logger.info('Starting the random search, at line 209')
-        # random_search = RandomizedSearchCV(
-        #     pipeline,
-        #     param_distributions=param_grid,
-        #     n_iter=1000,
-        #     cv=custom_folds,
-        #     verbose=3,
-        #     n_jobs=-1,
-        #     scoring='neg_mean_squared_error'
-        # )
-        #
-        # # Fit BayesSearchCV
-        # random_search.fit(spks, y)
+        random_search = RandomizedSearchCV(
+            pipeline,
+            param_distributions=param_grid,
+            n_iter=1000,
+            cv=custom_folds,
+            verbose=3,
+            n_jobs=-1,
+            scoring='neg_mean_squared_error'
+        )
+
+        # Fit BayesSearchCV
+        random_search.fit(spks, y)
 
 
-        # Randomly select one set of parameters
-        param_list = list(ParameterSampler(param_grid, n_iter=1))
-        params = param_list[0]
-        pipeline.set_params(**params)
-        pipeline.fit(spks, y)
-        #get the train and test scores
-        train_score = pipeline.score(spks, y)
+        # # Randomly select one set of parameters
+        # param_list = list(ParameterSampler(param_grid, n_iter=1))
+        # params = param_list[0]
+        # pipeline.set_params(**params)
+        # pipeline.fit(spks, y)
+        # #get the train and test scores
+        # train_score = pipeline.score(spks, y)
 
         #
         # # Get the best parameters and score
-        # best_params = random_search.best_params_
-        # best_score = random_search.best_score_
+        best_params = random_search.best_params_
+        best_score = random_search.best_score_
     else:
         # Manually set the parameters
 
