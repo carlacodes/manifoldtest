@@ -31,6 +31,68 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import scipy.stats
 import numpy as np
 
+from sklearn import pipeline
+from sklearn.base import clone
+from sklearn.utils import _print_elapsed_time
+from sklearn.utils.validation import check_memory
+
+
+class Pipeline(pipeline.Pipeline):
+
+    def _fit(self, X, y=None, **fit_params_steps):
+        self.steps = list(self.steps)
+        self._validate_steps()
+        memory = check_memory(self.memory)
+
+        fit_transform_one_cached = memory.cache(pipeline._fit_transform_one)
+
+        for (step_idx, name, transformer) in self._iter(
+                with_final=False, filter_passthrough=False
+        ):
+
+            if transformer is None or transformer == "passthrough":
+                with _print_elapsed_time("Pipeline", self._log_message(step_idx)):
+                    continue
+
+            try:
+                # joblib >= 0.12
+                mem = memory.location
+            except AttributeError:
+                mem = memory.cachedir
+            finally:
+                cloned_transformer = clone(transformer) if mem else transformer
+
+            X, fitted_transformer = fit_transform_one_cached(
+                cloned_transformer,
+                X,
+                y,
+                None,
+                message_clsname="Pipeline",
+                message=self._log_message(step_idx),
+                **fit_params_steps[name],
+            )
+
+            if isinstance(X, tuple):  ###### unpack X if is tuple: X = (X,y)
+                X, y = X
+
+            self.steps[step_idx] = (name, fitted_transformer)
+
+        return X, y
+
+    def fit(self, X, y=None, **fit_params):
+        fit_params_steps = self._check_fit_params(**fit_params)
+        Xt = self._fit(X, y, **fit_params_steps)
+
+        if isinstance(Xt, tuple):  ###### unpack X if is tuple: X = (X,y)
+            Xt, y = Xt
+
+        with _print_elapsed_time("Pipeline", self._log_message(len(self.steps) - 1)):
+            if self._final_estimator != "passthrough":
+                fit_params_last_step = fit_params_steps[self.steps[-1][0]]
+                self._final_estimator.fit(Xt, y, **fit_params_last_step)
+
+        return self
+
 
 class LFADSSmoother(BaseEstimator, TransformerMixin):
     def __init__(self):
