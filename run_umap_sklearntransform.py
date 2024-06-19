@@ -39,6 +39,7 @@ from sklearn.utils.validation import check_memory
 
 class CustomPipeline(pipeline.Pipeline):
     def _fit(self, X, y=None, **fit_params_steps):
+        print('running  custom _fit')
         self.steps = list(self.steps)
         self._validate_steps()
         memory = check_memory(self.memory)
@@ -79,6 +80,7 @@ class CustomPipeline(pipeline.Pipeline):
         return X, y
 
     def fit(self, X, y=None, **fit_params):
+        print('running custom fit')
         fit_params_steps = self._check_fit_params(**fit_params)
         Xt = self._fit(X, y, **fit_params_steps)
 
@@ -247,12 +249,6 @@ def train_and_test_on_umap_randcv(
     # get the date
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = open(f"{save_dir_path}/random_search_{now}.log", "w")
-
-    # Save the original stdout
-    original_stdout = sys.stdout
-
-    # Redirect stdout to the log file
-    sys.stdout = log_file
 
     if use_rand_search:
         # Define the parameter grid
