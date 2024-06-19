@@ -113,6 +113,10 @@ class IndexRemover(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
+    def fit_transform(self, X, y=None):
+        X, y = self.transform(X, y)
+        return X, y
+
     def transform(self, X, y=None):
         if y is not None:
             y = self.remove_indices(y)
@@ -120,7 +124,6 @@ class IndexRemover(BaseEstimator, TransformerMixin):
 
     def remove_indices(self, y):
         return np.delete(y, self.smoother.removed_indices, axis=0)
-
 
 class CustomUMAP(BaseEstimator):
     def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
