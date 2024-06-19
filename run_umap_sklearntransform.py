@@ -117,6 +117,60 @@ class Pipeline(pipeline.Pipeline):
 
 
         return X, y
+    def score(self, X, y=None, sample_weight=None, **params):
+        """Transform the data, and apply `score` with the final estimator.
+
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls
+        `score` method. Only valid if the final estimator implements `score`.
+
+        Parameters
+        ----------
+        X : iterable
+            Data to predict on. Must fulfill input requirements of first step
+            of the pipeline.
+
+        y : iterable, default=None
+            Targets used for scoring. Must fulfill label requirements for all
+            steps of the pipeline.
+
+        sample_weight : array-like, default=None
+            If not None, this argument is passed as ``sample_weight`` keyword
+            argument to the ``score`` method of the final estimator.
+
+        **params : dict of str -> object
+            Parameters requested and accepted by steps. Each step must have
+            requested certain metadata for these parameters to be forwarded to
+            them.
+
+            .. versionadded:: 1.4
+                Only available if `enable_metadata_routing=True`. See
+                :ref:`Metadata Routing User Guide <metadata_routing>` for more
+                details.
+
+        Returns
+        -------
+        score : float
+            Result of calling `score` on the final estimator.
+        """
+        Xt = X
+        if not pipeline._routing_enabled():
+            for _, name, transform in self._iter(with_final=False):
+                Xt = transform.transform(Xt)
+            score_params = {}
+            if sample_weight is not None:
+                score_params["sample_weight"] = sample_weight
+            return self.steps[-1][1].score(Xt, y, **score_params)
+
+        # metadata routing is enabled.
+        routed_params = pipeline.process_routing(
+            self, "score", sample_weight=sample_weight, **params
+        )
+
+        Xt = X
+        for _, name, transform in self._iter(with_final=False):
+            Xt = transform.transform(Xt, **routed_params[name].transform)
+        return self.steps[-1][1].score(Xt, y, **routed_params[self.steps[-1][0]].score)
 
     # def fit(self, X, y=None, **fit_params):
     #     fit_params_steps = self._check_fit_params(**fit_params)
@@ -262,60 +316,7 @@ class CustomUMAP(BaseEstimator):
         assert not np.isnan(X_transformed).any(), "NaN values in X after UMAP transformation"
         return self.model_.transform(X)
 
-    def score(self, X, y=None, sample_weight=None, **params):
-        """Transform the data, and apply `score` with the final estimator.
 
-        Call `transform` of each transformer in the pipeline. The transformed
-        data are finally passed to the final estimator that calls
-        `score` method. Only valid if the final estimator implements `score`.
-
-        Parameters
-        ----------
-        X : iterable
-            Data to predict on. Must fulfill input requirements of first step
-            of the pipeline.
-
-        y : iterable, default=None
-            Targets used for scoring. Must fulfill label requirements for all
-            steps of the pipeline.
-
-        sample_weight : array-like, default=None
-            If not None, this argument is passed as ``sample_weight`` keyword
-            argument to the ``score`` method of the final estimator.
-
-        **params : dict of str -> object
-            Parameters requested and accepted by steps. Each step must have
-            requested certain metadata for these parameters to be forwarded to
-            them.
-
-            .. versionadded:: 1.4
-                Only available if `enable_metadata_routing=True`. See
-                :ref:`Metadata Routing User Guide <metadata_routing>` for more
-                details.
-
-        Returns
-        -------
-        score : float
-            Result of calling `score` on the final estimator.
-        """
-        Xt = X
-        if not pipeline._routing_enabled():
-            for _, name, transform in self._iter(with_final=False):
-                Xt = transform.transform(Xt)
-            score_params = {}
-            if sample_weight is not None:
-                score_params["sample_weight"] = sample_weight
-            return self.steps[-1][1].score(Xt, y, **score_params)
-
-        # metadata routing is enabled.
-        routed_params = pipeline.process_routing(
-            self, "score", sample_weight=sample_weight, **params
-        )
-
-        Xt = X
-        for _, name, transform in self._iter(with_final=False):
-            Xt = transform.transform(Xt, **routed_params[name].transform)
-        return self.steps[-1][1].score(Xt, y, **routed_params[self.steps[-1][0]].score)
 
 
 
