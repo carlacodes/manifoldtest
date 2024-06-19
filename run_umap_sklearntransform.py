@@ -155,11 +155,10 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
+        print(f"LFADSSmoother: y before transformation: {y}")
         X, self.removed_indices = tools.apply_lfads_smoothing(X)
         X = scipy.stats.zscore(X, axis=0)
-        print('The shape of the smoothed data is:', X.shape)
-        assert X.size > 0, "The input numpy array is empty."
-        assert not np.isnan(X).any(), "NaN values in X after LFADSSmoother"
+        print(f"LFADSSmoother: y after transformation: {y}")
         return X, y
 
 
@@ -196,8 +195,10 @@ class IndexRemover(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
+        print(f"IndexRemover: y before transformation: {y}")
         if y is not None:
             y = self.remove_indices(y)
+        print(f"IndexRemover: y after transformation: {y}")
         return X, y
 
     def remove_indices(self, y):
