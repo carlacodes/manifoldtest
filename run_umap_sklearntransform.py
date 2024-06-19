@@ -1,7 +1,7 @@
 # from pathlib import Path
 import copy
 from datetime import datetime
-from sklearn.model_selection import ParameterSampler
+from sklearn.model_selection import ParameterSampler, RandomizedSearchCV
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
 # from helpers.datahandling import DataHandler
