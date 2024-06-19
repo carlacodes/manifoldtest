@@ -359,7 +359,7 @@ def train_and_test_on_umap_randcv(
 
 def main():
     # data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
-    base_dir = 'C:/neural_data/honeycomb_neural_data/'
+    base_dir = 'C:/neural_data/'
 
     for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
