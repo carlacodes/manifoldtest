@@ -154,13 +154,32 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
-    def transform(self, X, y=None):
+    def fit_transform(self, X, y=None):
         print(f"LFADSSmoother: X before transformation: {X}")
+        print(f"LFADSSmoother: y before transformation: {y}")
+        print('LFADssmoother: shape of X: ', X.shape)
+        print('LFADssmoother: shape of y: ', y.shape)
+
         X, self.removed_indices = tools.apply_lfads_smoothing(X)
         X = scipy.stats.zscore(X, axis=0)
+
+
+
+        if y is not None:
+            y = np.delete(y, self.removed_indices, axis=0)
+
+        print('LFADssmoother: shape of X after transform: ', X.shape)
+        print('LFADssmoother: shape of y after transform: ', y.shape)
         print(f"LFADSSmoother: X after transformation: {X}")
+        print(f"LFADSSmoother: y after transformation: {y}")
         return X, y
 
+    def transform(self, X):
+        # print(f"LFADSSmoother: X before transformation: {X}")
+        X, _ = tools.apply_lfads_smoothing(X)
+        X = scipy.stats.zscore(X, axis=0)
+        # print(f"LFADSSmoother: X after transformation: {X}")
+        return X
 
 # class IndexRemover(BaseEstimator, TransformerMixin):
 #     def __init__(self, smoother):
@@ -337,7 +356,6 @@ def train_and_test_on_umap_randcv(
 
         pipeline = Pipeline([
             ('smoother', smoother),
-            ('index_remover', index_remover),
             ('reducer', CustomUMAP()),
             ('estimator', MultiOutputRegressor(regressor()))
         ])
