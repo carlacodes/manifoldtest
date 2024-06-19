@@ -31,7 +31,27 @@ from sklearn import pipeline
 from sklearn.base import clone
 from sklearn.utils import _print_elapsed_time
 from sklearn.utils.validation import check_memory
+from sklearn.metrics import make_scorer, mean_squared_error
+import numpy as np
 
+# Define a custom scoring function
+def custom_scorer(y_true, y_pred):
+    # Check if y_true and y_pred have the same length
+    if len(y_true) != len(y_pred):
+        # If not, trim the longer one to match the length of the shorter one
+        min_len = min(len(y_true), len(y_pred))
+        diff = abs(len(y_true) - len(y_pred))
+        if len(y_true) > len(y_pred):
+            y_true = y_true[diff:]
+        else:
+            y_pred = y_pred[diff:]
+
+    # Calculate the score using mean_squared_error
+    score = r2_score(y_true, y_pred)
+    return score
+
+# Create a scorer using make_scorer
+scorer = make_scorer(custom_scorer, greater_is_better=False)
 
 class Pipeline(pipeline.Pipeline):
 
@@ -436,7 +456,7 @@ def train_and_test_on_umap_randcv(
             cv=custom_folds,
             verbose=3,
             n_jobs=-1,
-            scoring='neg_mean_squared_error'
+            scoring=scorer
         )
 
         # Fit BayesSearchCV
