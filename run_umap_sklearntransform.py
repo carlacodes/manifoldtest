@@ -37,8 +37,7 @@ from sklearn.utils import _print_elapsed_time
 from sklearn.utils.validation import check_memory
 
 
-class Pipeline(pipeline.Pipeline):
-
+class CustomPipeline(pipeline.Pipeline):
     def _fit(self, X, y=None, **fit_params_steps):
         self.steps = list(self.steps)
         self._validate_steps()
@@ -226,7 +225,7 @@ def train_and_test_on_umap_randcv(
     smoother = LFADSSmoother()
     index_remover = IndexRemover(smoother)
 
-    pipeline = Pipeline([
+    pipeline = CustomPipeline([
         ('smoother', smoother),
         ('index_remover', index_remover),
         ('reducer', CustomUMAP()),
