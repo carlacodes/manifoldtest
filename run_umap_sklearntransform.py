@@ -4,6 +4,7 @@ from datetime import datetime
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
+from sklearn.pipeline import Pipeline
 # from helpers.datahandling import DataHandler
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
@@ -14,12 +15,12 @@ from sklearn.decomposition import PCA
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.pipeline import Pipeline
 from skopt import BayesSearchCV
 from sklearn.pipeline import Pipeline
 import logging
 import sys
 from helpers import tools
-from sklearn.pipeline import FeatureUnion
 
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
@@ -31,27 +32,6 @@ import scipy.stats
 import numpy as np
 
 
-from sklearn.model_selection import KFold
-from sklearn.base import clone
-
-class CustomKFold(KFold):
-    def __init__(self, n_splits=5, *, shuffle=False, random_state=None, smoother=None):
-        super().__init__(n_splits, shuffle, random_state)
-        self.smoother = smoother
-
-    def split(self, X, y=None, groups=None):
-        for train_index, test_index in super().split(X, y, groups):
-            X_train, X_test = X[train_index], X[test_index]
-            y_train, y_test = y[train_index], y[test_index]
-
-            # Apply the smoothing function to the training and testing data
-            X_train, removed_indices_train = self.smoother.transform(X_train)
-            y_train = np.delete(y_train, removed_indices_train, axis=0)
-
-            X_test, removed_indices_test = self.smoother.transform(X_test)
-            y_test = np.delete(y_test, removed_indices_test, axis=0)
-
-            yield train_index, test_index
 class LFADSSmoother(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
@@ -59,55 +39,27 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
-    def transform(self, X):
+    def transform(self, X, y=None):
         X, self.removed_indices = tools.apply_lfads_smoothing(X)
         X = scipy.stats.zscore(X, axis=0)
         return X
 
 
-class TargetIndexRemover(BaseEstimator, TransformerMixin):
+class IndexRemover(BaseEstimator, TransformerMixin):
     def __init__(self, smoother):
         self.smoother = smoother
 
-    def fit(self, y=None):
+    def fit(self, X, y=None):
         return self
 
-    def transform(self, y):
-        if hasattr(self.smoother, 'removed_indices'):
-            y = np.delete(y, self.smoother.removed_indices, axis=0)
-        return y
+    def transform(self, X, y=None):
+        if y is not None:
+            y = self.remove_indices(y)
+        return X, y
 
+    def remove_indices(self, y):
+        return np.delete(y, self.smoother.removed_indices, axis=0)
 
-
-class CustomTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, X_transformer, y_transformer):
-        self.X_transformer = X_transformer
-        self.y_transformer = y_transformer
-
-    def fit(self, X, y):
-        self.X_transformer.fit(X)
-        self.y_transformer.fit(y)
-        return self
-
-    def transform(self, X, y):
-        return self.X_transformer.transform(X), self.y_transformer.transform(y)
-
-class CustomPipeline:
-    def __init__(self, steps):
-        self.steps = steps
-
-    def fit(self, X, y):
-        for step in self.steps:
-            if isinstance(step[1], CustomTransformer):
-                X, y = step[1].fit(X, y).transform(X, y)
-            else:
-                X = step[1].fit(X, y).transform(X)
-        return self
-
-    def predict(self, X):
-        for step in self.steps:
-            X = step[1].transform(X)
-        return X
 
 class CustomUMAP(BaseEstimator):
     def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
@@ -209,20 +161,16 @@ def train_and_test_on_umap_randcv(
     #     ('estimator', MultiOutputRegressor(regressor()))
     # ])
 
-
     smoother = LFADSSmoother()
+    index_remover = IndexRemover(smoother)
 
-    # Initialize the custom splitter
-    custom_cv = CustomKFold(n_splits=5, smoother=smoother)
-
-    # Initialize RandomizedSearchCV with the custom splitter
-    # Example, you can use your custom folds here
     pipeline = Pipeline([
+        ('smoother', smoother),
+        ('index_remover', index_remover),
         ('reducer', CustomUMAP()),
         ('estimator', MultiOutputRegressor(regressor()))
     ])
 
-    #
     # Define the parameter grid
     # param_grid = {
     #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
@@ -266,7 +214,7 @@ def train_and_test_on_umap_randcv(
             pipeline,
             param_distributions=param_grid,
             n_iter=1000,
-            cv=custom_cv,
+            cv=custom_folds,
             verbose=3,
             n_jobs=-1,
             scoring='r2'
@@ -349,7 +297,7 @@ def train_and_test_on_umap_randcv(
 
 def main():
     # data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
-    base_dir = 'C:/neural_data/'
+    base_dir = '/ceph/scratch/carlag/honeycomb_neural_data/'
 
     for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
@@ -369,7 +317,7 @@ def main():
         #     print('The two arrays are not the same')
 
         window_df = pd.read_csv(
-            f'C:/neural_data//mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_False.csv')
+            f'/ceph/scratch/carlag/honeycomb_neural_data/mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_False.csv')
         # find the rat_id
         rat_id = data_dir.split('/')[-2]
         # filter for window_size
