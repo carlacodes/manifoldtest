@@ -4,7 +4,7 @@ from datetime import datetime
 from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import _fit_transform_one
 # from helpers.datahandling import DataHandler
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
@@ -14,9 +14,6 @@ from umap import UMAP
 from sklearn.decomposition import PCA
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.pipeline import Pipeline
-from skopt import BayesSearchCV
 from sklearn.pipeline import Pipeline
 import logging
 import sys
@@ -37,31 +34,72 @@ from sklearn.utils import _print_elapsed_time
 from sklearn.utils.validation import check_memory
 
 
-class CustomPipeline(pipeline.Pipeline):
-    def _fit(self, X, y=None, **fit_params_steps):
-        print('running  custom _fit')
+class Pipeline(pipeline.Pipeline):
+
+    # def _fit(self, X, y=None, **fit_params_steps):
+    #     self.steps = list(self.steps)
+    #     self._validate_steps()
+    #     memory = check_memory(self.memory)
+    #
+    #     fit_transform_one_cached = memory.cache(pipeline._fit_transform_one)
+    #
+    #     for (step_idx, name, transformer) in self._iter(
+    #             with_final=False, filter_passthrough=False
+    #     ):
+    #
+    #         if transformer is None or transformer == "passthrough":
+    #             with _print_elapsed_time("Pipeline", self._log_message(step_idx)):
+    #                 continue
+    #
+    #         try:
+    #             # joblib >= 0.12
+    #             mem = memory.location
+    #         except AttributeError:
+    #             mem = memory.cachedir
+    #         finally:
+    #             cloned_transformer = clone(transformer) if mem else transformer
+    #
+    #         X, fitted_transformer = fit_transform_one_cached(
+    #             cloned_transformer,
+    #             X,
+    #             y,
+    #             None,
+    #             message_clsname="Pipeline",
+    #             message=self._log_message(step_idx),
+    #             **fit_params_steps[name],
+    #         )
+    #
+    #         if isinstance(X, tuple):  ###### unpack X if is tuple: X = (X,y)
+    #             X, y = X
+    #
+    #         self.steps[step_idx] = (name, fitted_transformer)
+    #
+    #     return X, y
+
+
+    def _fit(self, X, y=None, routed_params=None):
+        # shallow copy of steps - this should really be steps_
         self.steps = list(self.steps)
         self._validate_steps()
+        # Setup the memory
         memory = check_memory(self.memory)
 
-        fit_transform_one_cached = memory.cache(pipeline._fit_transform_one)
+        fit_transform_one_cached = memory.cache(_fit_transform_one)
 
-        for (step_idx, name, transformer) in self._iter(
-                with_final=False, filter_passthrough=False
+        for step_idx, name, transformer in self._iter(
+            with_final=False, filter_passthrough=False
         ):
-
             if transformer is None or transformer == "passthrough":
                 with _print_elapsed_time("Pipeline", self._log_message(step_idx)):
                     continue
 
-            try:
-                # joblib >= 0.12
-                mem = memory.location
-            except AttributeError:
-                mem = memory.cachedir
-            finally:
-                cloned_transformer = clone(transformer) if mem else transformer
-
+            if hasattr(memory, "location") and memory.location is None:
+                # we do not clone when caching is disabled to
+                # preserve backward compatibility
+                cloned_transformer = transformer
+            else:
+                cloned_transformer = clone(transformer)
+            # Fit or load from cache the current transformer
             X, fitted_transformer = fit_transform_one_cached(
                 cloned_transformer,
                 X,
@@ -69,28 +107,42 @@ class CustomPipeline(pipeline.Pipeline):
                 None,
                 message_clsname="Pipeline",
                 message=self._log_message(step_idx),
-                **fit_params_steps[name],
+                params=routed_params[name],
             )
-
-            if isinstance(X, tuple):  ###### unpack X if is tuple: X = (X,y)
+            # Replace the transformer of the step with the fitted
+            # transformer. This is necessary when loading the transformer
+            # from the cache.
+            if isinstance(X, tuple):
                 X, y = X
-
             self.steps[step_idx] = (name, fitted_transformer)
+
 
         return X, y
 
-    def fit(self, X, y=None, **fit_params):
-        print('running custom fit')
-        fit_params_steps = self._check_fit_params(**fit_params)
-        Xt = self._fit(X, y, **fit_params_steps)
+    # def fit(self, X, y=None, **fit_params):
+    #     fit_params_steps = self._check_fit_params(**fit_params)
+    #     Xt = self._fit(X, y, **fit_params_steps)
+    #
+    #     if isinstance(Xt, tuple):  ###### unpack X if is tuple: X = (X,y)
+    #         Xt, y = Xt
+    #
+    #     with _print_elapsed_time("Pipeline", self._log_message(len(self.steps) - 1)):
+    #         if self._final_estimator != "passthrough":
+    #             fit_params_last_step = fit_params_steps[self.steps[-1][0]]
+    #             self._final_estimator.fit(Xt, y, **fit_params_last_step)
+    #
+    #     return self
 
+    def fit(self, X, y=None, **params):
+
+        routed_params = self._check_method_params(method="fit", props=params)
+        Xt = self._fit(X, y, routed_params)
         if isinstance(Xt, tuple):  ###### unpack X if is tuple: X = (X,y)
             Xt, y = Xt
-
         with _print_elapsed_time("Pipeline", self._log_message(len(self.steps) - 1)):
             if self._final_estimator != "passthrough":
-                fit_params_last_step = fit_params_steps[self.steps[-1][0]]
-                self._final_estimator.fit(Xt, y, **fit_params_last_step)
+                last_step_params = routed_params[self.steps[-1][0]]
+                self._final_estimator.fit(Xt, y, **last_step_params["fit"])
 
         return self
 
@@ -105,6 +157,9 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         X, self.removed_indices = tools.apply_lfads_smoothing(X)
         X = scipy.stats.zscore(X, axis=0)
+        print('The shape of the smoothed data is:', X.shape)
+        assert X.size > 0, "The input numpy array is empty."
+        assert not np.isnan(X).any(), "NaN values in X after LFADSSmoother"
         return X
 
 
@@ -122,6 +177,11 @@ class IndexRemover(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         if y is not None:
             y = self.remove_indices(y)
+        assert X.size > 0, "The input numpy array is empty."
+        print('The shape of the data after removing the indices is:', X.shape)
+        print('The shape of the labels after removing the indices is:', y.shape)
+        assert not np.isnan(X).any(), "NaN values in X after IndexRemover"
+        assert not np.isnan(y).any(), "NaN values in y after IndexRemover"
         return X, y
 
     def remove_indices(self, y):
@@ -161,6 +221,8 @@ class CustomUMAP(BaseEstimator):
         return self
 
     def transform(self, X):
+        X_transformed = self.model_.transform(X)
+        assert not np.isnan(X_transformed).any(), "NaN values in X after UMAP transformation"
         return self.model_.transform(X)
 
 
@@ -210,7 +272,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None,
+        reducer_kwargs, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None,
         num_windows=None
 ):
     y = bhv[regress].values
@@ -227,15 +289,7 @@ def train_and_test_on_umap_randcv(
     #     ('estimator', MultiOutputRegressor(regressor()))
     # ])
 
-    smoother = LFADSSmoother()
-    index_remover = IndexRemover(smoother)
 
-    pipeline = CustomPipeline([
-        ('smoother', smoother),
-        ('index_remover', index_remover),
-        ('reducer', CustomUMAP()),
-        ('estimator', MultiOutputRegressor(regressor()))
-    ])
 
     # Define the parameter grid
     # param_grid = {
@@ -260,6 +314,15 @@ def train_and_test_on_umap_randcv(
         #     'reducer__min_dist': (0.0001, 0.3),  # range of values
         #     'reducer__random_state': [42]
         # }
+        smoother = LFADSSmoother()
+        index_remover = IndexRemover(smoother)
+
+        pipeline = Pipeline([
+            ('smoother', smoother),
+            ('index_remover', index_remover),
+            ('reducer', CustomUMAP()),
+            ('estimator', MultiOutputRegressor(regressor()))
+        ])
         param_grid = {
             'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10],
             'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
@@ -269,26 +332,30 @@ def train_and_test_on_umap_randcv(
             'estimator__estimator__metric': ['cosine', 'euclidean', 'minkowski'], }
 
         # Initialize BayesSearchCV
-        logger.info('Starting the random search, at line 209')
-        random_search = RandomizedSearchCV(
-            pipeline,
-            param_distributions=param_grid,
-            n_iter=1000,
-            cv=custom_folds,
-            verbose=3,
-            n_jobs=-1,
-            scoring='r2'
-        )
+        # logger.info('Starting the random search, at line 209')
+        # random_search = RandomizedSearchCV(
+        #     pipeline,
+        #     param_distributions=param_grid,
+        #     n_iter=1000,
+        #     cv=custom_folds,
+        #     verbose=3,
+        #     n_jobs=-1,
+        #     scoring='neg_mean_squared_error'
+        # )
+        #
+        # # Fit BayesSearchCV
+        # random_search.fit(spks, y)
 
-        # Fit BayesSearchCV
-        random_search.fit(spks, y)
-        sys.stdout = original_stdout
 
-        log_file.close()
-
-        # Get the best parameters and score
-        best_params = random_search.best_params_
-        best_score = random_search.best_score_
+        # Randomly select one set of parameters
+        param_list = list(ParameterSampler(param_grid, n_iter=1))
+        params = param_list[0]
+        pipeline.set_params(**params)
+        pipeline.fit(spks, y)
+        #
+        # # Get the best parameters and score
+        # best_params = random_search.best_params_
+        # best_score = random_search.best_score_
     else:
         # Manually set the parameters
 
@@ -428,17 +495,17 @@ def main():
             f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
         # initalise a logger
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-        # create a file handler
-        handler = logging.FileHandler(save_dir_path / f'rand_search_cv_{now}.log')
-        handler.setLevel(logging.INFO)
-        # create a logging format
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        # add the handlers to the logger
-        logger.addHandler(handler)
-        logger.info('Starting the training and testing of the lfp data with the spike data')
+        # logger = logging.getLogger(__name__)
+        # logger.setLevel(logging.INFO)
+        # # create a file handler
+        # handler = logging.FileHandler(save_dir_path / f'rand_search_cv_{now}.log')
+        # handler.setLevel(logging.INFO)
+        # # create a logging format
+        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # handler.setFormatter(formatter)
+        # # add the handlers to the logger
+        # logger.addHandler(handler)
+        # logger.info('Starting the training and testing of the lfp data with the spike data')
         # remove numpy array, just get mapping from manual_params
         # manual_params = manual_params.item()
 
@@ -451,7 +518,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, logger, save_dir_path, use_rand_search=True, manual_params=None, savedir=save_dir_path,
+            reducer_kwargs, save_dir_path, use_rand_search=True, manual_params=None, savedir=save_dir_path,
             rat_id=rat_id, num_windows=num_windows
         )
         np.save(save_dir_path / filename, best_params)
