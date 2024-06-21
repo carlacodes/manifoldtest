@@ -261,7 +261,7 @@ def train_and_test_on_umap_randcv(
             rips = Rips()
             diagrams = rips.fit_transform(X_test_reduced)
             rips.plot(diagrams)
-            plt.savefig(f'{savedir}/rips_diagrams_fold_' + str(count) + '.png', dpi=300, bbox_inchkes='tight')
+            plt.savefig(f'{savedir}/rips_diagrams_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             plt.show()
 
             # Apply PCA to reduce the dimensionality to 3
