@@ -260,7 +260,8 @@ def train_and_test_on_umap_randcv(
 
             rips = Rips()
             diagrams = rips.fit_transform(X_test_reduced)
-            rips.plot(diagrams)
+            rips.plot(diagrams, title='Rips Complex for fold: ' + str(count) + '  rat id :' + str(rat_id))
+            # plt.title('Rips Diagrams for fold: ' + str(count), 'rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/rips_diagrams_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             plt.show()
 
@@ -273,7 +274,7 @@ def train_and_test_on_umap_randcv(
             # y = sp.interpolate(X_test_reduced_3d[:, 1], t)
             # z = sp.interpolate(X_test_reduced_3d[:, 2], t)
             # Calculate the torsion
-            torsion = calculate_torsion(x, y, z, t)
+            # torsion = calculate_torsion(x, y, z, t)
 
             # radii = np.linspace(0.1, 1.0, 10)  # Change this to your desired radii
             # diagrams = []
