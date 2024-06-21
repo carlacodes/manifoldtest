@@ -414,7 +414,7 @@ def run_umap_pipeline_across_rats():
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_2024-06-20_')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_2024-06-20')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
@@ -508,9 +508,9 @@ def run_umap_pipeline_across_rats():
         across_dir_dataframe_shuffled = pd.concat([across_dir_dataframe_shuffled, rat_dataframe_shuffled], axis=0)
      #save to csv
     across_dir_dataframe['mean_test_score_across_rats'] = across_dir_dataframe['mean_test_score'].mean()
-    across_dir_dataframe.to_csv(f'{data_dir}/across_dir_dataframe_bin_size_{bin_size}.csv')
+    across_dir_dataframe.to_csv(f'{data_dir}/across_dir_dataframe_bin_size_splitsmooth_{bin_size}.csv')
     across_dir_dataframe_shuffled['mean_test_score_across_rats'] = across_dir_dataframe_shuffled['mean_test_score'].mean()
-    across_dir_dataframe_shuffled.to_csv(f'{data_dir}/across_dir_dataframe_shuffled_bin_size_{bin_size}.csv')
+    across_dir_dataframe_shuffled.to_csv(f'{data_dir}/across_dir_dataframe_shuffled_bin_size_splitsmooth{bin_size}.csv')
     return across_dir_dataframe
 
 
