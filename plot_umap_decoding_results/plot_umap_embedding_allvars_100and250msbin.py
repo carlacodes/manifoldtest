@@ -261,16 +261,17 @@ def train_and_test_on_umap_randcv(
             rips = Rips()
             diagrams = rips.fit_transform(X_test_reduced)
             rips.plot(diagrams)
+            plt.savefig(f'{savedir}/rips_diagrams_fold_' + str(count) + '.png', dpi=300, bbox_inchkes='tight')
             plt.show()
 
             # Apply PCA to reduce the dimensionality to 3
-            pca = PCA(n_components=3)
-            X_test_reduced_3d = pca.fit_transform(X_test_reduced)
+            # pca = PCA(n_components=3)
+            # X_test_reduced_3d = pca.fit_transform(X_test_reduced)
 
-            t = sp.symbols('t')
-            x = sp.interpolate(X_test_reduced_3d[:, 0], t)
-            y = sp.interpolate(X_test_reduced_3d[:, 1], t)
-            z = sp.interpolate(X_test_reduced_3d[:, 2], t)
+            # t = sp.symbols('t')
+            # x = sp.interpolate(X_test_reduced_3d[:, 0], t)
+            # y = sp.interpolate(X_test_reduced_3d[:, 1], t)
+            # z = sp.interpolate(X_test_reduced_3d[:, 2], t)
             # Calculate the torsion
             torsion = calculate_torsion(x, y, z, t)
 
