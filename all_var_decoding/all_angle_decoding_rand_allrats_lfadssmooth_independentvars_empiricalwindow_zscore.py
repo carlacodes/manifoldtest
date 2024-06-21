@@ -21,14 +21,42 @@ from sklearn.pipeline import Pipeline
 import logging
 import sys
 from helpers import tools
-
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 import os
 import scipy
 import pickle as pkl
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, TransformerMixin
+import scipy.stats
+import numpy as np
 
+
+class LFADSSmoother(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        X, self.removed_indices = tools.apply_lfads_smoothing(X)
+        X = scipy.stats.zscore(X, axis=0)
+        return X
+    
+class IndexRemover(BaseEstimator, TransformerMixin):
+    def __init__(self, smoother):
+        self.smoother = smoother
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        if y is not None:
+            y = self.remove_indices(y)
+        return X, y
+
+    def remove_indices(self, y):
+        return np.delete(y, self.smoother.removed_indices, axis=0)
 
 class CustomUMAP(BaseEstimator):
     def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
@@ -124,10 +152,21 @@ def train_and_test_on_umap_randcv(
 
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     # Example, you can use your custom folds here
+    # pipeline = Pipeline([
+    #     ('reducer', CustomUMAP()),
+    #     ('estimator', MultiOutputRegressor(regressor()))
+    # ])
+
+    smoother = LFADSSmoother()
+    index_remover = IndexRemover(smoother)
+
     pipeline = Pipeline([
+        ('smoother', smoother),
+        ('index_remover', index_remover),
         ('reducer', CustomUMAP()),
         ('estimator', MultiOutputRegressor(regressor()))
     ])
+    
 
     # Define the parameter grid
     # param_grid = {
@@ -167,6 +206,7 @@ def train_and_test_on_umap_randcv(
            'estimator__estimator__metric': ['cosine', 'euclidean', 'minkowski'],}
 
         # Initialize BayesSearchCV
+        logger.info('Starting the random search, at line 209')
         random_search = RandomizedSearchCV(
             pipeline,
             param_distributions=param_grid,
@@ -199,6 +239,20 @@ def train_and_test_on_umap_randcv(
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
+
+            spks_train, removed_indices_train = tools.apply_lfads_smoothing(spks_train)
+            spks_test, removed_indices_test = tools.apply_lfads_smoothing(spks_test)
+
+            spks_train = scipy.stats.zscore(spks_train, axis=0)
+
+            spks_test = scipy.stats.zscore(spks_test, axis=0)
+            #remove the removed labels
+            print('removing the removed indices')
+            y_test =  np.delete(y_test, removed_indices_test, axis=0)
+            y_train =  np.delete(y_train, removed_indices_train, axis=0)
+
+
+
 
             # Set the parameters
             formatted_params = format_params(manual_params)
@@ -244,7 +298,9 @@ def train_and_test_on_umap_randcv(
 def main():
     # data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
     base_dir = '/ceph/scratch/carlag/honeycomb_neural_data/'
-    for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
+
+
+    for data_dir in  [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
                      f'{base_dir}/rat_3/25-3-2019']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
@@ -256,10 +312,10 @@ def main():
         spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
         old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
         #check if they are the same array
-        if np.allclose(spike_data, old_spike_data):
-            print('The two arrays are the same')
-        else:
-            print('The two arrays are not the same')
+        # if np.allclose(spike_data, old_spike_data):
+        #     print('The two arrays are the same')
+        # else:
+        #     print('The two arrays are not the same')
 
         window_df = pd.read_csv(f'/ceph/scratch/carlag/honeycomb_neural_data/mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_False.csv')
         #find the rat_id
@@ -279,13 +335,14 @@ def main():
             # remove those neurons
             spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-        X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
-        X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
+        # X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+        X_for_umap = spike_data_copy
+        # X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
 
 
-        labels_for_umap = np.delete(labels, removed_indices, axis=0)
+        # labels_for_umap = np.delete(labels, removed_indices, axis=0)
 
-
+        labels_for_umap = labels
         label_df = pd.DataFrame(labels_for_umap,
                                 columns=col_list)
 
@@ -308,7 +365,7 @@ def main():
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_randsearch_250bin_num_windows{num_windows}_jake_fold_allvars_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randsearch_250bin_numwindows{num_windows}_jake_fold_{now}.npy'
-        save_dir_path = Path(f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_{now_day}')
+        save_dir_path = Path(f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
         # initalise a logger
         logger = logging.getLogger(__name__)

@@ -246,9 +246,10 @@ def main():
     base_dir = '/ceph/scratch/carlag/honeycomb_neural_data/'
     window_size = 100
     scale_to_angle_range = False
-    for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
-                     f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-                     f'{base_dir}/rat_3/25-3-2019']:
+    #  [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
+    #                  f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
+    #                  f'{base_dir}/rat_3/25-3-2019']
+    for data_dir in [f'{base_dir}/rat_3/25-3-2019']:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(
@@ -257,11 +258,11 @@ def main():
 
         spike_data = np.load(f'{spike_dir}/inputs_10052024_{window_size}.npy')
         old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_{window_size}.npy')
-        #check if they are the same array
-        if np.allclose(spike_data, old_spike_data):
-            print('The two arrays are the same')
-        else:
-            print('The two arrays are not the same')
+        # #check if they are the same array
+        # if np.allclose(spike_data, old_spike_data):
+        #     print('The two arrays are the same')
+        # else:
+        #     print('The two arrays are not the same')
 
         window_df = pd.read_csv(f'/ceph/scratch/carlag/honeycomb_neural_data/mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_{scale_to_angle_range}.csv')
         #find the rat_id
@@ -311,6 +312,12 @@ def main():
         filename = f'params_all_trials_randsearch_{window_size}bin_num_windows{num_windows}_jake_fold_allvars_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randsearch_{window_size}bin_numwindows{num_windows}_jake_fold_{now}.npy'
         save_dir_path = Path(f'{data_dir}/randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_{scale_to_angle_range}_binsize_{window_size}_{now_day}')
+        save_dir_path_short = Path(f'{data_dir}/randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_{scale_to_angle_range}_binsize_{window_size}')
+        if save_dir_path.exists():
+            #check that filename exists
+            if (save_dir_path / filename).exists():
+                print(f'The file {filename} already exists')
+                continue
         save_dir_path.mkdir(parents=True, exist_ok=True)
         # initalise a logger
         logger = logging.getLogger(__name__)
