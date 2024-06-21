@@ -265,6 +265,18 @@ def train_and_test_on_umap_randcv(
             plt.savefig(f'{savedir}/rips_diagrams_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             plt.show()
 
+            # rips = Rips()
+            # diagrams = rips.fit_transform(X_test_reduced)
+            #
+            # # Plot the H2 diagram
+            # rips.plot(diagrams[2], title='Rips Complex H2 for fold: ' + str(count) + '  rat id :' + str(rat_id))
+            #
+            # # Save the figure
+            # plt.savefig(f'{savedir}/rips_diagrams_H2_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
+            #
+            # # Display the figure
+            # plt.show()
+
             # Apply PCA to reduce the dimensionality to 3
             # pca = PCA(n_components=3)
             # X_test_reduced_3d = pca.fit_transform(X_test_reduced)
@@ -346,6 +358,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(
                 count) + 'rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
+            plt.show()
             count += 1
 
         # Calculate the mean training and test scores
@@ -401,7 +414,7 @@ def run_umap_pipeline_across_rats():
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_nosmoothing_')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_2024-06-20_')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
