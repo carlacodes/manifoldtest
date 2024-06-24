@@ -41,7 +41,8 @@ def custom_scorer(y_true, y_pred):
         elif len(y_pred) > len(y_true):
             y_pred = y_pred[diff:]
 
-
+    #assert that y_true is equal in length to y_pred
+    assert len(y_true) == len(y_pred), 'y_true and y_pred are not equal in length'
     # Calculate the score using mean_squared_error
     score = r2_score(y_true, y_pred)
     return score
