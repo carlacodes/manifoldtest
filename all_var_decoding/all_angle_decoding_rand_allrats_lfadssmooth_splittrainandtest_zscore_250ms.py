@@ -38,8 +38,9 @@ def custom_scorer(y_true, y_pred):
         diff = abs(len(y_true) - len(y_pred))
         if len(y_true) > len(y_pred):
             y_true = y_true[diff:]
-        else:
+        elif len(y_pred) > len(y_true):
             y_pred = y_pred[diff:]
+
 
     # Calculate the score using mean_squared_error
     score = r2_score(y_true, y_pred)

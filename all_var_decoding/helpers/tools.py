@@ -54,6 +54,8 @@ def apply_lfads_smoothing(data_in):
 
     removed_row_indices = np.arange(0, invalid_len)
 
+    #assert that X_umap_lfads doesn't contain nans
+    assert np.isnan(X_umap_lfads).sum() == 0
 
     # then z score
     return X_umap_lfads, removed_row_indices
