@@ -1,7 +1,0 @@
-Matplotlib is building the font cache; this may take a moment.
-Traceback (most recent call last):
-  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms.py", line 18, in <module>
-    from helpers import tools
-  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/helpers/tools.py", line 19, in <module>
-    from skopt import BayesSearchCV
-ModuleNotFoundError: No module named 'skopt'

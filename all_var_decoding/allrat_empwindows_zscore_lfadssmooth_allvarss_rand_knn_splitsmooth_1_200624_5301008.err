@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms.py", line 6, in <module>
-    import matplotlib.pyplot as plt
-ModuleNotFoundError: No module named 'matplotlib'
