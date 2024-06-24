@@ -379,6 +379,15 @@ def train_and_test_on_umap_randcv(
             scoring=scorer
         )
 
+
+        if np.isnan(spks).any():
+            print('spks contains nans for rat:' + rat_id)
+        if np.isnan(y).any():
+            print('y contains nans for rat:' + rat_id)
+
+        assert np.isnan(spks).sum() == 0
+        assert np.isnan(y).sum() == 0
+
         # Fit BayesSearchCV
         random_search.fit(spks, y)
 
