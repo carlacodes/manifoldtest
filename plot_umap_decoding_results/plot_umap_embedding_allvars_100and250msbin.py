@@ -26,6 +26,7 @@ import logging
 import sys
 from helpers import tools
 
+
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 import os
@@ -132,7 +133,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000, apply_smoothing = True, sanity_check = True
 ):
 
 
@@ -244,6 +245,36 @@ def train_and_test_on_umap_randcv(
 
             spks_train_shuffle, spks_test_shuffle = spks_shuffle[train_index], spks_shuffle[test_index]
             y_train_shuffle, y_test_shuffle = y_shuffle[train_index], y_shuffle[test_index]
+            if apply_smoothing:
+                spks_train, removed_indices_train = tools.apply_lfads_smoothing(spks_train)
+                spks_test, removed_indices_test = tools.apply_lfads_smoothing(spks_test)
+
+                spks_train = scipy.stats.zscore(spks_train, axis=0)
+                spks_test = scipy.stats.zscore(spks_test, axis=0)
+                # remove the removed labels
+                y_test = np.delete(y_test, removed_indices_test, axis=0)
+                y_train = np.delete(y_train, removed_indices_train, axis=0)
+
+                spks_train_shuffle = scipy.stats.zscore(spks_train_shuffle, axis=0)
+                spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
+                # remove the removed labels
+                y_test_shuffle = np.delete(y_test_shuffle, removed_indices_test, axis=0)
+                y_train_shuffle = np.delete(y_train_shuffle, removed_indices_train, axis=0)
+
+                spks_train_shuffle = scipy.stats.zscore(spks_train_shuffle, axis=0)
+                spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
+            if sanity_check:
+                #visualise
+                fig, ax = plt.subplots()
+                ax.plot(spks_train[:100, 10], label='regular', alpha=0.5)
+                ax.plot(spks_train_shuffle[:100, 10], label='shuffled', alpha =0.5)
+                ax.legend()
+                plt.savefig(f'{savedir}/spike_train_vs_shuffled_fold_{count}.png', dpi=300, bbox_inches='tight')
+                plt.show()
+                plt.close('all')
+
+
+
 
             # Set the parameters
             # formatted_params = format_params(manual_params)
