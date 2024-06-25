@@ -391,7 +391,7 @@ def train_and_test_on_umap_randcv(
 
 def run_umap_pipeline_across_rats():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/', 'C:/neural_data/rat_3/25-3-2019/']
+    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/']
     across_dir_dataframe = pd.DataFrame()
     across_dir_dataframe_shuffled = pd.DataFrame()
     bin_size = 250
@@ -414,7 +414,7 @@ def run_umap_pipeline_across_rats():
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_2024-06-20')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_2024-06-24')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
@@ -429,6 +429,7 @@ def run_umap_pipeline_across_rats():
             spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
         X_for_umap_smoothed, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
+        #to do: option for smoothing with X_for_umap cv
         X_for_umap = spike_data_copy
         # X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
         # X_for_umap_smoothed = scipy.stats.zscore(X_for_umap_smoothed, axis=0)
