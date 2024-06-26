@@ -47,6 +47,19 @@ def custom_scorer(y_true, y_pred):
     #assert that y_true is equal in length to y_pred
     assert len(y_true) == len(y_pred), 'y_true and y_pred are not equal in length'
     # Calculate the score using mean_squared_error
+
+    min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
+    # Assume that `data` is your data
+    first_two_columns = y_true[:, :2]
+
+    # Fit the scaler to the first two columns
+    min_max_scaler.fit(first_two_columns)
+
+    # Transform the first two columns
+    scaled_columns = min_max_scaler.transform(first_two_columns)
+
+    # Replace the original first two columns with the scaled ones
+    y_true[:, :2] = scaled_columns
     score = r2_score(y_true, y_pred)
     return score
 
