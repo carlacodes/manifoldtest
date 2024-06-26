@@ -147,7 +147,7 @@ def train_and_test_on_umap_randcv(
     # Create your custom folds
     n_timesteps = spks.shape[0]
 
-    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
+    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=num_windows)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('reducer', CustomUMAP()),
@@ -271,12 +271,61 @@ def train_and_test_on_umap_randcv(
                 spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
             if sanity_check:
                 #visualise
+                #run a statistical test on all y values
+                for i in range(y.shape[1]):
+                    t_stat, p_val = scipy.stats.ttest_ind(y_train[:, i], y_test[:, i])
+                    #perform a ks test
+                    ks_stat, ks_p_val = scipy.stats.ks_2samp(y_train[:, i], y_test[:, i])
+                    print(f'The t-statistic for the test on {regress[i]} is {t_stat} and the p-value is {p_val}')
+                    print(f'The ks-statistic for the test on {regress[i]} is {ks_stat} and the p-value is {ks_p_val}')
+                    assert p_val > 0.05, f'The p-value for the t-test on {regress[i]} is less than 0.05'
+                    assert ks_p_val > 0.05, f'The p-value for the ks-test on {regress[i]} is less than 0.05'
+
+
                 fig, ax = plt.subplots()
                 ax.plot(spks_train[:500, 10], label='smoothed', alpha=0.5)
-                ax.plot(spks_train_copy[:500, 10], label='original_unsmoothed', alpha =0.5)
+                ax.plot(spks_test[:500, 10], label='smooth_test', alpha =0.5)
                 ax.legend()
                 plt.savefig(f'{savedir}/spike_train_vs_shuffled_fold_{count}.png', dpi=300, bbox_inches='tight')
                 plt.show()
+
+                fig, ax = plt.subplots()
+                ax.plot(y_train[:2600, 0], label='train_labels_x', alpha=0.5)
+                ax.plot(y_test[:2600, 0], label='test_labels_x', alpha =0.5)
+                ax.plot(y[:2600, 0], label='all_labels_x', alpha =0.5)
+                plt.show()
+
+                fig, ax = plt.subplots()
+                ax.plot(y_train[:2600, 1], label='train_labels_y', alpha=0.5)
+                ax.plot(y_test[:2600, 1], label='test_labels_y', alpha =0.5)
+                ax.plot(y[:2600, 1], label='all_labels_y', alpha =0.5)
+                plt.show()
+
+                fig, ax = plt.subplots()
+                ax.plot(y_train[:50, 2], label='train_labels_angle_sin', alpha=0.5)
+                ax.plot(y_test[:50, 2], label='test_labels_angle_sin', alpha =0.5)
+                ax.plot(y[:50, 2], label='all_labels_angle_sin', alpha =0.5)
+                ax.legend()
+                plt.show()
+
+                fig, ax = plt.subplots()
+                ax.plot(y_train[:50, 3], label='train_labels_angle_cos', alpha=0.5)
+                ax.plot(y_test[:50, 3], label='test_labels_angle_cos', alpha =0.5)
+                ax.plot(y[:50, 3], label='all_labels_angle_cos', alpha =0.5)
+                ax.legend()
+                plt.show()
+
+                fig, ax = plt.subplots()
+                #compare the x and y labels
+                ax.plot(y_train[:50, 0], label='train_labels_x', alpha=0.5)
+                ax.plot(y_test[:50, 0], label='test_labels_x', alpha =0.5)
+                ax.plot(y_train[:50, 1], label='train_labels_y', alpha=0.5)
+                ax.plot(y_test[:50, 1], label='test_labels_y', alpha =0.5)
+                ax.legend()
+                plt.show()
+
+
+
                 plt.close('all')
 
 
