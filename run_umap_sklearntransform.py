@@ -551,8 +551,8 @@ def main():
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(
-            f'{dlc_dir}/labels_250_scale_to_angle_range_False.npy')
-        col_list = np.load(f'{dlc_dir}/col_names_250_scale_to_angle_range_False.npy')
+            f'{dlc_dir}/labels_250_raw.npy')
+        col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
 
         spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
         old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')

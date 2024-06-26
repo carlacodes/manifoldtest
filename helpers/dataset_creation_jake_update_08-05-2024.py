@@ -173,16 +173,16 @@ def cat_dlc(windowed_dlc, scale_to_angle_range = False):
     #     print(f'z-scoring column {col_name}')
     #     dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])
 
-    for i, col_name in zip(range(dlc_array.shape[1]), column_names):
-        # z-score scaling
-        if col_name not in ['hd', 'relative_direction_to_goal'] and scale_to_angle_range == False:
-            print(f'z-scoring column {col_name}')
-            dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])
-        elif col_name not in ['hd', 'relative_direction_to_goal'] and scale_to_angle_range == True:
-            #scale to the range -1 to 1
-            print(f'scaling column {col_name} to the range -1 to 1')
-            dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
-                                (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i])) * 2 - 1
+    # for i, col_name in zip(range(dlc_array.shape[1]), column_names):
+    #     # z-score scaling
+    #     if col_name not in ['hd', 'relative_direction_to_goal'] and scale_to_angle_range == False:
+    #         print(f'z-scoring column {col_name}')
+    #         dlc_array[:, i] = (dlc_array[:, i] - np.mean(dlc_array[:, i])) / np.std(dlc_array[:, i])
+    #     elif col_name not in ['hd', 'relative_direction_to_goal'] and scale_to_angle_range == True:
+    #         #scale to the range -1 to 1
+    #         print(f'scaling column {col_name} to the range -1 to 1')
+    #         dlc_array[:, i] = (dlc_array[:, i] - np.min(dlc_array[:, i])) / \
+    #                             (np.max(dlc_array[:, i]) - np.min(dlc_array[:, i])) * 2 - 1
 
     dlc_array = np.round(dlc_array, 3)
 
@@ -430,8 +430,8 @@ def main():
 
             labels, col_names = cat_dlc(windowed_dlc, scale_to_angle_range=scale_to_angle_range)
             labels = labels.astype(np.float32)
-            labels_file_name = f'labels_{window_size}_scale_to_angle_range_{scale_to_angle_range}'
-            col_names_file_name = f'col_names_{window_size}_scale_to_angle_range_{scale_to_angle_range}'
+            labels_file_name = f'labels_{window_size}_raw'
+            col_names_file_name = f'col_names_{window_size}_raw'
             np.save(f'{dlc_dir}/{col_names_file_name}.npy', col_names)
             np.save(f'{dlc_dir}/{labels_file_name}.npy', labels)
 
