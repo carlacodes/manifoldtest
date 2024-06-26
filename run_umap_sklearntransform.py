@@ -51,7 +51,7 @@ def custom_scorer(y_true, y_pred):
     return score
 
 # Create a scorer using make_scorer
-scorer = make_scorer(custom_scorer, greater_is_better=False)
+scorer = make_scorer(custom_scorer, greater_is_better=True)
 
 class Pipeline(pipeline.Pipeline):
 

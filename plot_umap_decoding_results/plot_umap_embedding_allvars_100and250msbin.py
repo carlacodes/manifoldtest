@@ -8,6 +8,8 @@ from sklearn.pipeline import Pipeline
 # from helpers.datahandling import DataHandler
 from scipy.stats import randint
 from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import gudhi  # or import dionysus
 import sympy as sp
 
 from sklearn.neighbors import KNeighborsRegressor
@@ -147,7 +149,7 @@ def train_and_test_on_umap_randcv(
     # Create your custom folds
     n_timesteps = spks.shape[0]
 
-    custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=num_windows)
+    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('reducer', CustomUMAP()),
@@ -349,6 +351,30 @@ def train_and_test_on_umap_randcv(
             rips.plot(diagrams, title='Rips Complex for fold: ' + str(count) + '  rat id :' + str(rat_id))
             # plt.title('Rips Diagrams for fold: ' + str(count), 'rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/rips_diagrams_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
+            plt.show()
+
+
+            # Initialize lists to store the number of components in each homology group
+            num_components_h0 = []
+            num_components_h1 = []
+
+            # For each time step or filtration level
+            for t in range(0, X_test_reduced.shape[0], 100):
+                # Compute the simplicial complex or filtration at time t
+                data_t = X_test_reduced[t]
+                complex_t = gudhi.RipsComplex(points=data_t, max_edge_length=3.0)
+
+                # Compute the homology groups
+                homology_groups = gudhi.compute_homology(complex_t)  # or dionysus.homology_persistence(complex_t)
+
+                # Store the number of components in each homology group
+                num_components_h0.append(len(homology_groups[0]))
+                num_components_h1.append(len(homology_groups[1]))
+
+            # Plot the number of components in each homology group over time
+            plt.plot(num_components_h0, label='H0')
+            plt.plot(num_components_h1, label='H1')
+            plt.legend()
             plt.show()
 
             # rips = Rips()
