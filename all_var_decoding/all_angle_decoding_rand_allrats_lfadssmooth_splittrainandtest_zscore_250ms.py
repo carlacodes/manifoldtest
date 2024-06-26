@@ -39,6 +39,8 @@ def custom_scorer(y_true, y_pred):
         if len(y_true) > len(y_pred):
             y_true = y_true[diff:]
         elif len(y_pred) > len(y_true):
+            ##honestly should not be happening
+            print('y_pred is longer than y_true')
             y_pred = y_pred[diff:]
 
     #assert that y_true is equal in length to y_pred
@@ -48,7 +50,7 @@ def custom_scorer(y_true, y_pred):
     return score
 
 # Create a scorer using make_scorer
-scorer = make_scorer(custom_scorer, greater_is_better=False)
+scorer = make_scorer(custom_scorer, greater_is_better=True)
 
 class Pipeline(pipeline.Pipeline):
 
@@ -533,14 +535,16 @@ def main():
             'n_jobs': 1,
         }
 
-        regress = ['x', 'y', 'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
+        # regress = ['x', 'y', 'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
+        regress = ['x', 'y']  # changing to two target variables
+
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_randsearch_250bin_num_windows{num_windows}_jake_fold_allvars_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randsearch_250bin_numwindows{num_windows}_jake_fold_{now}.npy'
         save_dir_path = Path(
-            f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_{now_day}')
+            f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_independentvar_smoothaftersplit_onlyxy_v3_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
 
 

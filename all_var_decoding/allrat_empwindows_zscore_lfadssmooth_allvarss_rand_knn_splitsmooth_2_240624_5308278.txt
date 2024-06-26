@@ -1,6 +1,0 @@
-Ratio of train to test indices is 4.60381679389313
-Ratio of train to test indices is 4.60381679389313
-Ratio of train to test indices is 4.60381679389313
-Ratio of train to test indices is 4.60381679389313
-Ratio of train to test indices is 4.60381679389313
-Fitting 5 folds for each of 1000 candidates, totalling 5000 fits

@@ -1,0 +1,42 @@
+Traceback (most recent call last):
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms_allvar_expandedparamgrid.py", line 592, in <module>
+    main()
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms_allvar_expandedparamgrid.py", line 576, in main
+    best_params, mean_score = train_and_test_on_umap_randcv(
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms_allvar_expandedparamgrid.py", line 417, in train_and_test_on_umap_randcv
+    random_search.fit(spks, y)
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/base.py", line 1474, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/model_selection/_search.py", line 970, in fit
+    self._run_search(evaluate_candidates)
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/model_selection/_search.py", line 1914, in _run_search
+    evaluate_candidates(
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/model_selection/_search.py", line 947, in evaluate_candidates
+    _warn_or_raise_about_fit_failures(out, self.error_score)
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/model_selection/_validation.py", line 536, in _warn_or_raise_about_fit_failures
+    raise ValueError(all_fits_failed_message)
+ValueError: 
+All the 5000 fits failed.
+It is very likely that your model is misconfigured.
+You can try to debug the error by setting error_score='raise'.
+
+Below are more details about the failures:
+--------------------------------------------------------------------------------
+5000 fits failed with the following error:
+Traceback (most recent call last):
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/model_selection/_validation.py", line 895, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms_allvar_expandedparamgrid.py", line 161, in fit
+    Xt = self._fit(X, y, routed_params)
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms_allvar_expandedparamgrid.py", line 80, in _fit
+    X, fitted_transformer = fit_transform_one_cached(
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/joblib/memory.py", line 312, in __call__
+    return self.func(*args, **kwargs)
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/pipeline.py", line 1303, in _fit_transform_one
+    res = transformer.fit_transform(X, y, **params.get("fit_transform", {}))
+  File "/nfs/nhome/live/carlag/.conda/envs/newmanifoldenv/lib/python3.10/site-packages/sklearn/utils/_set_output.py", line 295, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/all_var_decoding/all_angle_decoding_rand_allrats_lfadssmooth_splittrainandtest_zscore_250ms_allvar_expandedparamgrid.py", line 194, in fit_transform
+    min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
+NameError: name 'MinMaxScaler' is not defined
+
