@@ -361,15 +361,18 @@ def train_and_test_on_umap_randcv(
             # For each time step or filtration level
             for t in range(0, X_test_reduced.shape[0], 100):
                 # Compute the simplicial complex or filtration at time t
-                data_t = X_test_reduced[t]
+                data_t = X_test_reduced[t:t+1, :]
                 complex_t = gudhi.RipsComplex(points=data_t, max_edge_length=3.0)
 
                 # Compute the homology groups
-                homology_groups = gudhi.compute_homology(complex_t)  # or dionysus.homology_persistence(complex_t)
+                simplex_tree_t = complex_t.create_simplex_tree(max_dimension=2)
 
+                # Compute the persistent homology
+                homology_groups = simplex_tree_t.persistence()
                 # Store the number of components in each homology group
                 num_components_h0.append(len(homology_groups[0]))
-                num_components_h1.append(len(homology_groups[1]))
+                if len(homology_groups) > 1:
+                    num_components_h1.append(len(homology_groups[1]))
 
             # Plot the number of components in each homology group over time
             plt.plot(num_components_h0, label='H0')
@@ -526,7 +529,7 @@ def run_umap_pipeline_across_rats():
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_2024-06-24')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_smoothaftersplit_allvar_v3_2024-06-25')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
