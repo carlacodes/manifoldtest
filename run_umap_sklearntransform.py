@@ -14,6 +14,7 @@ from sklearn.decomposition import PCA
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import logging
 import sys
 from helpers import tools
@@ -245,6 +246,19 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
 
         if y is not None:
             y = np.delete(y, self.removed_indices, axis=0)
+        #use minmax scaler to make the labels between 0 and 1
+        min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
+        # Assume that `data` is your data
+        first_two_columns = y[:, :2]
+
+        # Fit the scaler to the first two columns
+        min_max_scaler.fit(first_two_columns)
+
+        # Transform the first two columns
+        scaled_columns = min_max_scaler.transform(first_two_columns)
+
+        # Replace the original first two columns with the scaled ones
+        y[:, :2] = scaled_columns
 
         print('LFADssmoother: shape of X after transform: ', X.shape)
         print('LFADssmoother: shape of y after transform: ', y.shape)
