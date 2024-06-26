@@ -20,6 +20,7 @@ import os
 import scipy
 import pickle as pkl
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import scipy.stats
 import numpy as np
 from sklearn import pipeline
