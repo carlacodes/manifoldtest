@@ -353,31 +353,7 @@ def train_and_test_on_umap_randcv(
             plt.show()
 
 
-            # Initialize lists to store the number of components in each homology group
-            num_components_h0 = []
-            num_components_h1 = []
 
-            # For each time step or filtration level
-            for t in range(0, X_test_reduced.shape[0], 100):
-                # Compute the simplicial complex or filtration at time t
-                data_t = X_test_reduced[t:t+1, :]
-                complex_t = gudhi.RipsComplex(points=data_t, max_edge_length=3.0)
-
-                # Compute the homology groups
-                simplex_tree_t = complex_t.create_simplex_tree(max_dimension=2)
-
-                # Compute the persistent homology
-                homology_groups = simplex_tree_t.persistence()
-                # Store the number of components in each homology group
-                num_components_h0.append(len(homology_groups[0]))
-                if len(homology_groups) > 1:
-                    num_components_h1.append(len(homology_groups[1]))
-
-            # Plot the number of components in each homology group over time
-            plt.plot(num_components_h0, label='H0')
-            plt.plot(num_components_h1, label='H1')
-            plt.legend()
-            plt.show()
 
 
             train_score = pipeline.score(spks_train, y_train)

@@ -467,12 +467,15 @@ def train_and_test_on_umap_randcv(
             ('estimator', MultiOutputRegressor(regressor()))
         ])
         param_grid = {
-            'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10],
-            'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
-            'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
+            'reducer__n_components': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23],
+            'reducer__min_dist': [0.00001, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3],
+            'reducer__n_neighbors': [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
             'reducer__random_state': [42],
-            'estimator__estimator__n_neighbors': [2, 5, 10, 20, 30, 40, 50, 60, 70],
-            'estimator__estimator__metric': ['cosine', 'euclidean', 'minkowski'], }
+            'estimator__estimator__n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
+                                                  65, 70, 75, 150, 200],
+            'estimator__estimator__metric': ['euclidean', 'minkowski', 'manhattan'],
+            'estimator__estimator__weights': ['uniform', 'distance'],
+        }
 
         # Initialize BayesSearchCV
         # logger.info('Starting the random search, at line 209')
