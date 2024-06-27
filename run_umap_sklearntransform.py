@@ -364,43 +364,15 @@ def train_and_test_on_umap_randcv(
 ):
     y = bhv[regress].values
 
-    random_search_results = []
-
     # Create your custom folds
     n_timesteps = spks.shape[0]
 
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
-    # Example, you can use your custom folds here
-    # pipeline = Pipeline([
-    #     ('reducer', CustomUMAP()),
-    #     ('estimator', MultiOutputRegressor(regressor()))
-    # ])
 
-
-
-    # Define the parameter grid
-    # param_grid = {
-    #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
-    #     'reducer__n_components': [2],
-    #     'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-    #     'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
-    #     'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
-    #     'reducer__random_state': [42]
-    # }
-    # get the date
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = open(f"{save_dir_path}/random_search_{now}.log", "w")
 
     if use_rand_search:
-        # Define the parameter grid
-        # param_grid = {
-        #     'estimator__estimator__n_neighbors': (2, 70),  # range of values
-        #     'reducer__n_components': (3, 10),
-        #     'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-        #     'reducer__n_neighbors': (2, 70),  # range of values
-        #     'reducer__min_dist': (0.0001, 0.3),  # range of values
-        #     'reducer__random_state': [42]
-        # }
         smoother = LFADSSmoother()
 
         pipeline = Pipeline([
@@ -413,11 +385,11 @@ def train_and_test_on_umap_randcv(
             'reducer__min_dist': [0.00001, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3],
             'reducer__n_neighbors': [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
             'reducer__random_state': [42],
-            'estimator__estimator__n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
-                                                  65, 70, 75, 150, 200],
-            'estimator__estimator__metric': ['euclidean', 'minkowski', 'manhattan'],
-            'estimator__estimator__weights': ['uniform', 'distance'],
+            'estimator__estimator__epsilon': [0.1, 0.2, 0.3, 0.4, 0.5],  # example values
+            'estimator__estimator__degree': [1, 2, 3, 4, 5],  # example values
+            'estimator__estimator__gamma': [0.1, 0.01, 0.001, 0.0001],  # example values
         }
+
 
         # Initialize BayesSearchCV
         # logger.info('Starting the random search, at line 209')
