@@ -512,9 +512,8 @@ def main():
         label_df = pd.DataFrame(labels_for_umap,
                                 columns=col_list)
 
-        regressor = KNeighborsRegressor
-        regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
-
+        regressor = SVR
+        regressor_kwargs = {'kernel': 'rbf', 'C': 1.0, 'epsilon': 0.1}  # adjust these parameters as neededgit
         reducer = UMAP
 
         reducer_kwargs = {
