@@ -4,14 +4,11 @@ from datetime import datetime
 from sklearn.model_selection import ParameterSampler, RandomizedSearchCV
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
-# from helpers.datahandling import DataHandler
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
 from pathlib import Path
 from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
-from sklearn.decomposition import PCA
-import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -68,47 +65,6 @@ def custom_scorer(y_true, y_pred):
 scorer = make_scorer(custom_scorer, greater_is_better=True)
 
 class Pipeline(pipeline.Pipeline):
-
-    # def _fit(self, X, y=None, **fit_params_steps):
-    #     self.steps = list(self.steps)
-    #     self._validate_steps()
-    #     memory = check_memory(self.memory)
-    #
-    #     fit_transform_one_cached = memory.cache(pipeline._fit_transform_one)
-    #
-    #     for (step_idx, name, transformer) in self._iter(
-    #             with_final=False, filter_passthrough=False
-    #     ):
-    #
-    #         if transformer is None or transformer == "passthrough":
-    #             with _print_elapsed_time("Pipeline", self._log_message(step_idx)):
-    #                 continue
-    #
-    #         try:
-    #             # joblib >= 0.12
-    #             mem = memory.location
-    #         except AttributeError:
-    #             mem = memory.cachedir
-    #         finally:
-    #             cloned_transformer = clone(transformer) if mem else transformer
-    #
-    #         X, fitted_transformer = fit_transform_one_cached(
-    #             cloned_transformer,
-    #             X,
-    #             y,
-    #             None,
-    #             message_clsname="Pipeline",
-    #             message=self._log_message(step_idx),
-    #             **fit_params_steps[name],
-    #         )
-    #
-    #         if isinstance(X, tuple):  ###### unpack X if is tuple: X = (X,y)
-    #             X, y = X
-    #
-    #         self.steps[step_idx] = (name, fitted_transformer)
-    #
-    #     return X, y
-
 
     def _fit(self, X, y=None, routed_params=None):
         # shallow copy of steps - this should really be steps_
