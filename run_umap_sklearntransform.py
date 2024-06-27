@@ -14,6 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import logging
 import sys
+from sklearn.svm import SVR
 from helpers import tools
 
 ''' Modified from Jules Lebert's code
@@ -227,30 +228,6 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
         X = scipy.stats.zscore(X, axis=0)
         # print(f"LFADSSmoother: X after transformation: {X}")
         return X
-
-# class IndexRemover(BaseEstimator, TransformerMixin):
-#     def __init__(self, smoother):
-#         self.smoother = smoother
-#
-#     def fit(self, X, y=None):
-#         return self
-#
-#     def fit_transform(self, X, y=None):
-#         X, y = self.transform(X, y)
-#         return X, y
-#
-#     def transform(self, X, y=None):
-#         if y is not None:
-#             y = self.remove_indices(y)
-#         assert X.size > 0, "The input numpy array is empty."
-#         print('The shape of the data after removing the indices is:', X.shape)
-#         print('The shape of the labels after removing the indices is:', y.shape)
-#         assert not np.isnan(X).any(), "NaN values in X after IndexRemover"
-#         assert not np.isnan(y).any(), "NaN values in y after IndexRemover"
-#         return X, y
-#
-#     def remove_indices(self, y):
-#         return np.delete(y, self.smoother.removed_indices, axis=0)
 
 
 class IndexRemover(BaseEstimator, TransformerMixin):
