@@ -482,7 +482,7 @@ def train_and_test_on_umap_randcv(
             n_iter=1000,
             cv=custom_folds,
             verbose=3,
-            n_jobs=-1,
+            n_jobs=1,
             scoring=scorer
         )
 
