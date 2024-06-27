@@ -534,22 +534,7 @@ def main():
         save_dir_path = Path(
             f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
-        # initalise a logger
-        # logger = logging.getLogger(__name__)
-        # logger.setLevel(logging.INFO)
-        # # create a file handler
-        # handler = logging.FileHandler(save_dir_path / f'rand_search_cv_{now}.log')
-        # handler.setLevel(logging.INFO)
-        # # create a logging format
-        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # handler.setFormatter(formatter)
-        # # add the handlers to the logger
-        # logger.addHandler(handler)
-        # logger.info('Starting the training and testing of the lfp data with the spike data')
-        # remove numpy array, just get mapping from manual_params
-        # manual_params = manual_params.item()
 
-        # get the num_windows from an already calculated csv file
 
         best_params, mean_score = train_and_test_on_umap_randcv(
             X_for_umap,
