@@ -33,7 +33,6 @@ from sklearn.utils.validation import check_memory
 from sklearn.metrics import make_scorer, mean_squared_error
 import numpy as np
 
-# Define a custom scoring function
 def custom_scorer(y_true, y_pred):
     # Check if y_true and y_pred have the same length
     if len(y_true) != len(y_pred):
@@ -42,9 +41,13 @@ def custom_scorer(y_true, y_pred):
         diff = abs(len(y_true) - len(y_pred))
         if len(y_true) > len(y_pred):
             y_true = y_true[diff:]
-        else:
+        elif len(y_pred) > len(y_true):
+            ##honestly should not be happening
+            print('y_pred is longer than y_true')
             y_pred = y_pred[diff:]
 
+    #assert that y_true is equal in length to y_pred
+    assert len(y_true) == len(y_pred), 'y_true and y_pred are not equal in length'
     # Calculate the score using mean_squared_error
 
     min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
@@ -61,7 +64,6 @@ def custom_scorer(y_true, y_pred):
     y_true[:, :2] = scaled_columns
     score = r2_score(y_true, y_pred)
     return score
-
 # Create a scorer using make_scorer
 scorer = make_scorer(custom_scorer, greater_is_better=True)
 
