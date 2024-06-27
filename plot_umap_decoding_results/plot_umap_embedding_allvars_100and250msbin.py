@@ -344,7 +344,6 @@ def train_and_test_on_umap_randcv(
             fitted_reducer = pipeline.named_steps['reducer']
             fitted_reducer_shuffle = pipeline_shuffle.named_steps['reducer']
             X_test_reduced = fitted_reducer.transform(spks_test)
-            X_test_reduced_shuffle = fitted_reducer_shuffle.transform(spks_test_shuffle)
 
             rips = Rips()
             diagrams = rips.fit_transform(X_test_reduced)
@@ -380,54 +379,7 @@ def train_and_test_on_umap_randcv(
             plt.legend()
             plt.show()
 
-            # rips = Rips()
-            # diagrams = rips.fit_transform(X_test_reduced)
-            #
-            # # Plot the H2 diagram
-            # rips.plot(diagrams[2], title='Rips Complex H2 for fold: ' + str(count) + '  rat id :' + str(rat_id))
-            #
-            # # Save the figure
-            # plt.savefig(f'{savedir}/rips_diagrams_H2_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
-            #
-            # # Display the figure
-            # plt.show()
 
-            # Apply PCA to reduce the dimensionality to 3
-            # pca = PCA(n_components=3)
-            # X_test_reduced_3d = pca.fit_transform(X_test_reduced)
-
-            # t = sp.symbols('t')
-            # x = sp.interpolate(X_test_reduced_3d[:, 0], t)
-            # y = sp.interpolate(X_test_reduced_3d[:, 1], t)
-            # z = sp.interpolate(X_test_reduced_3d[:, 2], t)
-            # Calculate the torsion
-            # torsion = calculate_torsion(x, y, z, t)
-
-            # radii = np.linspace(0.1, 1.0, 10)  # Change this to your desired radii
-            # diagrams = []
-            #
-            # for radius in radii:
-            #     # Subsample the data
-            #     subsample = X_test_reduced[X_test_reduced[:, 0] ** 2 + X_test_reduced[:, 1] ** 2 < radius ** 2]
-            #
-            #     # Compute the persistence diagram for the subsample if it is not empty
-            #     if subsample.size > 0:
-            #         diagram = ripser(subsample)['dgms']
-            #         diagrams.append(diagram)
-            #     else:
-            #         print(f"No points found for radius {radius}. Skipping this radius.")
-            #
-            # fig = plt.figure(figsize=(20, 20))
-            #
-            # # Plot each diagram in a separate subplot
-            # for i, diagram in enumerate(diagrams):
-            #     ax = fig.add_subplot(len(radii), 1, i + 1)
-            #     Rips().plot(diagram, ax=ax)
-            #
-            # # Show the figure
-            # plt.show()
-
-            # Calculate the training score and append it to the list
             train_score = pipeline.score(spks_train, y_train)
             train_scores_shuffle.append(pipeline_shuffle.score(spks_train_shuffle, y_train_shuffle))
             train_scores.append(train_score)
