@@ -166,20 +166,6 @@ class Pipeline(pipeline.Pipeline):
             Xt = transform.transform(Xt, **routed_params[name].transform)
         return self.steps[-1][1].score(Xt, y, **routed_params[self.steps[-1][0]].score)
 
-    # def fit(self, X, y=None, **fit_params):
-    #     fit_params_steps = self._check_fit_params(**fit_params)
-    #     Xt = self._fit(X, y, **fit_params_steps)
-    #
-    #     if isinstance(Xt, tuple):  ###### unpack X if is tuple: X = (X,y)
-    #         Xt, y = Xt
-    #
-    #     with _print_elapsed_time("Pipeline", self._log_message(len(self.steps) - 1)):
-    #         if self._final_estimator != "passthrough":
-    #             fit_params_last_step = fit_params_steps[self.steps[-1][0]]
-    #             self._final_estimator.fit(Xt, y, **fit_params_last_step)
-    #
-    #     return self
-
     def fit(self, X, y=None, **params):
         print('y before fit:', y)
         routed_params = self._check_method_params(method="fit", props=params)
