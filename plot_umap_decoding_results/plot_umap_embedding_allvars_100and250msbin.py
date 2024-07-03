@@ -457,7 +457,7 @@ def run_umap_pipeline_across_rats():
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_smoothaftersplit_allvar_expandedgrid_v3_2024-06-26')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_smoothaftersplit_allvar_expandedgrid_allo_2024-07')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
@@ -514,7 +514,7 @@ def run_umap_pipeline_across_rats():
             'n_jobs': 1,
         }
 
-        regress = ['x', 'y',  'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
+        regress = ['x', 'y',  'cos_hd', 'sin_hd']  # changing to two target variables
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
