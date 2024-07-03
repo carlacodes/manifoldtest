@@ -361,7 +361,7 @@ def train_and_test_on_umap_randcv(
             'reducer__n_neighbors': [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
             'reducer__random_state': [42],
 
-            'estimator__estimator__kernel': ['rbf', 'linear'],
+            'estimator__estimator__kernel': ['sigmoid', 'linear', 'poly'],
             'estimator__estimator__coef0': [0.01, 0.1, 0, 1, 10, 100, 1000],
             'estimator__estimator__epsilon': [0.1, 0.2, 0.3, 0.4, 0.5],  # example values
             'estimator__estimator__degree': [1, 2, 3, 4, 5],  # example values
@@ -465,7 +465,7 @@ def train_and_test_on_umap_randcv(
 
 def main():
     # data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
-    base_dir = '/ceph/scratch/carlag/honeycomb_neural_data/'
+    base_dir = 'C:/neural_data/'
 
     for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
@@ -532,7 +532,7 @@ def main():
         filename = f'params_all_trials_randsearch_250bin_num_windows{num_windows}_jake_fold_allvars_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randsearch_250bin_numwindows{num_windows}_jake_fold_{now}.npy'
         save_dir_path = Path(
-            f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_SVR_alloangle_{now_day}')
+            f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_SVR_localtest_alloangle_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
 
         best_params, mean_score = train_and_test_on_umap_randcv(
