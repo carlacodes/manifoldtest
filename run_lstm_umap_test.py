@@ -27,12 +27,22 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-from sklearn.base import BaseEstimator, RegressorMixin
+import torch.nn.functional as F
 from torch.optim import Adam
 from torch.utils.data import DataLoader, TensorDataset
+from sklearn.base import BaseEstimator, RegressorMixin
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.optim import Adam
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.base import BaseEstimator, RegressorMixin
+
 
 class LSTMRegressor(BaseEstimator, RegressorMixin):
-    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer_class=Adam, loss_fn=nn.MSELoss(), learning_rate=0.001, epochs=100, dropout=0.0):
+    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer_class=Adam,
+                 loss_fn=nn.MSELoss(), learning_rate=0.001, epochs=100, dropout=0.0):
         super().__init__()
         self.input_shape = input_shape
         self.output_dim = output_dim
@@ -48,14 +58,31 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.learning_rate)
 
     def _build_model(self):
-        model = nn.Sequential(
+        # Create a custom sequential model to handle the tuple output from LSTM
+        model = nn.ModuleList([
             nn.LSTM(input_size=self.input_shape[-1], hidden_size=self.neurons, batch_first=True),
             nn.Dropout(self.dropout),
             nn.Linear(self.neurons, self.output_dim)
-        )
+        ])
         return model
 
-    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0, verbose=1):
+    def forward(self, x):
+        # Process input through the LSTM layer
+        x, (hn, cn) = self.model[0](x)  # Assuming the LSTM layer is the first in your model sequence
+
+        # Apply dropout
+        x = self.model[1](x)
+
+        # Check if x is 3-dimensional (batch_size, sequence_length, features)
+        if x.dim() == 3:
+            # If so, select the last time step's output
+            x = x[:, -1, :]
+
+        # Process through the linear layer
+        x = self.model[2](x)
+        return x
+
+    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.1, verbose=1):
         print('calling fit of lstm')
         # Convert data to tensors
         X_tensor = torch.tensor(X, dtype=torch.float32)
@@ -72,7 +99,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         # Create DataLoaders for both training and validation sets
         dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
         dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
-
+        print('at line 75 of training')
         self.model.train()
 
         for epoch in range(epochs):
@@ -80,7 +107,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
             train_loss = 0.0
             for batch_X, batch_y in dataloader_train:
                 self.optimizer.zero_grad()
-                outputs = self.model(batch_X)[0]
+                outputs = self.forward(batch_X)
                 loss = self.loss_fn(outputs, batch_y)
                 loss.backward()
                 self.optimizer.step()
@@ -91,7 +118,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
             self.model.eval()
             with torch.no_grad():
                 for batch_X, batch_y in dataloader_val:
-                    outputs = self.model(batch_X)[0]
+                    outputs = self.forward(batch_X)
                     loss = self.loss_fn(outputs, batch_y)
                     val_loss += loss.item()
 
@@ -99,17 +126,20 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
             avg_train_loss = train_loss / len(dataloader_train)
             avg_val_loss = val_loss / len(dataloader_val)
 
-            if verbose:
-                print(f'Epoch {epoch + 1}, Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}')
+            print(f'Epoch {epoch + 1}, Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}')
 
         return self
+
     def predict(self, X):
+        print('at prediction stage')
         self.model.eval()
         X_tensor = torch.tensor(X, dtype=torch.float32)
         with torch.no_grad():
-            predictions = self.model(X_tensor)[0]
+            predictions = self.forward(X_tensor)
         print('predictions:', predictions.numpy())
         return predictions.numpy()
+
+
 # Define a custom scoring function
 def custom_scorer(y_true, y_pred):
     # Check if y_true and y_pred have the same length
@@ -450,7 +480,7 @@ def train_and_test_on_umap_randcv(
             cv=custom_folds,
             verbose=3,
             n_jobs=1,
-            scoring=scorer
+            scoring=scorer, error_score='raise',
         )
 
         # Fit BayesSearchCV
