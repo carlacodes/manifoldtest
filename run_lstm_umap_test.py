@@ -33,7 +33,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 class LSTMRegressor(BaseEstimator, RegressorMixin):
-    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer=Adam, loss_fn=nn.MSELoss()):
+    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer=Adam, loss_fn=nn.MSELoss(), learning_rate=0.001):
         super().__init__()
         self.input_shape = input_shape
         self.output_dim = output_dim
@@ -41,6 +41,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         self.activation = activation
         self.optimizer_class = optimizer
         self.loss_fn = loss_fn
+        self.learning_rate = learning_rate
         self.model = self._build_model()
 
     def _build_model(self):
@@ -54,9 +55,9 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         X_tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor = torch.tensor(y, dtype=torch.float32)
         dataset = TensorDataset(X_tensor, y_tensor)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-        optimizer = self.optimizer_class(self.model.parameters())
+        optimizer = self.optimizer_class(self.model.parameters(), lr=self.learning_rate)
         self.model.train()
 
         for epoch in range(epochs):
@@ -409,6 +410,10 @@ def train_and_test_on_umap_randcv(
             'estimator__estimator__units_per_layer': [16, 32, 64, 128],  # Number of units per LSTM layer
             'estimator__estimator__dropout': [0.0, 0.1, 0.2, 0.3],  # Dropout rate
             'estimator__estimator__recurrent_dropout': [0.0, 0.1, 0.2, 0.3],  # Recurrent dropout rate
+            'estimator__estimator__learning_rate': [0.0001, 0.001, 0.01, 0.1],
+            'estimator__estimator__epochs': [100, 200, 300, 400, 500],
+            'estimator__estimator__neurons': [50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
+
         }
         # Initialize BayesSearchCV
         # logger.info('Starting the random search, at line 209')
@@ -548,7 +553,7 @@ def main():
                                 columns=col_list)
 
         regressor = LSTMRegressor
-        # regressor_kwargs = {'kernel': 'rbf', 'C': 1.0, 'epsilon': 0.1}  # adjust these parameters as neededgit
+        regressor_kwargs ={'learning_rate': 0.001}
         reducer = UMAP
 
         reducer_kwargs = {
