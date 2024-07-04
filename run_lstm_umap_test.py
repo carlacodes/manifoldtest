@@ -380,26 +380,27 @@ def train_and_test_on_umap_randcv(
         regressor_kwargs,
         reducer,
         reducer_kwargs, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None,
-        num_windows=None
+        num_windows=None,
 ):
     y = bhv[regress].values
 
     # Create your custom folds
     n_timesteps = spks.shape[0]
+    input_shape = (spks.shape[0], spks.shape[1])
+    output_dim = y.shape[1]
 
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = open(f"{save_dir_path}/random_search_{now}.log", "w")
+    smoother = LFADSSmoother()
 
+    pipeline = Pipeline([
+        ('smoother', smoother),
+        ('reducer', CustomUMAP()),
+        ('estimator', regressor(input_shape=input_shape, output_dim=output_dim, **regressor_kwargs))
+    ])
     if use_rand_search:
-        smoother = LFADSSmoother()
-
-        pipeline = Pipeline([
-            ('smoother', smoother),
-            ('reducer', CustomUMAP()),
-            ('estimator', MultiOutputRegressor(regressor()))
-        ])
         param_grid = {
             'reducer__n_components': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23],
             'reducer__min_dist': [0.00001, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3],
