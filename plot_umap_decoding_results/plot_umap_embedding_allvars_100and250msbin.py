@@ -388,8 +388,10 @@ def train_and_test_on_umap_randcv(
             fold_dataframe_shuffle = pd.concat([fold_dataframe_shuffle, indiv_results_dataframe_shuffle], axis=0)
 
             test_scores.append(test_score)
-            actual_angle = np.arcsin(y_test[:, 0])
 
+            # Assuming y_test[:, 1] contains the cosine of the angle
+            # and y_test[:, 0] contains the sine of the angle
+            actual_angle = np.arctan2(y_test[:, 0], y_test[:, 1])
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], c=actual_angle, cmap='viridis')
