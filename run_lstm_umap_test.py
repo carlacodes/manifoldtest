@@ -56,6 +56,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         return model
 
     def fit(self, X, y, epochs=100, batch_size=32, validation_split=0, verbose=1):
+        print('calling fit of lstm')
         # Convert data to tensors
         X_tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor = torch.tensor(y, dtype=torch.float32)
@@ -107,6 +108,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         X_tensor = torch.tensor(X, dtype=torch.float32)
         with torch.no_grad():
             predictions = self.model(X_tensor)[0]
+        print('predictions:', predictions.numpy())
         return predictions.numpy()
 # Define a custom scoring function
 def custom_scorer(y_true, y_pred):
@@ -447,7 +449,7 @@ def train_and_test_on_umap_randcv(
             n_iter=1000,
             cv=custom_folds,
             verbose=3,
-            n_jobs=-1,
+            n_jobs=1,
             scoring=scorer
         )
 
