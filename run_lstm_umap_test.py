@@ -376,15 +376,11 @@ def train_and_test_on_umap_randcv(
             'reducer__n_neighbors': [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
             'reducer__random_state': [42],
 
-            'estimator__estimator__kernel': ['sigmoid', 'linear', 'poly'],
-            'estimator__estimator__coef0': [0.01, 0.1, 0, 1, 10, 100, 1000],
-            'estimator__estimator__epsilon': [0.1, 0.2, 0.3, 0.4, 0.5],  # example values
-            'estimator__estimator__degree': [1, 2, 3],  # example values
-            'estimator__estimator__gamma': [0.1, 0.01, 0.001, 0.0001],
-            'estimator__estimator__C': [0.1, 1, 10, 100, 1000],
-
+            'estimator__estimator__num_layers': [1, 2, 3],  # Number of LSTM layers
+            'estimator__estimator__units_per_layer': [16, 32, 64, 128],  # Number of units per LSTM layer
+            'estimator__estimator__dropout': [0.0, 0.1, 0.2, 0.3],  # Dropout rate
+            'estimator__estimator__recurrent_dropout': [0.0, 0.1, 0.2, 0.3],  # Recurrent dropout rate
         }
-
         # Initialize BayesSearchCV
         # logger.info('Starting the random search, at line 209')
         random_search = RandomizedSearchCV(
@@ -492,12 +488,6 @@ def main():
         col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
 
         spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
-        old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-        # check if they are the same array
-        # if np.allclose(spike_data, old_spike_data):
-        #     print('The two arrays are the same')
-        # else:
-        #     print('The two arrays are not the same')
 
         window_df = pd.read_csv(
             f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_100250windows_scale_to_angle_range_False.csv')
