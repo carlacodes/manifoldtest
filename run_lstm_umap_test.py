@@ -82,8 +82,8 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         x = self.model[2](x)
         return x
 
-    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.1, verbose=1):
-        print('calling fit of lstm')
+    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.2, verbose=1):
+        # print('calling fit of lstm')
         # Convert data to tensors
         X_tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor = torch.tensor(y, dtype=torch.float32)
@@ -99,7 +99,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         # Create DataLoaders for both training and validation sets
         dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
         dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
-        print('at line 75 of training')
+        # print('at line 75 of training')
         self.model.train()
 
         for epoch in range(epochs):
@@ -126,17 +126,17 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
             avg_train_loss = train_loss / len(dataloader_train)
             avg_val_loss = val_loss / len(dataloader_val)
 
-            print(f'Epoch {epoch + 1}, Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}')
+            # print(f'Epoch {epoch + 1}, Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}')
 
         return self
 
     def predict(self, X):
-        print('at prediction stage')
+        # print('at prediction stage')
         self.model.eval()
         X_tensor = torch.tensor(X, dtype=torch.float32)
         with torch.no_grad():
             predictions = self.forward(X_tensor)
-        print('predictions:', predictions.numpy())
+        # print('predictions:', predictions.numpy())
         return predictions.numpy()
 
 
@@ -467,7 +467,7 @@ def train_and_test_on_umap_randcv(
             'reducer__random_state': [42],
             'estimator__dropout': [0.0, 0.1, 0.2, 0.3],  # Dropout rate
             'estimator__learning_rate': [0.0001, 0.001, 0.01, 0.1],
-            'estimator__epochs': [100, 200, 300, 400, 500],
+            'estimator__epochs': [100, 200, 300],
             'estimator__neurons': [50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
 
         }
