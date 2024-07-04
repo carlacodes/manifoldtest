@@ -27,13 +27,17 @@ from keras.layers import LSTM, Dense
 from sklearn.base import BaseEstimator, RegressorMixin
 import numpy as np
 
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+
 class LSTMRegressor(BaseEstimator, RegressorMixin):
-    def __init__(self, input_shape, neurons=50, activation='relu', optimizer='adam', loss='mean_squared_error'):
+    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer='adam', loss='mean_squared_error'):
         self.model = Sequential()
         self.model.add(LSTM(neurons, activation=activation, input_shape=input_shape))
-        self.model.add(Dense(1))
+        self.model.add(Dense(output_dim))  # output_dim is the number of targets
         self.model.compile(optimizer=optimizer, loss=loss)
         self.input_shape = input_shape
+        self.output_dim = output_dim
 
     def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.2, verbose=0):
         X = X.reshape((-1,) + self.input_shape)
