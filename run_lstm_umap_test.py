@@ -518,8 +518,8 @@ def main():
         label_df = pd.DataFrame(labels_for_umap,
                                 columns=col_list)
 
-        regressor = SVR
-        regressor_kwargs = {'kernel': 'rbf', 'C': 1.0, 'epsilon': 0.1}  # adjust these parameters as neededgit
+        regressor = LSTMRegressor
+        # regressor_kwargs = {'kernel': 'rbf', 'C': 1.0, 'epsilon': 0.1}  # adjust these parameters as neededgit
         reducer = UMAP
 
         reducer_kwargs = {
@@ -537,7 +537,7 @@ def main():
         filename = f'params_all_trials_randsearch_250bin_num_windows{num_windows}_jake_fold_allvars_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randsearch_250bin_numwindows{num_windows}_jake_fold_{now}.npy'
         save_dir_path = Path(
-            f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_SVR_localtest_alloangle_{now_day}')
+            f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_LSTM_localtest_alloangle_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
 
         best_params, mean_score = train_and_test_on_umap_randcv(
