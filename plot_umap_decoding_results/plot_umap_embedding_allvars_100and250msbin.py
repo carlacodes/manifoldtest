@@ -394,7 +394,7 @@ def train_and_test_on_umap_randcv(
             actual_angle = np.arctan2(y_test[:, 0], y_test[:, 1])
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], c=actual_angle, cmap='viridis')
+            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], c=actual_angle, cmap='twilight')
             ax.set_xlabel('UMAP 1')
             ax.set_ylabel('UMAP 2')
             ax.set_zlabel('UMAP 3')
