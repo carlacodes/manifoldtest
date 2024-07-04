@@ -888,7 +888,7 @@ def run_stratified_kfold_test():
     return df_big, df_big_angle
 
 
-def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range = False):
+def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range = False, allo = True):
     df_across_windows = pd.DataFrame()
     df_across_windows_angle = pd.DataFrame()
     for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_10/23-11-2021',
@@ -927,16 +927,22 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
             big_results_df_angle = pd.DataFrame()
             n_timesteps = X_for_umap.shape[0]
             label_df['position'] = list(zip(label_df['x'], label_df['y']))
-            label_df['hd_goal'] = np.arcsin(label_df['sin_relative_direction'])
+            label_df['hd_goal'] = np.arctan2(label_df['sin_relative_direction'], label_df['cos_relative_direction'])
+            label_df['hd_allo'] = np.arctan2(label_df['sin_hd'], label_df['cos_hd'])
 
             # Sort by position and angle
             # sorted_df = label_df.sort_values(by=['position', 'hd_goal'])
 
             n_cells = 8
             # Create a new column 'region' that represents the cell each data point belongs to
-            label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
-                                 pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
-                                 pd.cut(label_df['hd_goal'], n_cells, labels=False) * n_cells * n_cells
+            if allo == True:
+                label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
+                                     pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
+                                     pd.cut(label_df['hd_allo'], n_cells, labels=False) * n_cells * n_cells
+            else:
+                label_df['region'] = pd.cut(label_df['x'], n_cells, labels=False) + \
+                                     pd.cut(label_df['y'], n_cells, labels=False) * n_cells + \
+                                     pd.cut(label_df['hd_goal'], n_cells, labels=False) * n_cells * n_cells
             min_region = label_df['region'].min()
             max_region = label_df['region'].max()
             from scipy.stats import ks_2samp
@@ -1083,7 +1089,7 @@ def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_d
     np.unique(df_across_windows['mean_minimum_number_windows_by_windowsize'])
 
     # export to csv
-    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_{scale_to_angle_range}.csv')
+    df_across_windows.to_csv(f'{big_df_savedir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_{scale_to_angle_range}_allo_{allo}.csv')
     return df_across_windows
 
 
