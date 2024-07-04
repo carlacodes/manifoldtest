@@ -31,60 +31,87 @@ from sklearn.base import BaseEstimator, RegressorMixin
 from torch.optim import Adam
 from torch.utils.data import DataLoader, TensorDataset
 
-
 class LSTMRegressor(BaseEstimator, RegressorMixin):
-    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer=Adam, loss_fn=nn.MSELoss(), learning_rate=0.001):
+    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer_class=Adam, loss_fn=nn.MSELoss(), learning_rate=0.001, epochs=100, dropout=0.0):
         super().__init__()
         self.input_shape = input_shape
         self.output_dim = output_dim
         self.neurons = neurons
         self.activation = activation
-        self.optimizer_class = optimizer
+        self.optimizer_class = optimizer_class  # Expect a class, not an instance
         self.loss_fn = loss_fn
+        self.epochs = epochs
+        self.dropout = dropout
         self.learning_rate = learning_rate
         self.model = self._build_model()
+        # Instantiate the optimizer here with the model parameters and learning rate
+        self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.learning_rate)
 
     def _build_model(self):
         model = nn.Sequential(
             nn.LSTM(input_size=self.input_shape[-1], hidden_size=self.neurons, batch_first=True),
+            nn.Dropout(self.dropout),
             nn.Linear(self.neurons, self.output_dim)
         )
         return model
 
-    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.2, verbose=0):
+    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.1, verbose=0):
+        # Convert data to tensors
         X_tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor = torch.tensor(y, dtype=torch.float32)
-        dataset = TensorDataset(X_tensor, y_tensor)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-        optimizer = self.optimizer_class(self.model.parameters(), lr=self.learning_rate)
+        # Calculate the number of samples for training
+        num_samples = X_tensor.shape[0]
+        num_train_samples = int((1 - validation_split) * num_samples)
+
+        # Split the data into training and validation sets
+        dataset_train = TensorDataset(X_tensor[:num_train_samples], y_tensor[:num_train_samples])
+        dataset_val = TensorDataset(X_tensor[num_train_samples:], y_tensor[num_train_samples:])
+
+        # Create DataLoaders for both training and validation sets
+        dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+        dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
+
         self.model.train()
 
         for epoch in range(epochs):
-            for batch_X, batch_y in dataloader:
-                optimizer.zero_grad()
+            # Training phase
+            train_loss = 0.0
+            for batch_X, batch_y in dataloader_train:
+                self.optimizer.zero_grad()
                 outputs = self.model(batch_X)[0]
                 loss = self.loss_fn(outputs, batch_y)
                 loss.backward()
-                optimizer.step()
+                self.optimizer.step()
+                train_loss += loss.item()
+
+            # Validation phase
+            val_loss = 0.0
+            self.model.eval()
+            with torch.no_grad():
+                for batch_X, batch_y in dataloader_val:
+                    outputs = self.model(batch_X)[0]
+                    loss = self.loss_fn(outputs, batch_y)
+                    val_loss += loss.item()
+
+            # Calculate average losses
+            avg_train_loss = train_loss / len(dataloader_train)
+            avg_val_loss = val_loss / len(dataloader_val)
+
             if verbose:
-                print(f'Epoch {epoch + 1}, Loss: {loss.item()}')
+                print(f'Epoch {epoch + 1}, Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}')
 
         return self
-
     def predict(self, X):
         self.model.eval()
         X_tensor = torch.tensor(X, dtype=torch.float32)
         with torch.no_grad():
             predictions = self.model(X_tensor)[0]
         return predictions.numpy()
-
 # Define a custom scoring function
 def custom_scorer(y_true, y_pred):
     # Check if y_true and y_pred have the same length
     if len(y_true) != len(y_pred):
-        # If not, trim the longer one to match the length of the shorter one
-        min_len = min(len(y_true), len(y_pred))
         diff = abs(len(y_true) - len(y_pred))
         if len(y_true) > len(y_pred):
             y_true = y_true[diff:]
@@ -406,14 +433,10 @@ def train_and_test_on_umap_randcv(
             'reducer__min_dist': [0.00001, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3],
             'reducer__n_neighbors': [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
             'reducer__random_state': [42],
-
-            'estimator__estimator__num_layers': [1, 2, 3],  # Number of LSTM layers
-            'estimator__estimator__units_per_layer': [16, 32, 64, 128],  # Number of units per LSTM layer
-            'estimator__estimator__dropout': [0.0, 0.1, 0.2, 0.3],  # Dropout rate
-            'estimator__estimator__recurrent_dropout': [0.0, 0.1, 0.2, 0.3],  # Recurrent dropout rate
-            'estimator__estimator__learning_rate': [0.0001, 0.001, 0.01, 0.1],
-            'estimator__estimator__epochs': [100, 200, 300, 400, 500],
-            'estimator__estimator__neurons': [50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
+            'estimator__dropout': [0.0, 0.1, 0.2, 0.3],  # Dropout rate
+            'estimator__learning_rate': [0.0001, 0.001, 0.01, 0.1],
+            'estimator__epochs': [100, 200, 300, 400, 500],
+            'estimator__neurons': [50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
 
         }
         # Initialize BayesSearchCV
