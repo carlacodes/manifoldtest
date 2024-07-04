@@ -22,32 +22,61 @@ from sklearn.base import clone
 from sklearn.utils import _print_elapsed_time
 from sklearn.utils.validation import check_memory
 from sklearn.metrics import make_scorer, mean_squared_error
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
 from sklearn.base import BaseEstimator, RegressorMixin
 import numpy as np
 
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
+import torch
+import torch.nn as nn
+from sklearn.base import BaseEstimator, RegressorMixin
+from torch.optim import Adam
+from torch.utils.data import DataLoader, TensorDataset
+
 
 class LSTMRegressor(BaseEstimator, RegressorMixin):
-    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer='adam', loss='mean_squared_error'):
-        self.model = Sequential()
-        self.model.add(LSTM(neurons, activation=activation, input_shape=input_shape))
-        self.model.add(Dense(output_dim))  # output_dim is the number of targets
-        self.model.compile(optimizer=optimizer, loss=loss)
+    def __init__(self, input_shape, output_dim, neurons=50, activation='relu', optimizer=Adam, loss_fn=nn.MSELoss()):
+        super().__init__()
         self.input_shape = input_shape
         self.output_dim = output_dim
+        self.neurons = neurons
+        self.activation = activation
+        self.optimizer_class = optimizer
+        self.loss_fn = loss_fn
+        self.model = self._build_model()
+
+    def _build_model(self):
+        model = nn.Sequential(
+            nn.LSTM(input_size=self.input_shape[-1], hidden_size=self.neurons, batch_first=True),
+            nn.Linear(self.neurons, self.output_dim)
+        )
+        return model
 
     def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.2, verbose=0):
-        X = X.reshape((-1,) + self.input_shape)
-        self.model.fit(X, y, epochs=epochs, batch_size=batch_size, validation_split=validation_split, verbose=verbose)
+        X_tensor = torch.tensor(X, dtype=torch.float32)
+        y_tensor = torch.tensor(y, dtype=torch.float32)
+        dataset = TensorDataset(X_tensor, y_tensor)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        optimizer = self.optimizer_class(self.model.parameters())
+        self.model.train()
+
+        for epoch in range(epochs):
+            for batch_X, batch_y in dataloader:
+                optimizer.zero_grad()
+                outputs = self.model(batch_X)[0]
+                loss = self.loss_fn(outputs, batch_y)
+                loss.backward()
+                optimizer.step()
+            if verbose:
+                print(f'Epoch {epoch + 1}, Loss: {loss.item()}')
+
         return self
 
     def predict(self, X):
-        X = X.reshape((-1,) + self.input_shape)
-        return self.model.predict(X)
-
+        self.model.eval()
+        X_tensor = torch.tensor(X, dtype=torch.float32)
+        with torch.no_grad():
+            predictions = self.model(X_tensor)[0]
+        return predictions.numpy()
 
 # Define a custom scoring function
 def custom_scorer(y_true, y_pred):
