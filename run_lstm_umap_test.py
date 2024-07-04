@@ -2,7 +2,6 @@
 import copy
 from datetime import datetime
 from sklearn.model_selection import ParameterSampler, RandomizedSearchCV
-from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
 from scipy.stats import randint
 from pathlib import Path
@@ -11,7 +10,6 @@ from umap import UMAP
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.svm import SVR
 from helpers import tools
 import os
 import scipy
@@ -22,16 +20,7 @@ from sklearn.base import clone
 from sklearn.utils import _print_elapsed_time
 from sklearn.utils.validation import check_memory
 from sklearn.metrics import make_scorer, mean_squared_error
-from sklearn.base import BaseEstimator, RegressorMixin
 import numpy as np
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.optim import Adam
-from torch.utils.data import DataLoader, TensorDataset
-from sklearn.base import BaseEstimator, RegressorMixin
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
