@@ -364,7 +364,7 @@ def train_and_test_on_umap_randcv(
             'estimator__estimator__kernel': ['sigmoid', 'linear', 'poly'],
             'estimator__estimator__coef0': [0.01, 0.1, 0, 1, 10, 100, 1000],
             'estimator__estimator__epsilon': [0.1, 0.2, 0.3, 0.4, 0.5],  # example values
-            'estimator__estimator__degree': [1, 2, 3, 4, 5],  # example values
+            'estimator__estimator__degree': [1, 2],  # example values
             'estimator__estimator__gamma': [0.1, 0.01, 0.001, 0.0001],
             'estimator__estimator__C': [0.1, 1, 10, 100, 1000],
 
