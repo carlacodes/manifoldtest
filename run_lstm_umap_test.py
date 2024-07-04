@@ -55,7 +55,7 @@ class LSTMRegressor(BaseEstimator, RegressorMixin):
         )
         return model
 
-    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0.1, verbose=0):
+    def fit(self, X, y, epochs=100, batch_size=32, validation_split=0, verbose=1):
         # Convert data to tensors
         X_tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor = torch.tensor(y, dtype=torch.float32)
