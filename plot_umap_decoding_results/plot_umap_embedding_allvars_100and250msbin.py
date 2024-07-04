@@ -400,8 +400,8 @@ def train_and_test_on_umap_randcv(
             ax.set_zlabel('UMAP 3')
             # add a color bar
             cbar = plt.colorbar(sc, ax=ax)
-            ax.set_title('UMAP test embeddings color-coded by head angle rel. \n  to goal for fold: ' + str(
-                count) + 'rat id:' + str(rat_id))
+            ax.set_title('UMAP test embeddings color-coded by allo. angle \n for fold: ' + str(
+                count) + ', rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             plt.show()
             count += 1
