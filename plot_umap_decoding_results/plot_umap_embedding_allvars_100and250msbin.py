@@ -135,7 +135,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000, apply_smoothing = True, sanity_check = True
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000, apply_smoothing = True, sanity_check = False
 ):
 
 
@@ -367,11 +367,10 @@ def train_and_test_on_umap_randcv(
             y_pred = pipeline.predict(spks_test)
             y_pred_shuffle = pipeline_shuffle.predict(spks_test_shuffle)
 
-            col_list = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']
-            indiv_results_dataframe = pd.DataFrame(y_pred, columns=['x', 'y',
-                                                                    'angle_sin_goal', 'angle_cos_goal'])
-            indiv_results_dataframe_shuffle = pd.DataFrame(y_pred_shuffle, columns=['x', 'y',
-                                                                    'angle_sin_goal', 'angle_cos_goal'])
+            # col_list = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']
+            col_list = regress
+            indiv_results_dataframe = pd.DataFrame(y_pred, columns=regress)
+            indiv_results_dataframe_shuffle = pd.DataFrame(y_pred_shuffle, columns=regress)
 
             for i in range(y_test.shape[1]):
                 score_indiv = r2_score(y_test[:, i], y_pred[:, i])
@@ -394,7 +393,7 @@ def train_and_test_on_umap_randcv(
             actual_angle = np.arctan2(y_test[:, 0], y_test[:, 1])
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], c=actual_angle, cmap='twilight')
+            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2],  c=actual_angle, cmap='twilight')
             ax.set_xlabel('UMAP 1')
             ax.set_ylabel('UMAP 2')
             ax.set_zlabel('UMAP 3')
@@ -404,6 +403,26 @@ def train_and_test_on_umap_randcv(
                 count) + ', rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             plt.show()
+
+            n_components = X_test_reduced.shape[1]
+
+            # Iterate over each unique pair of components
+            for i in range(n_components):
+                for j in range(i + 1, n_components):
+                    # Create a new figure and axis
+                    fig, ax = plt.subplots()
+                    # Scatter plot of component i vs component j
+                    sc = ax.scatter(X_test_reduced[:, i], X_test_reduced[:, j], c=actual_angle, cmap='twilight')
+                    # Set labels
+                    ax.set_xlabel(f'UMAP {i + 1}')
+                    ax.set_ylabel(f'UMAP {j + 1}')
+                    # Add a color bar
+                    plt.colorbar(sc, ax=ax)
+                    plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300, bbox_inches='tight')
+                    plt.show()
+                    plt.close('all')
+
+
             count += 1
 
         # Calculate the mean training and test scores
@@ -459,7 +478,7 @@ def run_umap_pipeline_across_rats():
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_smoothaftersplit_allvar_expandedgrid_allo_2024-07')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_onlyallo_lfadssmooth_empiricalwindow_zscoredlabels_smoothaftersplit_onlyallo_expandedgrid_allo_')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
@@ -476,14 +495,7 @@ def run_umap_pipeline_across_rats():
         X_for_umap_smoothed, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
         #to do: option for smoothing with X_for_umap cv
         X_for_umap = spike_data_copy
-        # X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
-        # X_for_umap_smoothed = scipy.stats.zscore(X_for_umap_smoothed, axis=0)
-        # #plot the X_for_umap_smoothed and X_for_umap
-        # fig, ax = plt.subplots()
-        # ax.plot(X_for_umap_smoothed[:, 10], label='smoothed', alpha=0.5)
-        # ax.plot(X_for_umap[removed_indices[-1]:, 10], label='unsmoothed', alpha =0.5)
-        # ax.legend()
-        # plt.show()
+
 
 
         labels_for_umap = labels
@@ -517,12 +529,14 @@ def run_umap_pipeline_across_rats():
         }
 
         regress = ['x', 'y',  'cos_hd', 'sin_hd']  # changing to two target variables
+        regress = ['cos_hd', 'sin_hd']  # changing to two target variables
+
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_randsearch_{bin_size}bin_340windows_jake_fold_allvars_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randsearch_{bin_size}bin_340windows_jake_fold_{now}.npy'
-        save_dir_path = Path(f'{data_dir}/randsearch_allvars_lfadssmooth_340windows_1000iter_independentvar_{now_day}')
+        save_dir_path = Path(f'{data_dir}/plotting_alloangleonly_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
         # initalise a logger
         logger = logging.getLogger(__name__)
