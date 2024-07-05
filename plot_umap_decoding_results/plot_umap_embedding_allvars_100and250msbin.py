@@ -388,9 +388,10 @@ def train_and_test_on_umap_randcv(
 
             test_scores.append(test_score)
 
-            # Assuming y_test[:, 1] contains the cosine of the angle
-            # and y_test[:, 0] contains the sine of the angle
-            actual_angle = np.arctan2(y_test[:, 0], y_test[:, 1])
+            #find col index of sin and cos
+            sin_index = regress.index('sin_hd')
+            cos_index = regress.index('cos_hd')
+            actual_angle = np.arctan2(y_test[:, sin_index], y_test[:, cos_index])
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2],  c=actual_angle, cmap='twilight')
@@ -528,8 +529,8 @@ def run_umap_pipeline_across_rats():
             'n_jobs': 1,
         }
 
-        regress = ['x', 'y',  'cos_hd', 'sin_hd']  # changing to two target variables
-        regress = ['cos_hd', 'sin_hd']  # changing to two target variables
+        regress = ['x', 'y',  'sin_hd', 'cos_hd']  # changing to two target variables
+        # regress = [ 'sin_hd', 'cos_hd']  # changing to two target variables
 
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
