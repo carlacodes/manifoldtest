@@ -215,10 +215,11 @@ def train_and_test_on_umap_randcv(
         reducer_kwargs,
 ):
     param_grid = {
-        'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
-        'reducer__n_components': [3, 4, 5, 6, 7, 8, 9],
+        'estimator__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
+        'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+        'reducer__random_state': [42],
         'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-        'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
+        'reducer__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
         'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
         'reducer__random_state': [42]
     }
@@ -232,7 +233,7 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=1000)
     # Example, you can use your custom folds here
 
-    for _ in range(200):  # 100 iterations for RandomizedSearchCV
+    for _ in range(1000):  # 1000 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
         regressor_kwargs.update(
             {k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
@@ -248,6 +249,9 @@ def train_and_test_on_umap_randcv(
         for train_index, test_index in custom_folds:
             X_train, X_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
+            #zscore each Xtrain and X_test
+            X_train = scipy.stats.zscore(X_train, axis=0)
+            X_test = scipy.stats.zscore(X_test, axis=0)
 
             # Apply dimensionality reduction
             X_train_reduced = current_reducer.fit_transform(X_train)
@@ -262,6 +266,7 @@ def train_and_test_on_umap_randcv(
 
         # Calculate mean score for the current parameter combination
         mean_score = np.mean(scores)
+        print('Mean score:', mean_score)
 
         random_search_results.append((params, mean_score))
 
@@ -277,40 +282,42 @@ def main():
     spike_dir = os.path.join(data_dir, 'physiology_data')
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_1203_with_goal_centric_angle_scale_data_False_zscore_data_False_overlap_False_window_size_250.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    labels = np.load(
+        f'{dlc_dir}/labels_250_raw.npy')
+    col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
 
-    spike_data_trial = spike_data
-    data_dir_path = Path(data_dir)
+    spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
+    # old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
+    # check if they are the same array
+    # if np.allclose(spike_data, old_spike_data):
+    #     print('The two arrays are the same')
+    # else:
+    #     print('The two arrays are not the same')
 
 
-    # check for neurons with constant firing rates
+    spike_data_copy = copy.deepcopy(spike_data)
     tolerance = 1e-10  # or any small number that suits your needs
-    if np.any(np.abs(np.std(spike_data_trial, axis=0)) < tolerance):
+    if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
         print('There are neurons with constant firing rates')
         # remove those neurons
-        spike_data_trial = spike_data_trial[:, np.abs(np.std(spike_data_trial, axis=0)) >= tolerance]
-    # THEN DO THE Z SCORE
-    X_for_umap = scipy.stats.zscore(spike_data_trial, axis=0)
+        spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-    if np.isnan(X_for_umap).any():
-        print('There are nans in the data')
+        # X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
 
-    X_for_umap = scipy.ndimage.gaussian_filter(X_for_umap, 2, axes=0)
+    percent_zeros = np.mean(spike_data_copy == 0, axis=0) * 100
 
-    # as a check, plot the firing rates for a single neuron before and after smoothing
-    # fig, ax = plt.subplots(1, 2)
-    # ax[0].plot(X_for_umap[:, 0])
-    # ax[0].set_title('Before smoothing')
-    # ax[1].plot(X_for_umap_smooth[ :, 0])
-    # ax[1].set_title('After smoothing')
-    # plt.show()
+    # Identify columns where more than 90% of the values are zeros
+    columns_to_remove = np.where(percent_zeros > 99.5)[0]
 
-    labels_for_umap = labels[:, 0:9]
-    labels_for_umap = scipy.ndimage.gaussian_filter(labels_for_umap, 2, axes=0)
+    # Remove these columns from spike_data_copy
+    spike_data_copy = np.delete(spike_data_copy, columns_to_remove, axis=1)
+    X_for_umap = spike_data_copy
 
+
+    labels_for_umap = labels
     label_df = pd.DataFrame(labels_for_umap,
-                            columns=['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'dlc_angle_zscore', 'angle_rel_to_goal', 'angle_rel_to_goal_sin', 'angle_rel_to_goal_cos'])
-    label_df['time_index'] = np.arange(0, label_df.shape[0])
+                                columns=col_list)
+
 
     regressor = KNeighborsRegressor
     regressor_kwargs = {'n_neighbors': 70}
@@ -325,13 +332,15 @@ def main():
         'n_jobs': 1,
     }
 
-    regress = ['angle_rel_to_goal_sin', 'angle_rel_to_goal_cos']  # changing to two target variables
+    regress = ['cos_hd', 'sin_hd']  # changing to two target variables
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     now_day = datetime.now().strftime("%Y-%m-%d")
     filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now}.npy'
     filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_sinandcos_{now_day}.npy'
-    save_dir = data_dir_path / 'angle_rel_to_goal'
+    save_dir_path = Path(
+            f'{data_dir}/randsearch_sanitycheck_{now_day}')
+    save_dir = save_dir_path
     save_dir.mkdir(exist_ok=True)
 
 

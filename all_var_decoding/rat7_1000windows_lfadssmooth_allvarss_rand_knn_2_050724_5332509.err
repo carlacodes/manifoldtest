@@ -1,0 +1,24 @@
+/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/angle_rel_to_goal_decoding/angletogoal_randomcvsearch_250ms_1000window_rat7.py:14: DeprecationWarning: 
+Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+(to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+but was not found to be installed on your system.
+If this would cause problems for you,
+please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+        
+  import pandas as pd
+Traceback (most recent call last):
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/angle_rel_to_goal_decoding/angletogoal_randomcvsearch_250ms_1000window_rat7.py", line 360, in <module>
+    main()
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/angle_rel_to_goal_decoding/angletogoal_randomcvsearch_250ms_1000window_rat7.py", line 345, in main
+    best_params, mean_score = train_and_test_on_umap_randcv(
+  File "/nfs/nhome/live/carlag/granger_lfp_and_manifold/manifoldtest/angle_rel_to_goal_decoding/angletogoal_randomcvsearch_250ms_1000window_rat7.py", line 258, in train_and_test_on_umap_randcv
+    X_test_reduced = current_reducer.transform(X_test)
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/umap/umap_.py", line 2928, in transform
+    X = check_array(X, dtype=np.float32, accept_sparse="csr", order="C", force_all_finite=force_all_finite)
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/utils/validation.py", line 959, in check_array
+    _assert_all_finite(
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/utils/validation.py", line 124, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/nfs/nhome/live/carlag/.conda/envs/neuralmanifoldenv/lib/python3.10/site-packages/sklearn/utils/validation.py", line 173, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input contains NaN.
