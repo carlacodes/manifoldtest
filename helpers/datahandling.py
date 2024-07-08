@@ -270,8 +270,13 @@ class DataHandler():
                     num_windows = (file.split('windows')[-1].split('.')[0])
                     num_windows = num_windows.split('_')[0]
                     #convert to int
-                    num_windows = int(num_windows)
+                    try:
+                        num_windows = int(num_windows)
+                    except:
+                        print(f'Error: {rat_id} has a non-integer number of windows, defaulting to 1000')
+                        num_windows = 1000
                     num_window_dict[rat_id] = num_windows
+
                 elif file.__contains__('params'):
                     with open(f'{param_directory}/{file}', 'rb') as f:
                         param_dict[rat_id] = np.load(f'{param_directory}/{file}', allow_pickle=True)
