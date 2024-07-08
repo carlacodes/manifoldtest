@@ -135,7 +135,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000, apply_smoothing = True, sanity_check = False
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000, apply_smoothing = False, sanity_check = False
 ):
 
 
@@ -247,10 +247,15 @@ def train_and_test_on_umap_randcv(
 
             spks_train_shuffle, spks_test_shuffle = spks_shuffle[train_index], spks_shuffle[test_index]
             y_train_shuffle, y_test_shuffle = y_shuffle[train_index], y_shuffle[test_index]
-            if apply_smoothing:
-                spks_train_copy = copy.deepcopy(spks_train)
-                spks_test_copy = copy.deepcopy(spks_test)
+            # Apply z-scoring to the data
+            spks_train = scipy.stats.zscore(spks_train, axis=0)
+            spks_test = scipy.stats.zscore(spks_test, axis=0)
 
+            spks_train_shuffle = scipy.stats.zscore(spks_train_shuffle, axis=0)
+            spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
+
+
+            if apply_smoothing:
                 spks_train, removed_indices_train = tools.apply_lfads_smoothing(spks_train)
                 spks_test, removed_indices_test = tools.apply_lfads_smoothing(spks_test)
 
@@ -334,9 +339,10 @@ def train_and_test_on_umap_randcv(
 
 
             # Set the parameters
-            # formatted_params = format_params(manual_params)
-            pipeline.set_params(**manual_params)
-            pipeline_shuffle.set_params(**manual_params)
+            formatted_params = format_params(manual_params)
+
+            pipeline.set_params(**formatted_params)
+            pipeline_shuffle.set_params(**formatted_params)
 
             # Fit the pipeline on the training data
             pipeline.fit(spks_train, y_train)
@@ -403,7 +409,7 @@ def train_and_test_on_umap_randcv(
             ax.set_title('UMAP test embeddings color-coded by allo. angle \n for fold: ' + str(
                 count) + ', rat id:' + str(rat_id))
             plt.savefig(f'{savedir}/umap_embeddings_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
-            plt.show()
+            # plt.show()
 
             n_components = X_test_reduced.shape[1]
 
@@ -420,7 +426,7 @@ def train_and_test_on_umap_randcv(
                     # Add a color bar
                     plt.colorbar(sc, ax=ax)
                     plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300, bbox_inches='tight')
-                    plt.show()
+                    # plt.show()
                     plt.close('all')
 
 
@@ -492,9 +498,9 @@ def run_umap_pipeline_across_rats():
             print('There are neurons with constant firing rates')
             # remove those neurons
             spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
-
-        X_for_umap_smoothed, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
-        #to do: option for smoothing with X_for_umap cv
+        percent_zeros = np.mean(spike_data_copy == 0, axis=0) * 100
+        columns_to_remove = np.where(percent_zeros > 99.5)[0]
+        spike_data_copy = np.delete(spike_data_copy, columns_to_remove, axis=1)
         X_for_umap = spike_data_copy
 
 
@@ -529,7 +535,7 @@ def run_umap_pipeline_across_rats():
             'n_jobs': 1,
         }
 
-        regress = ['x', 'y',  'sin_hd', 'cos_hd']  # changing to two target variables
+        regress = ['sin_hd', 'cos_hd']  # changing to two target variables
         # regress = [ 'sin_hd', 'cos_hd']  # changing to two target variables
 
 
