@@ -1,4 +1,4 @@
-# from pathlib import Path
+
 import copy
 from datetime import datetime
 from sklearn.model_selection import ParameterSampler, RandomizedSearchCV
@@ -11,12 +11,9 @@ from sklearn.metrics import mean_squared_error, r2_score
 from umap import UMAP
 import pandas as pd
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-import logging
-import sys
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, QuantileTransformer
 from sklearn.svm import SVR
 from helpers import tools
-
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 import os
@@ -50,18 +47,18 @@ def custom_scorer(y_true, y_pred):
     assert len(y_true) == len(y_pred), 'y_true and y_pred are not equal in length'
     # Calculate the score using mean_squared_error
 
-    min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
-    # Assume that `data` is your data
-    first_two_columns = y_true[:, :2]
-
-    # Fit the scaler to the first two columns
-    min_max_scaler.fit(first_two_columns)
-
-    # Transform the first two columns
-    scaled_columns = min_max_scaler.transform(first_two_columns)
-
-    # Replace the original first two columns with the scaled ones
-    y_true[:, :2] = scaled_columns
+    # min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
+    # # Assume that `data` is your data
+    # first_two_columns = y_true[:, :2]
+    #
+    # # Fit the scaler to the first two columns
+    # min_max_scaler.fit(first_two_columns)
+    #
+    # # Transform the first two columns
+    # scaled_columns = min_max_scaler.transform(first_two_columns)
+    #
+    # # Replace the original first two columns with the scaled ones
+    # y_true[:, :2] = scaled_columns
     score = r2_score(y_true, y_pred)
     return score
 # Create a scorer using make_scorer
@@ -196,32 +193,59 @@ class LFADSSmoother(BaseEstimator, TransformerMixin):
         print(f"LFADSSmoother: y before transformation: {y}")
         print('LFADssmoother: shape of X: ', X.shape)
         print('LFADssmoother: shape of y: ', y.shape)
-
         X, self.removed_indices = tools.apply_lfads_smoothing(X)
         X = scipy.stats.zscore(X, axis=0)
-
-
-
         if y is not None:
             y = np.delete(y, self.removed_indices, axis=0)
-        #use minmax scaler to make the labels between 0 and 1
-        min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
-        # Assume that `data` is your data
-        first_two_columns = y[:, :2]
 
-        # Fit the scaler to the first two columns
-        min_max_scaler.fit(first_two_columns)
+        scaler = StandardScaler()
+        y = scaler.fit_transform(y)
+        #z-score all of the labels
+        # y = scipy.stats.zscore(y, axis=0)
+        last_two_columns = y[:, 2:]
+        # quantile_transformer = QuantileTransformer(output_distribution='normal', random_state=0)
 
-        # Transform the first two columns
-        scaled_columns = min_max_scaler.transform(first_two_columns)
+        # Fit and transform the target data
+        # last_two_columns_transformed = quantile_transformer.fit_transform(last_two_columns)
+        ##apply shift so it's positive followed by log scaling
+        # last_two_columns_transformed = np.log1p(last_two_columns + 1)
 
-        # Replace the original first two columns with the scaled ones
-        y[:, :2] = scaled_columns
+        # Replace the original target data with the transformed data
+        # y[:, 2:] = last_two_columns_transformed
 
         print('LFADssmoother: shape of X after transform: ', X.shape)
         print('LFADssmoother: shape of y after transform: ', y.shape)
         print(f"LFADSSmoother: X after transformation: {X}")
         print(f"LFADSSmoother: y after transformation: {y}")
+        #plot the first two columns of y, regular 2d scatter plot
+        plt.scatter(y[:, 0], y[:, 1])
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.title('Scatter plot of x and y')
+        plt.show()
+
+        fig, ax = plt.subplots(1, 2)
+        ax[0].hist(y[:, 0])
+        ax[0].set_title('Histogram of x')
+        ax[0].set_xlabel('x')
+        ax[0].set_ylabel('Frequency')
+        ax[1].hist(y[:, 1])
+        ax[1].set_title('Histogram of y')
+        ax[1].set_xlabel('y')
+        ax[1].set_ylabel('Frequency')
+        plt.show()
+
+        fig, ax = plt.subplots(1, 2)
+        ax[0].hist(y[:, 2])
+        ax[0].set_title('Histogram of cos relative direction')
+        ax[0].set_xlabel('cos relative direction')
+        ax[0].set_ylabel('Frequency')
+        ax[1].hist(y[:, 3])
+        ax[1].set_title('Histogram of sin relative direction')
+        ax[1].set_xlabel('sin relative direction')
+        ax[1].set_ylabel('Frequency')
+        plt.show()
+
         return X, y
 
     def transform(self, X):
@@ -468,9 +492,9 @@ def main():
     # data_dir = '/ceph/scratch/carlag/honeycomb_neural_data/rat_7/6-12-2019/'
     base_dir = 'C:/neural_data/'
 
-    for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
+    for data_dir in [ f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-                     f'{base_dir}/rat_3/25-3-2019']:
+                     f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(
@@ -526,7 +550,7 @@ def main():
             'n_jobs': 1,
         }
 
-        regress = ['x', 'y', 'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
+        regress = ['x', 'y', 'cos_hd', 'sin_hd']  # changing to two target variables
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
@@ -536,6 +560,74 @@ def main():
             f'{data_dir}/randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_smoothaftersplit_v2_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
 
+        label_df['hd_allo'] = np.arctan2(label_df['sin_hd'], label_df['cos_hd'])
+        label_df['hd_relative'] = np.arctan2(label_df['sin_relative_direction'], label_df['cos_relative_direction'])
+
+
+        #check the distributions of the labels
+        fig, ax = plt.subplots(1, 2)
+        ax[0].hist(label_df['cos_hd'])
+        ax[0].set_title('Histogram of cos allo direction')
+        ax[0].set_xlabel('cos allo direction')
+        ax[0].set_ylabel('Frequency')
+        ax[1].hist(label_df['sin_hd'])
+        ax[1].set_title('Histogram of sin allo direction')
+        ax[1].set_xlabel('sin allo direction')
+        ax[1].set_ylabel('Frequency')
+        plt.show()
+
+        fig, ax = plt.subplots(1, 2)
+        ax[0].hist(label_df['cos_relative_direction'])
+        ax[0].set_title('Histogram of cos relative direction')
+        ax[0].set_xlabel('cos relative direction')
+        ax[0].set_ylabel('Frequency')
+        ax[1].hist(label_df['sin_relative_direction'])
+        ax[1].set_title('Histogram of sin relative direction')
+        ax[1].set_xlabel('sin relative direction')
+        ax[1].set_ylabel('Frequency')
+        plt.show()
+        fig, ax = plt.subplots(1, 2)
+        ax[0].hist(label_df['hd_allo'])
+        ax[0].set_title('Histogram of head direction allo')
+        ax[0].set_xlabel('head direction allo')
+        ax[0].set_ylabel('Frequency')
+        ax[1].hist(label_df['hd_relative'])
+        ax[1].set_title('Histogram of head direction relative')
+        ax[1].set_xlabel('head direction relative')
+        ax[1].set_ylabel('Frequency')
+        plt.show()
+        # Generate random angles in radians
+        angles = np.random.uniform(low=-np.pi, high=np.pi, size=1000)
+
+        #generate sequenb
+
+        # Calculate sin and cos
+        sin_values = np.sin(angles)
+        cos_values = np.cos(angles)
+
+        # Convert back to angles
+        reconstructed_angles = np.arctan2(sin_values, cos_values)
+
+        # Plotting
+        fig, axs = plt.subplots(3, 2, figsize=(10, 15))
+
+        # Original angles histogram
+        axs[0, 0].hist(angles, bins=100)
+        axs[0, 0].set_title('Original Angles')
+
+        # Sin values histogram
+        axs[1, 0].hist(sin_values, bins=100)
+        axs[1, 0].set_title('Sin Values')
+
+        # Cos values histogram
+        axs[1, 1].hist(cos_values, bins=100)
+        axs[1, 1].set_title('Cos Values')
+
+        ##add the reconstructed angles
+        axs[0, 1].hist(reconstructed_angles, bins=100)
+        axs[0, 1].set_title('Reconstructed Angles')
+        # Sin values vs Cos values
+        plt.show()
 
         best_params, mean_score = train_and_test_on_umap_randcv(
             X_for_umap,
