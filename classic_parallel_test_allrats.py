@@ -80,6 +80,7 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 def evaluate_params(spks, y, custom_folds, regressor, regressor_kwargs, reducer, reducer_kwargs, params):
     regressor_kwargs.update({k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
     reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
+    print('at eval params')
 
     current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
     current_reducer = reducer(**reducer_kwargs)
@@ -98,8 +99,10 @@ def evaluate_params(spks, y, custom_folds, regressor, regressor_kwargs, reducer,
         current_regressor.fit(X_train_reduced, y_train)
         score = current_regressor.score(X_test_reduced, y_test)
         scores.append(score)
+        # print('score for this fold is: ', score)
 
     mean_score = np.mean(scores)
+    print('mean score:', mean_score)
     return params, mean_score
 
 def train_and_test_on_umap_randcv(
@@ -140,6 +143,7 @@ def train_and_test_on_umap_randcv(
         for future in as_completed(futures):
             params, mean_score = future.result()
             random_search_results.append((params, mean_score))
+            print('Mean score:', mean_score)
 
     best_params, mean_score_max = max(random_search_results, key=lambda x: x[1])
     return best_params, mean_score_max
