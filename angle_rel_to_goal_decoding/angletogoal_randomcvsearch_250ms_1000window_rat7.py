@@ -235,6 +235,11 @@ def train_and_test_on_umap_randcv(
 
     for _ in range(1000):  # 1000 iterations for RandomizedSearchCV
         params = {key: np.random.choice(values) for key, values in param_grid.items()}
+
+        if 'estimator__metric' in params:
+            params['estimator__metric'] = str(params['estimator__metric'])
+
+
         regressor_kwargs.update(
             {k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
         reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
