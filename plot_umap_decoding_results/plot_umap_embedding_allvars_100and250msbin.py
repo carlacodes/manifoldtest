@@ -489,8 +489,13 @@ def run_umap_pipeline_across_rats():
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
-
-        num_windows = num_windows_dict[rat_id]
+        window_df = pd.read_csv(
+            f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_False.csv')
+        # find the rat_id
+        rat_id = data_dir.split('/')[-2]
+        # filter for window_size
+        window_df = window_df[window_df['window_size'] == 250]
+        num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
 
         spike_data_copy = copy.deepcopy(spike_data)
         tolerance = 1e-10  # or any small number that suits your needs
