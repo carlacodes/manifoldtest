@@ -535,7 +535,7 @@ def run_umap_pipeline_across_rats():
             'n_jobs': 1,
         }
 
-        regress = ['sin_hd', 'cos_hd']  # changing to two target variables
+        regress = ['x', 'y', 'sin_hd', 'cos_hd']  # changing to two target variables
         # regress = [ 'sin_hd', 'cos_hd']  # changing to two target variables
 
 

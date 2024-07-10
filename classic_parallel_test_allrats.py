@@ -80,7 +80,7 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 def evaluate_params(spks, y, custom_folds, regressor, regressor_kwargs, reducer, reducer_kwargs, params):
     regressor_kwargs.update({k.replace('estimator__', ''): v for k, v in params.items() if k.startswith('estimator__')})
     reducer_kwargs.update({k.replace('reducer__', ''): v for k, v in params.items() if k.startswith('reducer__')})
-    print('at eval params')
+    # print('at eval params')
 
     current_regressor = MultiOutputRegressor(regressor(**regressor_kwargs))
     current_reducer = reducer(**reducer_kwargs)
@@ -132,7 +132,7 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=10, num_windows=num_windows)
     num_cores = multiprocessing.cpu_count()
 
-    with ProcessPoolExecutor(max_workers=10) as executor:
+    with ProcessPoolExecutor(max_workers=5) as executor:
         futures = []
         for _ in range(500):
             params = {key: np.random.choice(values) for key, values in param_grid.items()}
