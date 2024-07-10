@@ -229,7 +229,6 @@ def train_and_test_on_umap_randcv(
         test_scores_shuffle = []
 
         # Loop over the custom folds
-        count = 0
         fold_dataframe = pd.DataFrame()
         fold_dataframe_shuffle = pd.DataFrame()
 
@@ -240,7 +239,7 @@ def train_and_test_on_umap_randcv(
         np.random.shuffle(y_shuffle)
 
 
-        for train_index, test_index in custom_folds:
+        for count, (train_index, test_index) in enumerate(custom_folds):
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -255,27 +254,6 @@ def train_and_test_on_umap_randcv(
             spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
 
 
-            if apply_smoothing:
-                spks_train, removed_indices_train = tools.apply_lfads_smoothing(spks_train)
-                spks_test, removed_indices_test = tools.apply_lfads_smoothing(spks_test)
-
-                spks_train_shuffle, removed_indices_train_shuffle = tools.apply_lfads_smoothing(spks_train_shuffle)
-                spks_test_shuffle, removed_indices_test_shuffle = tools.apply_lfads_smoothing(spks_test_shuffle)
-
-                spks_train = scipy.stats.zscore(spks_train, axis=0)
-                spks_test = scipy.stats.zscore(spks_test, axis=0)
-                # remove the removed labels
-                y_test = np.delete(y_test, removed_indices_test, axis=0)
-                y_train = np.delete(y_train, removed_indices_train, axis=0)
-
-                spks_train_shuffle = scipy.stats.zscore(spks_train_shuffle, axis=0)
-                spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
-                # remove the removed labels
-                y_test_shuffle = np.delete(y_test_shuffle, removed_indices_test_shuffle, axis=0)
-                y_train_shuffle = np.delete(y_train_shuffle, removed_indices_train_shuffle, axis=0)
-
-                spks_train_shuffle = scipy.stats.zscore(spks_train_shuffle, axis=0)
-                spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
             if sanity_check:
                 #visualise
                 #run a statistical test on all y values
@@ -375,14 +353,14 @@ def train_and_test_on_umap_randcv(
 
             # col_list = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']
             col_list = regress
-            indiv_results_dataframe = pd.DataFrame(y_pred, columns=regress)
-            indiv_results_dataframe_shuffle = pd.DataFrame(y_pred_shuffle, columns=regress)
+            indiv_results_dataframe = pd.DataFrame( columns=regress)
+            indiv_results_dataframe_shuffle = pd.DataFrame( columns=regress)
 
             for i in range(y_test.shape[1]):
                 score_indiv = r2_score(y_test[:, i], y_pred[:, i])
                 score_indiv_shuffle = r2_score(y_test_shuffle[:, i], y_pred_shuffle[:, i])
-                indiv_results_dataframe[col_list[i]] = score_indiv
-                indiv_results_dataframe_shuffle[col_list[i]] = score_indiv_shuffle
+                indiv_results_dataframe = pd.concat([indiv_results_dataframe, pd.DataFrame([score_indiv], columns=[col_list[i]])], axis=1)
+                indiv_results_dataframe_shuffle = pd.concat([indiv_results_dataframe_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[col_list[i]])], axis=1)
 
                 print(f'R2 score for {col_list[i]} is {score_indiv}')
             # break down the score into its components
@@ -397,7 +375,10 @@ def train_and_test_on_umap_randcv(
             #find col index of sin and cos
             sin_index = regress.index('sin_hd')
             cos_index = regress.index('cos_hd')
+            x_index = regress.index('x')
+            y_index = regress.index('y')
             actual_angle = np.arctan2(y_test[:, sin_index], y_test[:, cos_index])
+            actual_distance = np.sqrt(y_test[:, x_index]**2 + y_test[:, y_index]**2)
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2],  c=actual_angle, cmap='twilight')
@@ -429,8 +410,21 @@ def train_and_test_on_umap_randcv(
                     # plt.show()
                     plt.close('all')
 
+                    #color code by xy position
+                    #get distance from origin
+                    fig, ax = plt.subplots()
+                    # Scatter plot of component i vs component j
+                    sc = ax.scatter(X_test_reduced[:, i], X_test_reduced[:, j], c=actual_distance, cmap='viridis')
+                    # Set labels
+                    ax.set_xlabel(f'UMAP {i + 1}')
+                    ax.set_ylabel(f'UMAP {j + 1}')
+                    # Add a color bar
+                    plt.colorbar(sc, ax=ax)
+                    plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_colorcodedbydistancefromorigin_components_{i}_{j}.png', dpi=300, bbox_inches='tight')
+                    # plt.show()
+                    plt.close('all')
 
-            count += 1
+
 
         # Calculate the mean training and test scores
         mean_train_score = np.mean(train_scores)
@@ -490,9 +484,8 @@ def run_umap_pipeline_across_rats():
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
         window_df = pd.read_csv(
-            f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_False.csv')
+            f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
         # find the rat_id
-        rat_id = data_dir.split('/')[-2]
         # filter for window_size
         window_df = window_df[window_df['window_size'] == 250]
         num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
