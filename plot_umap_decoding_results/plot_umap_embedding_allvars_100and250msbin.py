@@ -28,7 +28,6 @@ import logging
 import sys
 from helpers import tools
 
-
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 import os
@@ -37,7 +36,9 @@ import pickle as pkl
 from sklearn.base import BaseEstimator
 from ripser import ripser
 from ripser import Rips
+
 plt.rcParams.update(plt.rcParamsDefault)
+
 
 # plt.rcParams['text.usetex'] = False
 class CustomUMAP(BaseEstimator):
@@ -85,8 +86,8 @@ def calculate_torsion(x, y, z, t):
     ddx = sp.diff(dx, t)
     ddy = sp.diff(dy, t)
     ddz = sp.diff(dz, t)
-    numerator = dx*ddy - ddx*dy + dy*ddz - ddy*dz + dz*ddx - ddz*dx
-    denominator = (dx**2 + dy**2 + dz**2)**(3/2)
+    numerator = dx * ddy - ddx * dy + dy * ddz - ddy * dz + dz * ddx - ddz * dx
+    denominator = (dx ** 2 + dy ** 2 + dz ** 2) ** (3 / 2)
     torsion = numerator / denominator
     return torsion
 
@@ -117,6 +118,7 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
     return folds
 
+
 def format_params(params):
     formatted_params = {}
     for key, value in params.items():
@@ -128,6 +130,7 @@ def format_params(params):
         formatted_params[formatted_key] = value
     return formatted_params
 
+
 def train_and_test_on_umap_randcv(
         spks,
         bhv,
@@ -135,10 +138,9 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows =  1000, apply_smoothing = False, sanity_check = False
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None,
+        num_windows=1000, apply_smoothing=False, sanity_check=False
 ):
-
-
     y = bhv[regress].values
 
     rat_dataframe = pd.DataFrame()
@@ -191,12 +193,12 @@ def train_and_test_on_umap_randcv(
         #     'reducer__random_state': [42]
         # }
         param_grid = {
-           'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10],
+            'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10],
             'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
             'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
             'reducer__random_state': [42],
             'estimator__estimator__n_neighbors': [2, 5, 10, 20, 30, 40, 50, 60, 70],
-           'estimator__estimator__metric': ['cosine', 'euclidean', 'minkowski'],}
+            'estimator__estimator__metric': ['cosine', 'euclidean', 'minkowski'], }
 
         # Initialize BayesSearchCV
         random_search = RandomizedSearchCV(
@@ -238,7 +240,6 @@ def train_and_test_on_umap_randcv(
         y_shuffle = copy.deepcopy(y)
         np.random.shuffle(y_shuffle)
 
-
         for count, (train_index, test_index) in enumerate(custom_folds):
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
@@ -253,7 +254,6 @@ def train_and_test_on_umap_randcv(
             spks_train_shuffle = scipy.stats.zscore(spks_train_shuffle, axis=0)
             spks_test_shuffle = scipy.stats.zscore(spks_test_shuffle, axis=0)
 
-
             if sanity_check:
                 #visualise
                 #run a statistical test on all y values
@@ -266,55 +266,49 @@ def train_and_test_on_umap_randcv(
                     assert p_val > 0.05, f'The p-value for the t-test on {regress[i]} is less than 0.05'
                     assert ks_p_val > 0.05, f'The p-value for the ks-test on {regress[i]} is less than 0.05'
 
-
                 fig, ax = plt.subplots()
                 ax.plot(spks_train[:500, 10], label='smoothed', alpha=0.5)
-                ax.plot(spks_test[:500, 10], label='smooth_test', alpha =0.5)
+                ax.plot(spks_test[:500, 10], label='smooth_test', alpha=0.5)
                 ax.legend()
                 plt.savefig(f'{savedir}/spike_train_vs_shuffled_fold_{count}.png', dpi=300, bbox_inches='tight')
                 plt.show()
 
                 fig, ax = plt.subplots()
                 ax.plot(y_train[:2600, 0], label='train_labels_x', alpha=0.5)
-                ax.plot(y_test[:2600, 0], label='test_labels_x', alpha =0.5)
-                ax.plot(y[:2600, 0], label='all_labels_x', alpha =0.5)
+                ax.plot(y_test[:2600, 0], label='test_labels_x', alpha=0.5)
+                ax.plot(y[:2600, 0], label='all_labels_x', alpha=0.5)
                 plt.show()
 
                 fig, ax = plt.subplots()
                 ax.plot(y_train[:2600, 1], label='train_labels_y', alpha=0.5)
-                ax.plot(y_test[:2600, 1], label='test_labels_y', alpha =0.5)
-                ax.plot(y[:2600, 1], label='all_labels_y', alpha =0.5)
+                ax.plot(y_test[:2600, 1], label='test_labels_y', alpha=0.5)
+                ax.plot(y[:2600, 1], label='all_labels_y', alpha=0.5)
                 plt.show()
 
                 fig, ax = plt.subplots()
                 ax.plot(y_train[:50, 2], label='train_labels_angle_sin', alpha=0.5)
-                ax.plot(y_test[:50, 2], label='test_labels_angle_sin', alpha =0.5)
-                ax.plot(y[:50, 2], label='all_labels_angle_sin', alpha =0.5)
+                ax.plot(y_test[:50, 2], label='test_labels_angle_sin', alpha=0.5)
+                ax.plot(y[:50, 2], label='all_labels_angle_sin', alpha=0.5)
                 ax.legend()
                 plt.show()
 
                 fig, ax = plt.subplots()
                 ax.plot(y_train[:50, 3], label='train_labels_angle_cos', alpha=0.5)
-                ax.plot(y_test[:50, 3], label='test_labels_angle_cos', alpha =0.5)
-                ax.plot(y[:50, 3], label='all_labels_angle_cos', alpha =0.5)
+                ax.plot(y_test[:50, 3], label='test_labels_angle_cos', alpha=0.5)
+                ax.plot(y[:50, 3], label='all_labels_angle_cos', alpha=0.5)
                 ax.legend()
                 plt.show()
 
                 fig, ax = plt.subplots()
                 #compare the x and y labels
                 ax.plot(y_train[:50, 0], label='train_labels_x', alpha=0.5)
-                ax.plot(y_test[:50, 0], label='test_labels_x', alpha =0.5)
+                ax.plot(y_test[:50, 0], label='test_labels_x', alpha=0.5)
                 ax.plot(y_train[:50, 1], label='train_labels_y', alpha=0.5)
-                ax.plot(y_test[:50, 1], label='test_labels_y', alpha =0.5)
+                ax.plot(y_test[:50, 1], label='test_labels_y', alpha=0.5)
                 ax.legend()
                 plt.show()
 
-
-
                 plt.close('all')
-
-
-
 
             # Set the parameters
             formatted_params = format_params(manual_params)
@@ -336,10 +330,6 @@ def train_and_test_on_umap_randcv(
             plt.savefig(f'{savedir}/rips_diagrams_fold_' + str(count) + '.png', dpi=300, bbox_inches='tight')
             plt.show()
 
-
-
-
-
             train_score = pipeline.score(spks_train, y_train)
             train_scores_shuffle.append(pipeline_shuffle.score(spks_train_shuffle, y_train_shuffle))
             train_scores.append(train_score)
@@ -353,14 +343,17 @@ def train_and_test_on_umap_randcv(
 
             # col_list = ['x', 'y',  'angle_sin_goal', 'angle_cos_goal']
             col_list = regress
-            indiv_results_dataframe = pd.DataFrame( columns=regress)
-            indiv_results_dataframe_shuffle = pd.DataFrame( columns=regress)
+            indiv_results_dataframe = pd.DataFrame()
+            indiv_results_dataframe_shuffle = pd.DataFrame()
 
             for i in range(y_test.shape[1]):
                 score_indiv = r2_score(y_test[:, i], y_pred[:, i])
                 score_indiv_shuffle = r2_score(y_test_shuffle[:, i], y_pred_shuffle[:, i])
-                indiv_results_dataframe = pd.concat([indiv_results_dataframe, pd.DataFrame([score_indiv], columns=[col_list[i]])], axis=1)
-                indiv_results_dataframe_shuffle = pd.concat([indiv_results_dataframe_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[col_list[i]])], axis=1)
+                indiv_results_dataframe = pd.concat(
+                    [indiv_results_dataframe, pd.DataFrame([score_indiv], columns=[col_list[i]])], axis=1)
+                indiv_results_dataframe_shuffle = pd.concat(
+                    [indiv_results_dataframe_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[col_list[i]])],
+                    axis=1)
 
                 print(f'R2 score for {col_list[i]} is {score_indiv}')
             # break down the score into its components
@@ -378,10 +371,11 @@ def train_and_test_on_umap_randcv(
             x_index = regress.index('x')
             y_index = regress.index('y')
             actual_angle = np.arctan2(y_test[:, sin_index], y_test[:, cos_index])
-            actual_distance = np.sqrt(y_test[:, x_index]**2 + y_test[:, y_index]**2)
+            actual_distance = np.sqrt(y_test[:, x_index] ** 2 + y_test[:, y_index] ** 2)
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2],  c=actual_angle, cmap='twilight')
+            sc = ax.scatter(X_test_reduced[:, 0], X_test_reduced[:, 1], X_test_reduced[:, 2], c=actual_angle,
+                            cmap='twilight')
             ax.set_xlabel('UMAP 1')
             ax.set_ylabel('UMAP 2')
             ax.set_zlabel('UMAP 3')
@@ -406,7 +400,8 @@ def train_and_test_on_umap_randcv(
                     ax.set_ylabel(f'UMAP {j + 1}')
                     # Add a color bar
                     plt.colorbar(sc, ax=ax)
-                    plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300, bbox_inches='tight')
+                    plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300,
+                                bbox_inches='tight')
                     # plt.show()
                     plt.close('all')
 
@@ -420,11 +415,11 @@ def train_and_test_on_umap_randcv(
                     ax.set_ylabel(f'UMAP {j + 1}')
                     # Add a color bar
                     plt.colorbar(sc, ax=ax)
-                    plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_colorcodedbydistancefromorigin_components_{i}_{j}.png', dpi=300, bbox_inches='tight')
+                    plt.savefig(
+                        f'{savedir}/umap_embeddings_fold_{count}_colorcodedbydistancefromorigin_components_{i}_{j}.png',
+                        dpi=300, bbox_inches='tight')
                     # plt.show()
                     plt.close('all')
-
-
 
         # Calculate the mean training and test scores
         mean_train_score = np.mean(train_scores)
@@ -432,8 +427,7 @@ def train_and_test_on_umap_randcv(
         mean_train_score_shuffle = np.mean(train_scores_shuffle)
         mean_test_score_shuffle = np.mean(test_scores_shuffle)
 
-
-        rat_dataframe = pd.concat([rat_dataframe, indiv_results_dataframe], axis=0)
+        rat_dataframe = pd.concat([rat_dataframe, fold_dataframe], axis=0)
         rat_dataframe['rat_id'] = rat_id
         rat_dataframe['mean_test_score'] = mean_test_score
         rat_dataframe['mean_train_score'] = mean_train_score
@@ -442,21 +436,20 @@ def train_and_test_on_umap_randcv(
         print(f'Mean training score: {mean_train_score}')
         print(f'Mean test score: {mean_test_score}')
 
-        rat_dataframe_shuffle = pd.concat([rat_dataframe_shuffle, indiv_results_dataframe_shuffle], axis=0)
+        rat_dataframe_shuffle = pd.concat([rat_dataframe_shuffle, fold_dataframe_shuffle], axis=0)
         rat_dataframe_shuffle['rat_id'] = rat_id
         rat_dataframe_shuffle['mean_test_score'] = mean_test_score_shuffle
         rat_dataframe_shuffle['mean_train_score'] = mean_train_score_shuffle
 
-
-
         best_score = mean_test_score
         #append to a dataframe
-    return best_params, best_score,rat_dataframe, rat_dataframe_shuffle
+    return best_params, best_score, rat_dataframe, rat_dataframe_shuffle
 
 
 def run_umap_pipeline_across_rats():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
-    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/','C:/neural_data/rat_10/23-11-2021/', 'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/']
+    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/', 'C:/neural_data/rat_10/23-11-2021/',
+                     'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/']
     across_dir_dataframe = pd.DataFrame()
     across_dir_dataframe_shuffled = pd.DataFrame()
     bin_size = 250
@@ -473,13 +466,14 @@ def run_umap_pipeline_across_rats():
         # else:
         #     print('The two arrays are not the same')
 
-
         # print out the first couple of rows of the lfp_data
         #randsearch_allvars_lfadssmooth_empiricalwindows_1000iter_independentvar_2024-05-24
         if bin_size == 100:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
+                'randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
-            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_sanitycheck_parallel_2024-07-07')
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
+                'randsearch_sanitycheck_parallel_2024-07-07')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
@@ -501,8 +495,6 @@ def run_umap_pipeline_across_rats():
         spike_data_copy = np.delete(spike_data_copy, columns_to_remove, axis=1)
         X_for_umap = spike_data_copy
 
-
-
         labels_for_umap = labels
         #remove the indices
         # labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
@@ -513,12 +505,10 @@ def run_umap_pipeline_across_rats():
 
         #plot angle sin and angle cos to goal
         fig, ax = plt.subplots()
-        ax.plot(label_df['sin_relative_direction'][:120], label = 'angle_sin_goal')
-        ax.plot(label_df['cos_relative_direction'][:120], label = 'angle_cos_goal')
+        ax.plot(label_df['sin_relative_direction'][:120], label='angle_sin_goal')
+        ax.plot(label_df['cos_relative_direction'][:120], label='angle_cos_goal')
         ax.legend()
         plt.show()
-
-
 
         regressor = KNeighborsRegressor
         regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
@@ -535,7 +525,6 @@ def run_umap_pipeline_across_rats():
 
         regress = ['x', 'y', 'sin_hd', 'cos_hd']  # changing to two target variables
         # regress = [ 'sin_hd', 'cos_hd']  # changing to two target variables
-
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
@@ -564,17 +553,19 @@ def run_umap_pipeline_across_rats():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params, savedir=save_dir_path, rat_id=rat_id, num_windows = num_windows
+            reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params,
+            savedir=save_dir_path, rat_id=rat_id, num_windows=num_windows
         )
         np.save(save_dir_path / filename, best_params)
         np.save(save_dir_path / filename_mean_score, mean_score)
         #append to larger dataframe
         across_dir_dataframe = pd.concat([across_dir_dataframe, rat_dataframe], axis=0)
         across_dir_dataframe_shuffled = pd.concat([across_dir_dataframe_shuffled, rat_dataframe_shuffled], axis=0)
-     #save to csv
+    #save to csv
     across_dir_dataframe['mean_test_score_across_rats'] = across_dir_dataframe['mean_test_score'].mean()
     across_dir_dataframe.to_csv(f'{data_dir}/across_dir_dataframe_bin_size_splitsmooth_{bin_size}.csv')
-    across_dir_dataframe_shuffled['mean_test_score_across_rats'] = across_dir_dataframe_shuffled['mean_test_score'].mean()
+    across_dir_dataframe_shuffled['mean_test_score_across_rats'] = across_dir_dataframe_shuffled[
+        'mean_test_score'].mean()
     across_dir_dataframe_shuffled.to_csv(f'{data_dir}/across_dir_dataframe_shuffled_bin_size_splitsmooth{bin_size}.csv')
     return across_dir_dataframe
 
