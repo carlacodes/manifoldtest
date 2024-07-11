@@ -888,13 +888,13 @@ def run_stratified_kfold_test():
     return df_big, df_big_angle
 
 
-def run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range = False, allo = True):
+def run_ks_test_on_distributions_3d_grid(big_df_savedir, scale_to_angle_range = False, allo = True):
     df_across_windows = pd.DataFrame()
     df_across_windows_angle = pd.DataFrame()
     for data_dir in ['C:/neural_data/rat_7/6-12-2019', 'C:/neural_data/rat_10/23-11-2021',
                      'C:/neural_data/rat_8/15-10-2019', 'C:/neural_data/rat_9/10-12-2021',
                      'C:/neural_data/rat_3/25-3-2019']:
-        for window_size in [250]:
+        for window_size in [50]:
             rat_id = data_dir.split('/')[-2]
             spike_dir = os.path.join(data_dir, 'physiology_data')
             dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -1101,8 +1101,8 @@ def main():
     big_df_savedir = 'C:/neural_data/r2_decoding_figures/umap/'
     # run_stratified_kfold_test()
     # run_ks_test_on_distributions(data_dir, param_dict, score_dict, big_df_savedir)
-    run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range=False, allo = True)
-    run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range=False, allo = False)
+    run_ks_test_on_distributions_3d_grid( big_df_savedir, scale_to_angle_range=False, allo = True)
+    run_ks_test_on_distributions_3d_grid( big_df_savedir, scale_to_angle_range=False, allo = False)
     # run_ks_test_on_distributions_3d_grid(data_dir, param_dict, score_dict, big_df_savedir, scale_to_angle_range=True)
 
 

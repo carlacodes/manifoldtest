@@ -467,7 +467,7 @@ def run_umap_pipeline_across_rats():
     data_dir_list = ['C:/neural_data/rat_7/6-12-2019/']
     across_dir_dataframe = pd.DataFrame()
     across_dir_dataframe_shuffled = pd.DataFrame()
-    bin_size = 50
+    bin_size = 250
     for data_dir in data_dir_list:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -561,7 +561,7 @@ def run_umap_pipeline_across_rats():
             regressor_kwargs,
             reducer,
             reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params,
-            savedir=save_dir_path, rat_id=rat_id, num_windows=num_windows, apply_smoothing= True
+            savedir=save_dir_path, rat_id=rat_id, num_windows=num_windows, apply_smoothing= False
         )
         np.save(save_dir_path / filename, best_params)
         np.save(save_dir_path / filename_mean_score, mean_score)
