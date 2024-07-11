@@ -467,7 +467,7 @@ def run_umap_pipeline_across_rats():
     data_dir_list = ['C:/neural_data/rat_7/6-12-2019/']
     across_dir_dataframe = pd.DataFrame()
     across_dir_dataframe_shuffled = pd.DataFrame()
-    bin_size = 250
+    bin_size = 50
     for data_dir in data_dir_list:
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -478,7 +478,7 @@ def run_umap_pipeline_across_rats():
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
                 'randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
-        elif bin_size == 250:
+        elif bin_size == 250 or bin_size == 50:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
                 'randsearch_sanitycheck_allvars_parallel_lfadssmooth_2024-07-10')
         rat_id = data_dir.split('/')[-3]
