@@ -247,6 +247,20 @@ def train_and_test_on_umap_randcv(
 
             spks_train_shuffle, spks_test_shuffle = spks_shuffle[train_index], spks_shuffle[test_index]
             y_train_shuffle, y_test_shuffle = y_shuffle[train_index], y_shuffle[test_index]
+            if apply_smoothing:
+                spks_train, indices_to_remove_spks_train = tools.apply_lfads_smoothing(spks_train)
+                spks_test, indices_to_remove_spks_test = tools.apply_lfads_smoothing(spks_test)
+
+                spks_train_shuffle, indices_to_remove_spks_train_shuffle = tools.apply_lfads_smoothing(spks_train_shuffle)
+                spks_test_shuffle, indices_to_remove_spks_test_shuffle = tools.apply_lfads_smoothing(spks_test_shuffle)
+                #apply this removal to the target labels
+                y_train = np.delete(y_train, indices_to_remove_spks_train, axis=0)
+                y_test = np.delete(y_test, indices_to_remove_spks_test, axis=0)
+                y_train_shuffle = np.delete(y_train_shuffle, indices_to_remove_spks_train_shuffle, axis=0)
+                y_test_shuffle = np.delete(y_test_shuffle, indices_to_remove_spks_test_shuffle, axis=0)
+
+
+
             # Apply z-scoring to the data
             spks_train = scipy.stats.zscore(spks_train, axis=0)
             spks_test = scipy.stats.zscore(spks_test, axis=0)
@@ -450,6 +464,7 @@ def run_umap_pipeline_across_rats():
     data_dir = 'C:/neural_data/rat_7/6-12-2019/'
     data_dir_list = ['C:/neural_data/rat_7/6-12-2019/', 'C:/neural_data/rat_10/23-11-2021/',
                      'C:/neural_data/rat_8/15-10-2019/', 'C:/neural_data/rat_9/10-12-2021/']
+    data_dir_list = ['C:/neural_data/rat_7/6-12-2019/']
     across_dir_dataframe = pd.DataFrame()
     across_dir_dataframe_shuffled = pd.DataFrame()
     bin_size = 250
@@ -459,21 +474,13 @@ def run_umap_pipeline_across_rats():
         labels = np.load(f'{dlc_dir}/labels_{bin_size}_scale_to_angle_range_False.npy')
         col_list = np.load(f'{dlc_dir}/col_names_{bin_size}_scale_to_angle_range_False.npy')
         spike_data = np.load(f'{spike_dir}/inputs_10052024_{bin_size}.npy')
-        old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_{bin_size}.npy')
-        #check if they are the same array
-        # if np.allclose(spike_data, old_spike_data):
-        #     print('The two arrays are the same')
-        # else:
-        #     print('The two arrays are not the same')
 
-        # print out the first couple of rows of the lfp_data
-        #randsearch_allvars_lfadssmooth_empiricalwindows_1000iter_independentvar_2024-05-24
         if bin_size == 100:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
                 'randsearch_independentvar_lfadssmooth_empiricalwindow_scaled_labels_True_binsize_100_')
         elif bin_size == 250:
             previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
-                'randsearch_sanitycheck_parallel_2024-07-07')
+                'randsearch_sanitycheck_allvars_parallel_lfadssmooth_2024-07-10')
         rat_id = data_dir.split('/')[-3]
         manual_params = previous_results[rat_id]
         manual_params = manual_params.item()
@@ -554,7 +561,7 @@ def run_umap_pipeline_across_rats():
             regressor_kwargs,
             reducer,
             reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=manual_params,
-            savedir=save_dir_path, rat_id=rat_id, num_windows=num_windows
+            savedir=save_dir_path, rat_id=rat_id, num_windows=num_windows, apply_smoothing= True
         )
         np.save(save_dir_path / filename, best_params)
         np.save(save_dir_path / filename_mean_score, mean_score)
