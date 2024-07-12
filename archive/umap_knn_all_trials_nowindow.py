@@ -29,10 +29,6 @@ import pandas as pd
 # mpl.use('Qt5Agg')  # or can use 'TkAgg', whatever you have/prefer
 ''' Modified from Jules Lebert's code
 spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
-from sklearn.decomposition import PCA
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.model_selection import ParameterGrid
-from sklearn.gaussian_process.kernels import WhiteKernel, ConstantKernel, RBF
 import os
 import scipy
 import pickle as pkl
