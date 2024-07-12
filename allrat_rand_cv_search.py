@@ -116,8 +116,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None
-):
+        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None):
 
 
     y = bhv[regress].values
@@ -127,7 +126,7 @@ def train_and_test_on_umap_randcv(
     # Create your custom folds
     n_timesteps = spks.shape[0]
 
-    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=340)
+    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('reducer', CustomUMAP()),
@@ -243,6 +242,7 @@ def train_and_test_on_umap_randcv(
 
 def main():
     base_dir = '/ceph/scratch/carlag/honeycomb_neural_data/'
+    base_dir = 'C:/neural_data/'
 
     for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
@@ -254,7 +254,7 @@ def main():
 
         spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
 
-        window_df = pd.read_csv(f'/ceph/scratch/carlag/honeycomb_neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
+        window_df = pd.read_csv(f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
             #find the rat_id
         rat_id = data_dir.split('/')[-2]
         #filter for window_size
