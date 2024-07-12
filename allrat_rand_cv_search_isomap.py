@@ -19,6 +19,8 @@ from sklearn.base import BaseEstimator
 from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+from sklearn.manifold import Isomap
+
 
 #set path for jobs
 os.environ['JOBLIB_TEMP_FOLDER'] = 'C:/tmp'
@@ -132,7 +134,7 @@ def train_and_test_on_umap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
-        ('reducer', CustomUMAP()),
+        ('reducer', Isomap()),
         ('estimator', MultiOutputRegressor(regressor()))
     ])
 
@@ -161,11 +163,9 @@ def train_and_test_on_umap_randcv(
         param_grid = {
             'estimator__estimator__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
             'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-            'reducer__random_state': [42],
-            'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+            'estimator__estimator__metric': ['cosine'],
+            'reducer__metric': ['cosine'],
             'reducer__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
-            'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
-            'reducer__random_state': [42]
         }
 
         zscore_cv = ZScoreCV(spks, custom_folds)
@@ -280,10 +280,10 @@ def main():
 
         regressor = KNeighborsRegressor
         regressor_kwargs = {'n_neighbors': 70}
-        reducer = UMAP
+        reducer = Isomap
         reducer_kwargs = {
             'n_components': 3,
-            'metric': 'euclidean',
+            'metric': 'cosine',
             'n_jobs': 1,
         }
 
@@ -293,7 +293,7 @@ def main():
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now_day}.npy'
-        save_dir_path = Path(f'{data_dir}/randsearch_sanitycheckallvarindepen_parallel2_{now_day}')
+        save_dir_path = Path(f'{data_dir}/randsearch_sanitycheckallvarindepen_isomap_{now_day}')
         save_dir = save_dir_path
         save_dir.mkdir(exist_ok=True)
 
