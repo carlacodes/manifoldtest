@@ -154,13 +154,18 @@ def train_and_test_on_umap_randcv(
     sys.stdout = log_file
 
     if use_rand_search:
+
+
         param_grid = {
-           'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10],
-            'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
-            'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
+            'estimator__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
+            'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
             'reducer__random_state': [42],
-            'estimator__estimator__n_neighbors': [2, 5, 10, 20, 30, 40, 50, 60, 70],
-           'estimator__estimator__metric': ['cosine', 'euclidean', 'minkowski'],}
+            'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+            'reducer__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
+            'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
+            'reducer__random_state': [42]
+        }
+
         zscore_cv = ZScoreCV(spks, custom_folds)
 
         # Initialize BayesSearchCV
