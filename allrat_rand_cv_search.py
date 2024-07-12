@@ -242,99 +242,69 @@ def train_and_test_on_umap_randcv(
 
 
 def main():
-    data_dir = 'C:/neural_data/rat_7/6-12-2019'
-    spike_dir = os.path.join(data_dir, 'physiology_data')
-    dlc_dir = os.path.join(data_dir, 'positional_data')
-    labels = np.load(
-        f'{dlc_dir}/labels_250.npy')
-    lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
-    spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
-    old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
-    old_spike_data_cluster = np.load(f'{spike_dir}/cluster_download/inputs_overlap_False_window_size_250.npy')
-    #check if they are the same array
-    if np.allclose(spike_data, old_spike_data):
-        print('The two arrays are the same')
-    else:
-        print('The two arrays are not the same')
+    base_dir = '/ceph/scratch/carlag/honeycomb_neural_data/'
 
-    if np.allclose(spike_data, old_spike_data_cluster):
-        print('The two arrays are the same')
-    else:
-        print('The two arrays are not the same')
+    for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
+                     f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
+                     f'{base_dir}/rat_3/25-3-2019']:
+        spike_dir = os.path.join(data_dir, 'physiology_data')
+        dlc_dir = os.path.join(data_dir, 'positional_data')
+        labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
+        col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
 
-    # print out the first couple of rows of the lfp_data
-    # previous_results, score_dict = DataHandler.load_previous_results('lfp_phase_manifold_withspkdata')
-    rat_id = data_dir.split('/')[-2]
-    # manual_params = previous_results[rat_id]
+        spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
 
-    spike_data_copy = copy.deepcopy(spike_data)
-    tolerance = 1e-10  # or any small number that suits your needs
-    if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
-        print('There are neurons with constant firing rates')
-        # remove those neurons
-        spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
+        window_df = pd.read_csv(f'/ceph/scratch/carlag/honeycomb_neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
+            #find the rat_id
+        rat_id = data_dir.split('/')[-2]
+        #filter for window_size
+        window_df = window_df[window_df['window_size'] == 250]
+        num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
 
+        spike_data_copy = copy.deepcopy(spike_data)
+        tolerance = 1e-10
+        if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
+            print('There are neurons with constant firing rates')
+            spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-    X_for_umap = spike_data_copy
+        percent_zeros = np.mean(spike_data_copy == 0, axis=0) * 100
+        columns_to_remove = np.where(percent_zeros > 99.5)[0]
+        spike_data_copy = np.delete(spike_data_copy, columns_to_remove, axis=1)
+        X_for_umap = spike_data_copy
 
-    labels_for_umap = labels[:, 0:5]
+        labels_for_umap = labels
+        label_df = pd.DataFrame(labels_for_umap, columns=col_list)
 
-    label_df = pd.DataFrame(labels_for_umap,
-                            columns=['x', 'y', 'dist2goal', 'hd', 'relative_direction_to_goal'])
-    label_df['time_index'] = np.arange(0, label_df.shape[0])
-    label_df['angle_sin'] = np.sin(label_df['hd'])
-    label_df['angle_cos'] = np.cos(label_df['hd'])
-    label_df['angle_sin_goal'] = np.sin(label_df['relative_direction_to_goal'])
-    label_df['angle_cos_goal'] = np.cos(label_df['relative_direction_to_goal'])
+        regressor = KNeighborsRegressor
+        regressor_kwargs = {'n_neighbors': 70}
+        reducer = UMAP
+        reducer_kwargs = {
+            'n_components': 3,
+            'metric': 'euclidean',
+            'n_jobs': 1,
+        }
 
+        regress = ['x', 'y', 'cos_hd', 'sin_hd']
 
-    regressor = KNeighborsRegressor
-    regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
+        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        now_day = datetime.now().strftime("%Y-%m-%d")
+        filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now}.npy'
+        filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now_day}.npy'
+        save_dir_path = Path(f'{data_dir}/randsearch_sanitycheckallvarindepen_parallel2_{now_day}')
+        save_dir = save_dir_path
+        save_dir.mkdir(exist_ok=True)
 
-    reducer = UMAP
-
-    reducer_kwargs = {
-        'n_components': 3,
-        # 'n_neighbors': 70,
-        # 'min_dist': 0.3,
-        'metric': 'euclidean',
-        'n_jobs': 1,
-    }
-
-    regress = ['x', 'y', 'dist2goal', 'angle_sin', 'angle_cos', 'angle_sin_goal', 'angle_cos_goal']  # changing to two target variables
-
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    now_day = datetime.now().strftime("%Y-%m-%d")
-    filename = f'params_lfp_all_trials_randsearch_250bin_340windows_jake_fold_allvars_{now}.npy'
-    filename_mean_score = f'mean_lfp_score_all_trials_randsearch_250bin_340windows_jake_fold_sinandcos_{now_day}.npy'
-    save_dir_path = Path(f'{data_dir}/bayesearch_allvars_{now_day}')
-    save_dir_path.mkdir(parents=True, exist_ok=True)
-    # initalise a logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    # create a file handler
-    handler = logging.FileHandler(save_dir_path / f'lfp_phase_manifold_withspkdata_{now}.log')
-    handler.setLevel(logging.INFO)
-    # create a logging format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(handler)
-    logger.info('Starting the training and testing of the lfp data with the spike data')
-    #remove numpy array, just get mapping from manual_params
-    # manual_params = manual_params.item()
-
-    best_params, mean_score = train_and_test_on_umap_randcv(
-        X_for_umap,
-        label_df,
-        regress,
-        regressor,
-        regressor_kwargs,
-        reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=True, manual_params=None, savedir=save_dir_path, rat_id=rat_id
-    )
-    np.save(save_dir_path / filename, best_params)
-    np.save(save_dir_path / filename_mean_score, mean_score)
+        best_params, mean_score = train_and_test_on_umap_randcv(
+            X_for_umap,
+            label_df,
+            regress,
+            regressor,
+            regressor_kwargs,
+            reducer,
+            reducer_kwargs, num_windows = num_windows
+        )
+        np.save(save_dir / filename, best_params)
+        np.save(save_dir / filename_mean_score, mean_score)
 
 
 if __name__ == '__main__':
