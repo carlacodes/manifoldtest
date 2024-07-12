@@ -116,7 +116,7 @@ def train_and_test_on_umap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, logger, save_dir_path, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None):
+        reducer_kwargs, use_rand_search=True, manual_params=None, rat_id=None, savedir=None, num_windows=None):
 
 
     y = bhv[regress].values
@@ -144,7 +144,7 @@ def train_and_test_on_umap_randcv(
     # }
     # get the date
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_file = open(f"{save_dir_path}/random_search_{now}.log", "w")
+    log_file = open(f"{savedir}/random_search_{now}.log", "w")
 
     # Save the original stdout
     original_stdout = sys.stdout
@@ -301,7 +301,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, num_windows = num_windows
+            reducer_kwargs, num_windows = num_windows, savedir=save_dir
         )
         np.save(save_dir / filename, best_params)
         np.save(save_dir / filename_mean_score, mean_score)
