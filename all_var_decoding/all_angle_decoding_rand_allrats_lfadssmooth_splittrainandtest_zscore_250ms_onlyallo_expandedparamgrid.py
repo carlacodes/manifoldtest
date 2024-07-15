@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
 from pathlib import Path
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import r2_score
 from umap import UMAP
 from sklearn.decomposition import PCA
 import numpy as np
