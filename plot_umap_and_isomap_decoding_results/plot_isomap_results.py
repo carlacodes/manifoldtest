@@ -254,11 +254,11 @@ def train_and_test_on_isomap_randcv(
                     # Scatter plot of component i vs component j
                     sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight')
                     # Set labels
-                    ax.set_xlabel(f'UMAP {i + 1}')
-                    ax.set_ylabel(f'UMAP {j + 1}')
+                    ax.set_xlabel(f'isomap {i + 1}')
+                    ax.set_ylabel(f'isomap {j + 1}')
                     # Add a color bar
                     plt.colorbar(sc, ax=ax)
-                    plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300,
+                    plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300,
                                 bbox_inches='tight')
                     # plt.show()
                     plt.close('all')
@@ -269,12 +269,12 @@ def train_and_test_on_isomap_randcv(
                     # Scatter plot of component i vs component j
                     sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance, cmap='viridis')
                     # Set labels
-                    ax.set_xlabel(f'UMAP {i + 1}')
-                    ax.set_ylabel(f'UMAP {j + 1}')
+                    ax.set_xlabel(f'isomap {i + 1}')
+                    ax.set_ylabel(f'isomap {j + 1}')
                     # Add a color bar
                     plt.colorbar(sc, ax=ax)
                     plt.savefig(
-                        f'{savedir}/umap_embeddings_fold_{count}_colorcodedbydistancefromorigin_components_{i}_{j}.png',
+                        f'{savedir}/isomap_embeddings_fold_{count}_colorcodedbydistancefromorigin_components_{i}_{j}.png',
                         dpi=300, bbox_inches='tight')
                     # plt.show()
                     plt.close('all')
