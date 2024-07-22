@@ -139,7 +139,7 @@ def train_and_test_on_isomap_randcv(
 
     # Redirect stdout to the log file
     sys.stdout = log_file
-
+    best_params = None
     if use_rand_search:
 
 
@@ -286,11 +286,16 @@ def train_and_test_on_isomap_randcv(
         mean_test_score = np.mean(test_scores)
         print(f'Mean training score: {mean_train_score}')
         print(f'Mean test score: {mean_test_score}')
-    return best_params, best_score
+        fold_dataframe.to_csv(f'{savedir}/fold_results.csv', index=False)
+        fold_dataframe_shuffle.to_csv(f'{savedir}/fold_results_shuffle.csv', index=False)
+
+    return best_params, best_score, fold_dataframe, fold_dataframe_shuffle
 
 
 def main():
     base_dir = 'C:/neural_data/'
+    big_result_df = pd.DataFrame()
+    big_result_df_shuffle = pd.DataFrame()
     for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
                      f'{base_dir}/rat_3/25-3-2019']:
@@ -349,7 +354,7 @@ def main():
         save_dir = save_dir_path
         save_dir.mkdir(parents=True, exist_ok=True)
 
-        best_params, mean_score = train_and_test_on_isomap_randcv(
+        best_params, mean_score, result_df, result_df_shuffle = train_and_test_on_isomap_randcv(
             X_for_umap,
             label_df,
             regress,
@@ -358,6 +363,15 @@ def main():
             reducer,
             reducer_kwargs, num_windows = num_windows, savedir=save_dir, manual_params=manual_params_rat
         )
+        result_df['rat_id'] = rat_id
+        result_df_shuffle['rat_id'] = rat_id
+
+        big_result_df = pd.concat([big_result_df, result_df], axis=0)
+        big_result_df_shuffle = pd.concat([big_result_df_shuffle, result_df_shuffle], axis=0)
+    big_result_df.to_csv(f'{base_dir}/big_result_df_isomap_250.csv', index=False)
+    big_result_df_shuffle.to_csv(f'{base_dir}/big_result_df_shuffle_isomap_250.csv', index=False)
+
+
 
 
 
