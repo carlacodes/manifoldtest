@@ -127,6 +127,7 @@ def train_and_test_on_isomap_randcv(
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     # Example, you can use your custom folds here
     pipeline = Pipeline([
+        ('scaler', StandardScaler()),
         ('reducer', Isomap()),
         ('estimator', MultiOutputRegressor(regressor()))
     ])
@@ -177,20 +178,48 @@ def train_and_test_on_isomap_randcv(
         test_scores = []
 
         count = 0
+        fold_dataframe = pd.DataFrame()#
+        fold_dataframe_shuffle = pd.DataFrame()
         for train_index, test_index in custom_folds:
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
+            y_test_shuffle = copy.deepcopy(y_test)
+            np.random.shuffle(y_test_shuffle)
+            y_train_shuffle = copy.deepcopy(y_train)
+            np.random.shuffle(y_train_shuffle)
+
 
             # Set the parameters
-            formatted_params = format_params(manual_params)
-            pipeline.set_params(**formatted_params)
+            # formatted_params = format_params(manual_params)
+            pipeline.set_params(**manual_params)
 
             # Fit the pipeline on the training data
             pipeline.fit(spks_train, y_train)
 
             # Use the pipeline to predict on the test set
             y_pred = pipeline.predict(spks_test)
+            y_pred_shuffle = pipeline.predict(spks_test)
+            #get the individaul scores
+            indiv_results_dataframe = pd.DataFrame()
+            indiv_results_dataframe_shuffle = pd.DataFrame()
+
+            for i in range(y_test.shape[1]):
+                score_indiv = r2_score(y_test[:, i], y_pred[:, i])
+                score_indiv_shuffle = r2_score(y_test_shuffle[:, i], y_pred_shuffle[:, i])
+                indiv_results_dataframe = pd.concat(
+                    [indiv_results_dataframe, pd.DataFrame([score_indiv], columns=[regress[i]])], axis=1)
+                indiv_results_dataframe_shuffle = pd.concat(
+                    [indiv_results_dataframe_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[regress[i]])],
+                    axis=1)
+
+                print(f'R2 score for {regress[i]} is {score_indiv}')
+            # break down the score into its components
+            indiv_results_dataframe['fold'] = count
+            indiv_results_dataframe_shuffle['fold'] = count
+
+            fold_dataframe = pd.concat([fold_dataframe, indiv_results_dataframe], axis=0)
+            fold_dataframe_shuffle = pd.concat([fold_dataframe_shuffle, indiv_results_dataframe_shuffle], axis=0)
 
             # Calculate the training and test scores
             train_score = pipeline.score(spks_train, y_train)
@@ -203,7 +232,8 @@ def train_and_test_on_isomap_randcv(
             X_test_transformed = pipeline.named_steps['reducer'].transform(
                 pipeline.named_steps['scaler'].transform(spks_test))
 
-            actual_angle = np.arcsin(y_test[:, 0])
+            actual_angle = np.arctan2(y_test[:, 2], y_test[:, 3])
+            actual_distance = np.sqrt(y_test[:, 0] ** 2 + y_test[:, 1] ** 2)
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             sc = ax.scatter(X_test_transformed[:, 0], X_test_transformed[:, 1], c=actual_angle, cmap='viridis')
@@ -214,6 +244,41 @@ def train_and_test_on_isomap_randcv(
             ax.set_title(
                 f'Isomap test embeddings color-coded by head angle rel. to goal for fold: {count} rat id: {rat_id}')
             plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}.png', dpi=300, bbox_inches='tight')
+            n_components = X_test_transformed.shape[1]
+
+            # Iterate over each unique pair of components
+            for i in range(n_components):
+                for j in range(i + 1, n_components):
+                    # Create a new figure and axis
+                    fig, ax = plt.subplots()
+                    # Scatter plot of component i vs component j
+                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight')
+                    # Set labels
+                    ax.set_xlabel(f'UMAP {i + 1}')
+                    ax.set_ylabel(f'UMAP {j + 1}')
+                    # Add a color bar
+                    plt.colorbar(sc, ax=ax)
+                    plt.savefig(f'{savedir}/umap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300,
+                                bbox_inches='tight')
+                    # plt.show()
+                    plt.close('all')
+
+                    #color code by xy position
+                    #get distance from origin
+                    fig, ax = plt.subplots()
+                    # Scatter plot of component i vs component j
+                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance, cmap='viridis')
+                    # Set labels
+                    ax.set_xlabel(f'UMAP {i + 1}')
+                    ax.set_ylabel(f'UMAP {j + 1}')
+                    # Add a color bar
+                    plt.colorbar(sc, ax=ax)
+                    plt.savefig(
+                        f'{savedir}/umap_embeddings_fold_{count}_colorcodedbydistancefromorigin_components_{i}_{j}.png',
+                        dpi=300, bbox_inches='tight')
+                    # plt.show()
+                    plt.close('all')
+
             count += 1
 
             # Calculate the mean training and test scores
@@ -235,6 +300,7 @@ def main():
         'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
         rat_id = data_dir.split('/')[-2]
         manual_params_rat = previous_results[rat_id]
+        manual_params_rat = manual_params_rat.item()
 
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
@@ -277,11 +343,11 @@ def main():
 
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
-        filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now}.npy'
-        filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now_day}.npy'
+
+
         save_dir_path = Path(f'{data_dir}/plot_results/plot_isomap_{now_day}')
         save_dir = save_dir_path
-        save_dir.mkdir(exist_ok=True)
+        save_dir.mkdir(parents=True, exist_ok=True)
 
         best_params, mean_score = train_and_test_on_isomap_randcv(
             X_for_umap,
