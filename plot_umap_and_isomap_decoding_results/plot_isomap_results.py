@@ -180,8 +180,9 @@ def train_and_test_on_isomap_randcv(
         test_scores = []
 
         count = 0
-        fold_dataframe = pd.DataFrame()#
+        fold_dataframe = pd.DataFrame()
         fold_dataframe_shuffle = pd.DataFrame()
+        print('beginning cv with custom folds')
         for train_index, test_index in custom_folds:
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
@@ -248,16 +249,17 @@ def train_and_test_on_isomap_randcv(
                 f'Isomap test embeddings color-coded by head angle rel. to goal for fold: {count} rat id: {rat_id}')
             plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}.png', dpi=300, bbox_inches='tight')
             n_components = X_test_transformed.shape[1]
-            if barcode_analysis:
-                rips_complex = gd.RipsComplex(points=X_test_transformed, max_edge_length=2)
-                simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
-                persistence = simplex_tree.persistence()
-
-                # Optionally, you can also plot the persistence diagram
-                gd.plot_persistence_diagram(persistence)
-                plt.savefig(f'{savedir}/barcode_fold_{count}.png', dpi=300, bbox_inches='tight')
-                # plt.show()
-                # plt.close('all')
+            # if barcode_analysis:
+            #     rips_complex = gd.RipsComplex(points=X_test_transformed, max_edge_length=1)
+            #     simplex_tree = rips_complex.create_simplex_tree(max_dimension=1)
+            #     persistence = simplex_tree.persistence()
+            #
+            #     # Optionally, you can also plot the persistence diagram
+            #     print('plotting persistence')
+            #     gd.plot_persistence_diagram(persistence)
+            #     plt.savefig(f'{savedir}/barcode_fold_{count}.png', dpi=300, bbox_inches='tight')
+            #     # plt.show()
+            #     # plt.close('all')
 
 
             # Iterate over each unique pair of components
@@ -310,9 +312,9 @@ def main():
     base_dir = 'C:/neural_data/'
     big_result_df = pd.DataFrame()
     big_result_df_shuffle = pd.DataFrame()
-    for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
+    for data_dir in [ f'{base_dir}/rat_10/23-11-2021',
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-                     f'{base_dir}/rat_3/25-3-2019']:
+                     f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
 
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
