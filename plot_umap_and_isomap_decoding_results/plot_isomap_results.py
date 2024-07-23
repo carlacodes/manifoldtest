@@ -7,6 +7,7 @@ from pathlib import Path
 from sklearn.metrics import r2_score
 from manifold_neural.helpers.datahandling import DataHandler
 import matplotlib.pyplot as plt
+import gudhi as gd
 from umap import UMAP
 import numpy as np
 import pandas as pd
@@ -19,6 +20,7 @@ from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
+
 
 class ZScoreCV(BaseCrossValidator):
     def __init__(self, spks, custom_folds):
@@ -116,7 +118,7 @@ def train_and_test_on_isomap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None):
+        reducer_kwargs, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, barcode_analysis=True):
 
 
     y = bhv[regress].values
@@ -128,8 +130,8 @@ def train_and_test_on_isomap_randcv(
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
-        ('reducer', Isomap()),
-        ('estimator', MultiOutputRegressor(regressor()))
+        ('reducer', Isomap(n_jobs=-1)),
+        ('estimator', MultiOutputRegressor(regressor(n_jobs=-1)))
     ])
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = open(f"{savedir}/random_search_{now}.log", "w")
@@ -195,6 +197,7 @@ def train_and_test_on_isomap_randcv(
             pipeline.set_params(**manual_params)
 
             # Fit the pipeline on the training data
+            print('fitting on the training data')
             pipeline.fit(spks_train, y_train)
 
             # Use the pipeline to predict on the test set
@@ -245,6 +248,17 @@ def train_and_test_on_isomap_randcv(
                 f'Isomap test embeddings color-coded by head angle rel. to goal for fold: {count} rat id: {rat_id}')
             plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}.png', dpi=300, bbox_inches='tight')
             n_components = X_test_transformed.shape[1]
+            if barcode_analysis:
+                rips_complex = gd.RipsComplex(points=X_test_transformed, max_edge_length=2)
+                simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
+                persistence = simplex_tree.persistence()
+
+                # Optionally, you can also plot the persistence diagram
+                gd.plot_persistence_diagram(persistence)
+                plt.savefig(f'{savedir}/barcode_fold_{count}.png', dpi=300, bbox_inches='tight')
+                # plt.show()
+                # plt.close('all')
+
 
             # Iterate over each unique pair of components
             for i in range(n_components):
@@ -300,7 +314,7 @@ def main():
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
                      f'{base_dir}/rat_3/25-3-2019']:
 
-
+        print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
         'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
         rat_id = data_dir.split('/')[-2]
