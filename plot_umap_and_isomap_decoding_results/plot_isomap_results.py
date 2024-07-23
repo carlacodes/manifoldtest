@@ -160,7 +160,7 @@ def train_and_test_on_isomap_randcv(
             n_iter=500,
             cv=zscore_cv,
             verbose=3,
-            n_jobs=-1,
+            n_jobs=10,
             scoring='r2'
         )
 
