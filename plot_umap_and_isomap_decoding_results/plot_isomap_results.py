@@ -20,7 +20,7 @@ from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
-
+import logging
 
 class ZScoreCV(BaseCrossValidator):
     def __init__(self, spks, custom_folds):
@@ -142,6 +142,9 @@ def train_and_test_on_isomap_randcv(
     # Redirect stdout to the log file
     sys.stdout = log_file
     best_params = None
+    best_score = None
+    fold_dataframe = None
+    fold_dataframe_shuffle = None
     if use_rand_search:
 
 
@@ -179,11 +182,11 @@ def train_and_test_on_isomap_randcv(
         train_scores = []
         test_scores = []
 
-        count = 0
+        # count = 0
         fold_dataframe = pd.DataFrame()
         fold_dataframe_shuffle = pd.DataFrame()
         print('beginning cv with custom folds')
-        for train_index, test_index in custom_folds:
+        for count, (train_index, test_index) in enumerate(custom_folds):
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -295,7 +298,11 @@ def train_and_test_on_isomap_randcv(
                     # plt.show()
                     plt.close('all')
 
-            count += 1
+
+            filename = f"{savedir}/X_test_transformed_fold_{count}.npy"
+            logging.info(f'Saving transformed test data to {filename}')
+            np.save(filename, X_test_transformed)
+            # count += 1
 
             # Calculate the mean training and test scores
         mean_train_score = np.mean(train_scores)
@@ -312,9 +319,9 @@ def main():
     base_dir = 'C:/neural_data/'
     big_result_df = pd.DataFrame()
     big_result_df_shuffle = pd.DataFrame()
-    for data_dir in [ f'{base_dir}/rat_10/23-11-2021',
+    for data_dir in [
                      f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-                     f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
+                     f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021']:
 
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
