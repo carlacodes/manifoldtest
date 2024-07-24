@@ -24,7 +24,7 @@ import logging
 
 def run_persistence_analysis(folder_str):
     for i in range(5):
-        reduced_data = np.load(folder_str + 'X_test_transform_fold_' + str(i) + '.npy')
+        reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
         #compute the persistence barcodes
         rips_complex = gd.RipsComplex(points=reduced_data, max_edge_length=2)
         simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
