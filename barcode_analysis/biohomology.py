@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 
 def run_persistence_analysis(folder_str):
     for i in range(5):
+        print('at count ', i)
         reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
         # #transform the data
         # #compute the persistence barcodes
@@ -48,9 +49,9 @@ def run_persistence_analysis(folder_str):
         # plt.show()
         persistence = VietorisRipsPersistence(homology_dimensions=[0, 1, 2], n_jobs=-1)
         diagrams = persistence.fit_transform([reduced_data])
-        plot_diagram(diagrams[0])
-        plt.savefig(f'{folder_str}/barcode_fold_{i}.png', dpi=300, bbox_inches='tight')
-        plt.show()
+        fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+        fig = plot_diagram(diagrams[0])
+        fig.write_image(f'{folder_str}/barcode_fold_{i}.png', format='png', scale=3)
 
         # plt.show()
         # plt.close('all')
