@@ -319,9 +319,10 @@ def main():
     base_dir = 'C:/neural_data/'
     big_result_df = pd.DataFrame()
     big_result_df_shuffle = pd.DataFrame()
-    for data_dir in [
-                     f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-                     f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021']:
+    # f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
+    # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
+
+    for data_dir in [ f'{base_dir}/rat_10/23-11-2021']:
 
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
