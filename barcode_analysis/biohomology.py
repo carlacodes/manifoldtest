@@ -29,21 +29,26 @@ import matplotlib.pyplot as plt
 def run_persistence_analysis(folder_str):
     for i in range(5):
         reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
-        #transform the data
-        #compute the persistence barcodes
-        print(f"Shape of reduced_data: {reduced_data.shape}")
-        #flip the axes
-        reduced_data = reduced_data[:1000, :]
-
-        # Compute persistence using ripser
-        print("Computing persistence using ripser...")
-        result = ripser(reduced_data, maxdim=2, thresh=2)
-        persistence = result['dgms']
-        print("Persistence computed successfully.")
-
-        # Plot persistence diagram
-        print('Plotting persistence diagram...')
-        persim.plot_diagrams(persistence)
+        # #transform the data
+        # #compute the persistence barcodes
+        # print(f"Shape of reduced_data: {reduced_data.shape}")
+        # #flip the axes
+        # reduced_data = reduced_data[:1000, :]
+        #
+        # # Compute persistence using ripser
+        # print("Computing persistence using ripser...")
+        # result = ripser(reduced_data, maxdim=2, thresh=2)
+        # persistence = result['dgms']
+        # print("Persistence computed successfully.")
+        #
+        # # Plot persistence diagram
+        # print('Plotting persistence diagram...')
+        # persim.plot_diagrams(persistence)
+        # plt.savefig(f'{folder_str}/barcode_fold_{i}.png', dpi=300, bbox_inches='tight')
+        # plt.show()
+        persistence = VietorisRipsPersistence(homology_dimensions=[0, 1, 2], n_jobs=-1)
+        diagrams = persistence.fit_transform([reduced_data])
+        plot_diagram(diagrams[0])
         plt.savefig(f'{folder_str}/barcode_fold_{i}.png', dpi=300, bbox_inches='tight')
         plt.show()
 
