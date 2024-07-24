@@ -20,19 +20,30 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 import logging
-
+from ripser import ripser
+import persim
+from gtda.homology import VietorisRipsPersistence
+from gtda.plotting import plot_diagram
+import matplotlib.pyplot as plt
 
 def run_persistence_analysis(folder_str):
     for i in range(5):
         reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
+        #transform the data
         #compute the persistence barcodes
-        rips_complex = gd.RipsComplex(points=reduced_data, max_edge_length=2)
-        simplex_tree = rips_complex.create_simplex_tree(max_dimension=2)
-        persistence = simplex_tree.persistence()
+        print(f"Shape of reduced_data: {reduced_data.shape}")
+        #flip the axes
+        reduced_data = reduced_data[:1000, :]
 
-        # Optionally, you can also plot the persistence diagram
-        print('plotting persistence')
-        gd.plot_persistence_diagram(persistence)
+        # Compute persistence using ripser
+        print("Computing persistence using ripser...")
+        result = ripser(reduced_data, maxdim=2, thresh=2)
+        persistence = result['dgms']
+        print("Persistence computed successfully.")
+
+        # Plot persistence diagram
+        print('Plotting persistence diagram...')
+        persim.plot_diagrams(persistence)
         plt.savefig(f'{folder_str}/barcode_fold_{i}.png', dpi=300, bbox_inches='tight')
         plt.show()
 
