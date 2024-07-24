@@ -25,17 +25,17 @@ import logging
 def run_persistence_analysis(folder_str):
     for i in range(5):
         reduced_data = np.load(folder_str + 'X_test_transform_fold_' + str(i) + '.npy')
-        #comput the persistence barcodes
+        #compute the persistence barcodes
+    return
 
 
 
 def main():
     #load the already reduced data
-    base_folder = 'C:/neural_data/'
-    for dir in os.listdir(base_folder):
-        if os.path.isdir(base_folder + dir):
-            print(dir)
-            run_persistence_analysis(base_folder + dir + '/')
+    base_dir = 'C:/neural_data/'
+    for dir in [f'{base_dir}/rat_10/23-11-2021',f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019']:
+        run_persistence_analysis(dir)
+
 
 
 
