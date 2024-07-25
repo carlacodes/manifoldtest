@@ -22,37 +22,59 @@ from sklearn.manifold import Isomap
 import logging
 from ripser import ripser
 import persim
-from gtda.homology import VietorisRipsPersistence
+from gtda.homology import VietorisRipsPersistence, SparseRipsPersistence
 from gtda.plotting import plot_diagram
 import matplotlib.pyplot as plt
+from data.generate_datasets import make_point_clouds
+def plot_barcode(diag, dim, **kwargs):
+    """
+    Plot the barcode for a persistence diagram using matplotlib
+    ----------
+    diag: np.array: of shape (num_features, 3), i.e. each feature is
+           a triplet of (birth, death, dim) as returned by e.g.
+           VietorisRipsPersistence
+    dim: int: Dimension for which to plot
+    **kwargs
+    Returns
+    -------
+    None.
+
+    """
+    diag_dim = diag[diag[:, 2] == dim]
+    birth = diag_dim[:, 0]; death = diag_dim[:, 1]
+    finite_bars = death[death != np.inf]
+    if len(finite_bars) > 0:
+        inf_end = 2 * max(finite_bars)
+    else:
+        inf_end = 2
+    death[death == np.inf] = inf_end
+    plt.figure(figsize=kwargs.get('figsize', (10, 5)))
+    for i, (b, d) in enumerate(zip(birth, death)):
+        if d == inf_end:
+            plt.plot([b, d], [i, i], color='k', lw=kwargs.get('linewidth', 2))
+        else:
+            plt.plot([b, d], [i, i], color=kwargs.get('color', 'b'), lw=kwargs.get('linewidth', 2))
+    plt.title(kwargs.get('title', 'Persistence Barcode'))
+    plt.xlabel(kwargs.get('xlabel', 'Filtration Value'))
+    plt.yticks([])
+    plt.tight_layout()
+    plt.show()
 
 def run_persistence_analysis(folder_str):
     for i in range(5):
         print('at count ', i)
         reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
-        # #transform the data
-        # #compute the persistence barcodes
-        # print(f"Shape of reduced_data: {reduced_data.shape}")
-        # #flip the axes
-        # reduced_data = reduced_data[:1000, :]
-        #
-        # # Compute persistence using ripser
-        # print("Computing persistence using ripser...")
-        # result = ripser(reduced_data, maxdim=2, thresh=2)
-        # persistence = result['dgms']
-        # print("Persistence computed successfully.")
-        #
-        # # Plot persistence diagram
-        # print('Plotting persistence diagram...')
-        # persim.plot_diagrams(persistence)
-        # plt.savefig(f'{folder_str}/barcode_fold_{i}.png', dpi=300, bbox_inches='tight')
-        # plt.show()
-        persistence = VietorisRipsPersistence(homology_dimensions=[0, 1, 2], n_jobs=-1)
-        diagrams = persistence.fit_transform([reduced_data])
-        fig, ax = plt.subplots(1, 1, figsize=(10, 5))
-        fig = plot_diagram(diagrams[0])
-        fig.write_image(f'{folder_str}/barcode_fold_{i}.png', format='png', scale=3)
+        subsample_size = 1000  # Define the size of the subsample
+        if reduced_data.shape[0] > subsample_size:
+            indices = np.random.choice(reduced_data.shape[0], subsample_size, replace=False)
+            reduced_data = reduced_data[indices, :]
 
+        # Compute persistence using SparseRipsPersistence
+        persistence = SparseRipsPersistence(homology_dimensions=[0, 1, 2], n_jobs=-1, epsilon=1)
+        reduced_data_input = [reduced_data]
+        diagrams = persistence.fit_transform(reduced_data_input)
+
+        plot_barcode(diagrams, 1)
         # plt.show()
         # plt.close('all')
     return
