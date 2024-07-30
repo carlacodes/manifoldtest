@@ -1,31 +1,13 @@
 import copy
 from datetime import datetime
 from sklearn.multioutput import MultiOutputRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from pathlib import Path
-from sklearn.metrics import r2_score
-from manifold_neural.helpers.datahandling import DataHandler
-import matplotlib.pyplot as plt
-import gudhi as gd
-from umap import UMAP
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.pipeline import Pipeline
-import sys
+import pickle
 import os
-from sklearn.base import BaseEstimator
-from sklearn.model_selection import BaseCrossValidator
-from sklearn.preprocessing import StandardScaler
+import ripserplusplus as rpp
 import numpy as np
-from sklearn.manifold import Isomap
-import logging
-from ripser import ripser
-import persim
-from gtda.homology import VietorisRipsPersistence, SparseRipsPersistence
-from gtda.plotting import plot_diagram
 import matplotlib.pyplot as plt
-from data.generate_datasets import make_point_clouds
+from gph import ripser_parallel
+
 def plot_barcode(diag, dim, **kwargs):
     """
     Plot the barcode for a persistence diagram using matplotlib
@@ -60,31 +42,54 @@ def plot_barcode(diag, dim, **kwargs):
     plt.tight_layout()
     plt.show()
 
-def run_persistence_analysis(folder_str):
+def run_persistence_analysis(folder_str, use_ripser=False):
+    pairs_list = []
     for i in range(5):
+
         print('at count ', i)
         reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
-        subsample_size = 1000  # Define the size of the subsample
-        if reduced_data.shape[0] > subsample_size:
-            indices = np.random.choice(reduced_data.shape[0], subsample_size, replace=False)
-            reduced_data = reduced_data[indices, :]
 
-        # Compute persistence using SparseRipsPersistence
-        persistence = SparseRipsPersistence(homology_dimensions=[0, 1, 2], n_jobs=-1, epsilon=1)
-        reduced_data_input = [reduced_data]
-        diagrams = persistence.fit_transform(reduced_data_input)
+        if use_ripser:
+            pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data)[2]
+            print('pairs shape', pairs.shape)
+            #append pairs to a list
+            pairs_list.append(pairs)
 
-        plot_barcode(diagrams, 1)
+            #
+            #plot th persistence as a scatter plot
+            fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+            flattened_pairs = pairs.flatten()
+            flattened_pairs = flattened_pairs[0]
+            pairs_birth = pairs['birth']
+
+            plt.scatter(pairs['birth'], pairs['death'])
+            plt.xlabel('birth')
+            plt.ylabel('death')
+            plt.title('Persistence scatter plot')
+            plt.show()
+            #save the individual pairs with the count
+            np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
+        else:
+            dgm = ripser_parallel(reduced_data, maxdim=2, n_threads=-1)
+            print('shape of dgm', dgm.shape)
+
+          # plot_barcode(diagrams, 1)
         # plt.show()
         # plt.close('all')
-    return
+    #save pairs_list
+    # np.save(folder_str + '/pairs_list_h2.npy', pairs_list)
+    with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
+        pickle.dump(pairs_list, f)
+
+    return pairs_list
 
 
 
 def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
-    for dir in [f'{base_dir}/rat_10/23-11-2021',f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019']:
+    #f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021' f'{base_dir}/rat_8/15-10-2019',
+    for dir in [f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
         sub_folder = dir + '/plot_results/'
         #get list of files in the directory
         files = os.listdir(sub_folder)
@@ -97,7 +102,9 @@ def main():
         else:
             savedir = sub_folder + files[0]
 
-        run_persistence_analysis(savedir)
+        pairs_list = run_persistence_analysis(savedir)
+        #save the pairs list
+        # np.save(savedir + '/pairs_list.npy', pairs_list)
 
 
 
