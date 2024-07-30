@@ -1,0 +1,606 @@
+Unloading gcc-libs/4.9.2 <aL>
+  Unloading dependent: mrxvt/0.5.4 tmux/3.3a giflib/5.1.1 dos2unix/7.3
+    nedit/5.6-aug15 nano/2.4.2 screen/4.9.0 subversion/1.14.1 apr-util/1.6.1
+    apr/1.7.0 git/2.32.0 flex/2.5.39 cmake/3.21.1
+Currently Loaded Modulefiles:
+ 1) gerun <aL>                      6) gcc-libs/8.3.0           
+ 2) emacs/28.1 <aL>                 7) compilers/gnu/4.9.2      
+ 3) userscripts/1.4.0 <aL>          8) cmake/3.13.3             
+ 4) rcps-core/1.0.0 <aL>            9) cuda/10.1.243/gnu-4.9.2  
+ 5) default-modules/2018(default)  10) python/3.9.10            
+
+Key:
+(symbolic-version)  <module-tag>  <aL>=auto-loaded  
+*** Error in `python': free(): invalid pointer: 0x00002acfffed12c0 ***
+======= Backtrace: =========
+/lib64/libc.so.6(+0x81329)[0x2acff8fad329]
+/lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libpyripser++.so(_ZN6ripserI32compressed_lower_distance_matrixE16compute_barcodesEv+0xd3c)[0x2ad00c935fec]
+/lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libpyripser++.so(run_main+0x32b)[0x2ad00c936e7b]
+/lib64/libffi.so.6(ffi_call_unix64+0x4c)[0x2ad000318dec]
+/lib64/libffi.so.6(ffi_call+0x1f5)[0x2ad000318715]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_ctypes.cpython-39-x86_64-linux-gnu.so(+0x122f2)[0x2ad0001032f2]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_ctypes.cpython-39-x86_64-linux-gnu.so(+0x12d54)[0x2ad000103d54]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_ctypes.cpython-39-x86_64-linux-gnu.so(+0xcdde)[0x2ad0000fddde]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyObject_MakeTpCall+0x93)[0x2acff7eb5493]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyEval_EvalFrameDefault+0x8a38)[0x2acff7e666d8]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(+0x1bbc8c)[0x2acff7fafc8c]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyFunction_Vectorcall+0xbd)[0x2acff7eb527d]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyEval_EvalFrameDefault+0x62d0)[0x2acff7e63f70]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(+0x1bbc8c)[0x2acff7fafc8c]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyFunction_Vectorcall+0xbd)[0x2acff7eb527d]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyEval_EvalFrameDefault+0x8abf)[0x2acff7e6675f]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(+0x1bbc8c)[0x2acff7fafc8c]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyFunction_Vectorcall+0xbd)[0x2acff7eb527d]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyEval_EvalFrameDefault+0x70a0)[0x2acff7e64d40]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(+0x1bbc8c)[0x2acff7fafc8c]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyFunction_Vectorcall+0xbd)[0x2acff7eb527d]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyEval_EvalFrameDefault+0x62d0)[0x2acff7e63f70]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(+0x1bbc8c)[0x2acff7fafc8c]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(_PyEval_EvalCodeWithName+0x52)[0x2acff7fafea2]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(PyEval_EvalCodeEx+0x3e)[0x2acff7fafeee]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(PyEval_EvalCode+0x1b)[0x2acff7faff1b]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(+0x1ff464)[0x2acff7ff3464]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(PyRun_SimpleFileExFlags+0x18d)[0x2acff7ff5d8d]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(Py_RunMain+0x847)[0x2acff8015f57]
+/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0(Py_BytesMain+0x49)[0x2acff8016369]
+/lib64/libc.so.6(__libc_start_main+0xf5)[0x2acff8f4e555]
+python[0x40064e]
+======= Memory map: ========
+00400000-00401000 r-xp 00000000 67:70864 144116054082291638              /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/bin/python3.9
+00600000-00601000 r--p 00000000 67:70864 144116054082291638              /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/bin/python3.9
+00601000-00602000 rw-p 00001000 67:70864 144116054082291638              /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/bin/python3.9
+01401000-045c5000 rw-p 00000000 00:00 0                                  [heap]
+2acff7bd0000-2acff7bf2000 r-xp 00000000 08:03 148055                     /usr/lib64/ld-2.17.so
+2acff7bf2000-2acff7bf3000 rw-p 00000000 00:00 0 
+2acff7bf3000-2acff7bfa000 r--s 00000000 08:03 394718                     /usr/lib64/gconv/gconv-modules.cache
+2acff7bfa000-2acff7bfb000 rw-p 00000000 00:00 0 
+2acff7c09000-2acff7dcf000 rw-p 00000000 00:00 0 
+2acff7dcf000-2acff7dd3000 r--p 00000000 67:70864 144116818049544152      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/_lib/_ccallback_c.cpython-39-x86_64-linux-gnu.so
+2acff7dd3000-2acff7de1000 r-xp 00004000 67:70864 144116818049544152      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/_lib/_ccallback_c.cpython-39-x86_64-linux-gnu.so
+2acff7de1000-2acff7de4000 r--p 00012000 67:70864 144116818049544152      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/_lib/_ccallback_c.cpython-39-x86_64-linux-gnu.so
+2acff7de4000-2acff7de5000 r--p 00014000 67:70864 144116818049544152      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/_lib/_ccallback_c.cpython-39-x86_64-linux-gnu.so
+2acff7de5000-2acff7de6000 rw-p 00015000 67:70864 144116818049544152      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/_lib/_ccallback_c.cpython-39-x86_64-linux-gnu.so
+2acff7de6000-2acff7de7000 rw-p 00000000 00:00 0 
+2acff7df1000-2acff7df2000 r--p 00021000 08:03 148055                     /usr/lib64/ld-2.17.so
+2acff7df2000-2acff7df3000 rw-p 00022000 08:03 148055                     /usr/lib64/ld-2.17.so
+2acff7df3000-2acff7df4000 rw-p 00000000 00:00 0 
+2acff7df4000-2acff816a000 r-xp 00000000 67:70864 144116054082291639      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0
+2acff816a000-2acff8369000 ---p 00376000 67:70864 144116054082291639      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0
+2acff8369000-2acff836f000 r--p 00375000 67:70864 144116054082291639      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0
+2acff836f000-2acff83ad000 rw-p 0037b000 67:70864 144116054082291639      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/libpython3.9.so.1.0
+2acff83ad000-2acff83d0000 rw-p 00000000 00:00 0 
+2acff83d0000-2acff83d8000 r-xp 00000000 08:03 148210                     /usr/lib64/libcrypt-2.17.so
+2acff83d8000-2acff85d7000 ---p 00008000 08:03 148210                     /usr/lib64/libcrypt-2.17.so
+2acff85d7000-2acff85d8000 r--p 00007000 08:03 148210                     /usr/lib64/libcrypt-2.17.so
+2acff85d8000-2acff85d9000 rw-p 00008000 08:03 148210                     /usr/lib64/libcrypt-2.17.so
+2acff85d9000-2acff8607000 rw-p 00000000 00:00 0 
+2acff8607000-2acff861e000 r-xp 00000000 08:03 148564                     /usr/lib64/libpthread-2.17.so
+2acff861e000-2acff881d000 ---p 00017000 08:03 148564                     /usr/lib64/libpthread-2.17.so
+2acff881d000-2acff881e000 r--p 00016000 08:03 148564                     /usr/lib64/libpthread-2.17.so
+2acff881e000-2acff881f000 rw-p 00017000 08:03 148564                     /usr/lib64/libpthread-2.17.so
+2acff881f000-2acff8823000 rw-p 00000000 00:00 0 
+2acff8823000-2acff8825000 r-xp 00000000 08:03 148247                     /usr/lib64/libdl-2.17.so
+2acff8825000-2acff8a25000 ---p 00002000 08:03 148247                     /usr/lib64/libdl-2.17.so
+2acff8a25000-2acff8a26000 r--p 00002000 08:03 148247                     /usr/lib64/libdl-2.17.so
+2acff8a26000-2acff8a27000 rw-p 00003000 08:03 148247                     /usr/lib64/libdl-2.17.so
+2acff8a27000-2acff8a29000 r-xp 00000000 08:03 148683                     /usr/lib64/libutil-2.17.so
+2acff8a29000-2acff8c28000 ---p 00002000 08:03 148683                     /usr/lib64/libutil-2.17.so
+2acff8c28000-2acff8c29000 r--p 00001000 08:03 148683                     /usr/lib64/libutil-2.17.so
+2acff8c29000-2acff8c2a000 rw-p 00002000 08:03 148683                     /usr/lib64/libutil-2.17.so
+2acff8c2a000-2acff8d2b000 r-xp 00000000 08:03 148444                     /usr/lib64/libm-2.17.so
+2acff8d2b000-2acff8f2a000 ---p 00101000 08:03 148444                     /usr/lib64/libm-2.17.so
+2acff8f2a000-2acff8f2b000 r--p 00100000 08:03 148444                     /usr/lib64/libm-2.17.so
+2acff8f2b000-2acff8f2c000 rw-p 00101000 08:03 148444                     /usr/lib64/libm-2.17.so
+2acff8f2c000-2acff90f0000 r-xp 00000000 08:03 148170                     /usr/lib64/libc-2.17.so
+2acff90f0000-2acff92ef000 ---p 001c4000 08:03 148170                     /usr/lib64/libc-2.17.so
+2acff92ef000-2acff92f3000 r--p 001c3000 08:03 148170                     /usr/lib64/libc-2.17.so
+2acff92f3000-2acff92f5000 rw-p 001c7000 08:03 148170                     /usr/lib64/libc-2.17.so
+2acff92f5000-2acff92fa000 rw-p 00000000 00:00 0 
+2acff92fa000-2acff92fc000 r-xp 00000000 08:03 148285                     /usr/lib64/libfreebl3.so
+2acff92fc000-2acff94fb000 ---p 00002000 08:03 148285                     /usr/lib64/libfreebl3.so
+2acff94fb000-2acff94fc000 r--p 00001000 08:03 148285                     /usr/lib64/libfreebl3.so
+2acff94fc000-2acff94fd000 rw-p 00002000 08:03 148285                     /usr/lib64/libfreebl3.so
+2acff94fd000-2acfffa40000 r--p 00000000 08:03 144513                     /usr/lib/locale/locale-archive
+2acfffa40000-2acfffa44000 r-xp 00000000 67:70864 144116054082299470      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_heapq.cpython-39-x86_64-linux-gnu.so
+2acfffa44000-2acfffc43000 ---p 00004000 67:70864 144116054082299470      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_heapq.cpython-39-x86_64-linux-gnu.so
+2acfffc43000-2acfffc44000 r--p 00003000 67:70864 144116054082299470      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_heapq.cpython-39-x86_64-linux-gnu.so
+2acfffc44000-2acfffc45000 rw-p 00004000 67:70864 144116054082299470      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_heapq.cpython-39-x86_64-linux-gnu.so
+2acfffc45000-2acfffc85000 rw-p 00000000 00:00 0 
+2acfffc85000-2acfffc90000 r-xp 00000000 67:70864 144116054082299473      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_struct.cpython-39-x86_64-linux-gnu.so
+2acfffc90000-2acfffe90000 ---p 0000b000 67:70864 144116054082299473      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_struct.cpython-39-x86_64-linux-gnu.so
+2acfffe90000-2acfffe91000 r--p 0000b000 67:70864 144116054082299473      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_struct.cpython-39-x86_64-linux-gnu.so
+2acfffe91000-2acfffe92000 rw-p 0000c000 67:70864 144116054082299473      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_struct.cpython-39-x86_64-linux-gnu.so
+2acfffe92000-2acfffed2000 rw-p 00000000 00:00 0 
+2acfffed2000-2acfffeef000 r-xp 00000000 67:70864 144116054082299461      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_pickle.cpython-39-x86_64-linux-gnu.so
+2acfffeef000-2ad0000ee000 ---p 0001d000 67:70864 144116054082299461      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_pickle.cpython-39-x86_64-linux-gnu.so
+2ad0000ee000-2ad0000ef000 r--p 0001c000 67:70864 144116054082299461      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_pickle.cpython-39-x86_64-linux-gnu.so
+2ad0000ef000-2ad0000f1000 rw-p 0001d000 67:70864 144116054082299461      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_pickle.cpython-39-x86_64-linux-gnu.so
+2ad0000f1000-2ad00010e000 r-xp 00000000 67:70864 144116696280488957      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_ctypes.cpython-39-x86_64-linux-gnu.so
+2ad00010e000-2ad00030d000 ---p 0001d000 67:70864 144116696280488957      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_ctypes.cpython-39-x86_64-linux-gnu.so
+2ad00030d000-2ad00030e000 r--p 0001c000 67:70864 144116696280488957      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_ctypes.cpython-39-x86_64-linux-gnu.so
+2ad00030e000-2ad000313000 rw-p 0001d000 67:70864 144116696280488957      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_ctypes.cpython-39-x86_64-linux-gnu.so
+2ad000313000-2ad00031a000 r-xp 00000000 08:03 148277                     /usr/lib64/libffi.so.6.0.1
+2ad00031a000-2ad000519000 ---p 00007000 08:03 148277                     /usr/lib64/libffi.so.6.0.1
+2ad000519000-2ad00051a000 r--p 00006000 08:03 148277                     /usr/lib64/libffi.so.6.0.1
+2ad00051a000-2ad00051b000 rw-p 00007000 08:03 148277                     /usr/lib64/libffi.so.6.0.1
+2ad00051b000-2ad00055b000 rw-p 00000000 00:00 0 
+2ad00055b000-2ad000586000 r--p 00000000 67:70864 144116818049542014      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_umath.cpython-39-x86_64-linux-gnu.so
+2ad000586000-2ad000d0d000 r-xp 0002b000 67:70864 144116818049542014      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_umath.cpython-39-x86_64-linux-gnu.so
+2ad000d0d000-2ad000e97000 r--p 007b2000 67:70864 144116818049542014      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_umath.cpython-39-x86_64-linux-gnu.so
+2ad000e97000-2ad000e9a000 r--p 0093b000 67:70864 144116818049542014      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_umath.cpython-39-x86_64-linux-gnu.so
+2ad000e9a000-2ad000ec0000 rw-p 0093e000 67:70864 144116818049542014      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_umath.cpython-39-x86_64-linux-gnu.so
+2ad000ec0000-2ad000ee0000 rw-p 00000000 00:00 0 
+2ad000ee0000-2ad000ee6000 rw-p 009da000 67:70864 144116818049542014      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_umath.cpython-39-x86_64-linux-gnu.so
+2ad000ee6000-2ad000eeb000 rw-p 009e0000 67:70864 144116818049542014      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_umath.cpython-39-x86_64-linux-gnu.so
+2ad000eeb000-2ad000ffd000 r--p 00000000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad000ffd000-2ad001005000 r-xp 00112000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad001005000-2ad00100b000 ---p 0011a000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad00100b000-2ad002ca3000 r-xp 00120000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad002ca3000-2ad002eb5000 r--p 01db8000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad002eb5000-2ad002ebb000 r--p 01fc9000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad002ebb000-2ad002ed2000 rw-p 01fcf000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad002ed2000-2ad002ede000 rw-p 00000000 00:00 0 
+2ad002ede000-2ad002f48000 rw-p 020fd000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad002f48000-2ad002f98000 rw-p 02167000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad002f98000-2ad002fe8000 rw-p 021b7000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad002fe8000-2ad003038000 rw-p 02207000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad003038000-2ad003088000 rw-p 02257000 67:70864 144116818049541502      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libscipy_openblas64_-99b71e71.so
+2ad003088000-2ad0031fc000 r-xp 00000000 67:70864 144115273706876028      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libstdc++.so.6.0.25
+2ad0031fc000-2ad0033fc000 ---p 00174000 67:70864 144115273706876028      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libstdc++.so.6.0.25
+2ad0033fc000-2ad003406000 r--p 00174000 67:70864 144115273706876028      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libstdc++.so.6.0.25
+2ad003406000-2ad003408000 rw-p 0017e000 67:70864 144115273706876028      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libstdc++.so.6.0.25
+2ad003408000-2ad00340c000 rw-p 00000000 00:00 0 
+2ad00340c000-2ad003423000 r-xp 00000000 67:70864 144115273706875975      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgcc_s.so.1
+2ad003423000-2ad003622000 ---p 00017000 67:70864 144115273706875975      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgcc_s.so.1
+2ad003622000-2ad003623000 r--p 00016000 67:70864 144115273706875975      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgcc_s.so.1
+2ad003623000-2ad003624000 rw-p 00017000 67:70864 144115273706875975      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgcc_s.so.1
+2ad003624000-2ad00389a000 r-xp 00000000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad00389a000-2ad003a99000 ---p 00276000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003a99000-2ad003a9a000 r--p 00275000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003a9a000-2ad003a9c000 rw-p 00276000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003a9c000-2ad003aa8000 rw-p 0027b000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003aa8000-2ad003ab1000 rw-p 00287000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003ab1000-2ad003aba000 rw-p 00290000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003aba000-2ad003ac3000 rw-p 00299000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003ac3000-2ad003acc000 rw-p 002a2000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003acc000-2ad003ad5000 rw-p 002ab000 67:70864 144116818049541503      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libgfortran-040039e1-0352e75f.so.5.0.0
+2ad003ad5000-2ad003b10000 r-xp 00000000 67:70864 144116818049541501      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libquadmath-96973f99-934c22de.so.0.0.0
+2ad003b10000-2ad003d0f000 ---p 0003b000 67:70864 144116818049541501      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libquadmath-96973f99-934c22de.so.0.0.0
+2ad003d0f000-2ad003d10000 r--p 0003a000 67:70864 144116818049541501      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libquadmath-96973f99-934c22de.so.0.0.0
+2ad003d10000-2ad003d11000 rw-p 0003b000 67:70864 144116818049541501      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libquadmath-96973f99-934c22de.so.0.0.0
+2ad003d11000-2ad003d12000 rw-p 0003c000 67:70864 144116818049541501      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libquadmath-96973f99-934c22de.so.0.0.0
+2ad003d12000-2ad003d13000 rw-p 0003d000 67:70864 144116818049541501      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy.libs/libquadmath-96973f99-934c22de.so.0.0.0
+2ad003d13000-2ad003d28000 r-xp 00000000 08:03 148738                     /usr/lib64/libz.so.1.2.7
+2ad003d28000-2ad003f27000 ---p 00015000 08:03 148738                     /usr/lib64/libz.so.1.2.7
+2ad003f27000-2ad003f28000 r--p 00014000 08:03 148738                     /usr/lib64/libz.so.1.2.7
+2ad003f28000-2ad003f29000 rw-p 00015000 08:03 148738                     /usr/lib64/libz.so.1.2.7
+2ad003f29000-2ad003f69000 rw-p 00000000 00:00 0 
+2ad003f69000-2ad003f79000 r-xp 00000000 67:70864 144116054082299515      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/math.cpython-39-x86_64-linux-gnu.so
+2ad003f79000-2ad004178000 ---p 00010000 67:70864 144116054082299515      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/math.cpython-39-x86_64-linux-gnu.so
+2ad004178000-2ad004179000 r--p 0000f000 67:70864 144116054082299515      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/math.cpython-39-x86_64-linux-gnu.so
+2ad004179000-2ad00417a000 rw-p 00010000 67:70864 144116054082299515      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/math.cpython-39-x86_64-linux-gnu.so
+2ad00417a000-2ad004193000 r-xp 00000000 67:70864 144116054082299523      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_datetime.cpython-39-x86_64-linux-gnu.so
+2ad004193000-2ad004392000 ---p 00019000 67:70864 144116054082299523      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_datetime.cpython-39-x86_64-linux-gnu.so
+2ad004392000-2ad004393000 r--p 00018000 67:70864 144116054082299523      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_datetime.cpython-39-x86_64-linux-gnu.so
+2ad004393000-2ad004396000 rw-p 00019000 67:70864 144116054082299523      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_datetime.cpython-39-x86_64-linux-gnu.so
+2ad004396000-2ad0044d6000 rw-p 00000000 00:00 0 
+2ad0044d6000-2ad0044d7000 r-xp 00000000 67:70864 144116054082299514      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_contextvars.cpython-39-x86_64-linux-gnu.so
+2ad0044d7000-2ad0046d6000 ---p 00001000 67:70864 144116054082299514      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_contextvars.cpython-39-x86_64-linux-gnu.so
+2ad0046d6000-2ad0046d7000 r--p 00000000 67:70864 144116054082299514      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_contextvars.cpython-39-x86_64-linux-gnu.so
+2ad0046d7000-2ad0046d8000 rw-p 00001000 67:70864 144116054082299514      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_contextvars.cpython-39-x86_64-linux-gnu.so
+2ad0046d8000-2ad004758000 rw-p 00000000 00:00 0 
+2ad004758000-2ad00475f000 r--p 00000000 67:70864 144116818049542008      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_tests.cpython-39-x86_64-linux-gnu.so
+2ad00475f000-2ad004775000 r-xp 00007000 67:70864 144116818049542008      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_tests.cpython-39-x86_64-linux-gnu.so
+2ad004775000-2ad00477b000 r--p 0001d000 67:70864 144116818049542008      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_tests.cpython-39-x86_64-linux-gnu.so
+2ad00477b000-2ad00477c000 r--p 00022000 67:70864 144116818049542008      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_tests.cpython-39-x86_64-linux-gnu.so
+2ad00477c000-2ad00477e000 rw-p 00023000 67:70864 144116818049542008      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/_core/_multiarray_tests.cpython-39-x86_64-linux-gnu.so
+2ad00477e000-2ad00483e000 rw-p 00000000 00:00 0 
+2ad00483e000-2ad004841000 r-xp 00000000 67:70864 144116054082299480      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/grp.cpython-39-x86_64-linux-gnu.so
+2ad004841000-2ad004a40000 ---p 00003000 67:70864 144116054082299480      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/grp.cpython-39-x86_64-linux-gnu.so
+2ad004a40000-2ad004a41000 r--p 00002000 67:70864 144116054082299480      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/grp.cpython-39-x86_64-linux-gnu.so
+2ad004a41000-2ad004a42000 rw-p 00003000 67:70864 144116054082299480      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/grp.cpython-39-x86_64-linux-gnu.so
+2ad004a42000-2ad004a46000 r-xp 00000000 67:70864 144116054082299455      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_posixsubprocess.cpython-39-x86_64-linux-gnu.so
+2ad004a46000-2ad004c45000 ---p 00004000 67:70864 144116054082299455      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_posixsubprocess.cpython-39-x86_64-linux-gnu.so
+2ad004c45000-2ad004c46000 r--p 00003000 67:70864 144116054082299455      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_posixsubprocess.cpython-39-x86_64-linux-gnu.so
+2ad004c46000-2ad004c47000 rw-p 00004000 67:70864 144116054082299455      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_posixsubprocess.cpython-39-x86_64-linux-gnu.so
+2ad004c47000-2ad004c4e000 r-xp 00000000 67:70864 144116054082299513      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/select.cpython-39-x86_64-linux-gnu.so
+2ad004c4e000-2ad004e4d000 ---p 00007000 67:70864 144116054082299513      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/select.cpython-39-x86_64-linux-gnu.so
+2ad004e4d000-2ad004e4e000 r--p 00006000 67:70864 144116054082299513      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/select.cpython-39-x86_64-linux-gnu.so
+2ad004e4e000-2ad004e4f000 rw-p 00007000 67:70864 144116054082299513      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/select.cpython-39-x86_64-linux-gnu.so
+2ad004e4f000-2ad004f0f000 rw-p 00000000 00:00 0 
+2ad004f0f000-2ad004f16000 r--p 00000000 67:70864 144116818049541646      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/linalg/_umath_linalg.cpython-39-x86_64-linux-gnu.so
+2ad004f16000-2ad004f36000 r-xp 00007000 67:70864 144116818049541646      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/linalg/_umath_linalg.cpython-39-x86_64-linux-gnu.so
+2ad004f36000-2ad004f3b000 r--p 00027000 67:70864 144116818049541646      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/linalg/_umath_linalg.cpython-39-x86_64-linux-gnu.so
+2ad004f3b000-2ad004f3c000 r--p 0002b000 67:70864 144116818049541646      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/linalg/_umath_linalg.cpython-39-x86_64-linux-gnu.so
+2ad004f3c000-2ad004f3d000 rw-p 0002c000 67:70864 144116818049541646      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/linalg/_umath_linalg.cpython-39-x86_64-linux-gnu.so
+2ad004f3d000-2ad004f3f000 rw-p 00034000 67:70864 144116818049541646      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/linalg/_umath_linalg.cpython-39-x86_64-linux-gnu.so
+2ad004f3f000-2ad004f41000 rw-p 00036000 67:70864 144116818049541646      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/linalg/_umath_linalg.cpython-39-x86_64-linux-gnu.so
+2ad004f41000-2ad005041000 rw-p 00000000 00:00 0 
+2ad005041000-2ad005043000 r-xp 00000000 67:70864 144116054082299458      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_opcode.cpython-39-x86_64-linux-gnu.so
+2ad005043000-2ad005242000 ---p 00002000 67:70864 144116054082299458      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_opcode.cpython-39-x86_64-linux-gnu.so
+2ad005242000-2ad005243000 r--p 00001000 67:70864 144116054082299458      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_opcode.cpython-39-x86_64-linux-gnu.so
+2ad005243000-2ad005244000 rw-p 00002000 67:70864 144116054082299458      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_opcode.cpython-39-x86_64-linux-gnu.so
+2ad005244000-2ad005384000 rw-p 00000000 00:00 0 
+2ad005384000-2ad00538d000 r-xp 00000000 67:70864 144116054082299493      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/zlib.cpython-39-x86_64-linux-gnu.so
+2ad00538d000-2ad00558d000 ---p 00009000 67:70864 144116054082299493      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/zlib.cpython-39-x86_64-linux-gnu.so
+2ad00558d000-2ad00558e000 r--p 00009000 67:70864 144116054082299493      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/zlib.cpython-39-x86_64-linux-gnu.so
+2ad00558e000-2ad00558f000 rw-p 0000a000 67:70864 144116054082299493      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/zlib.cpython-39-x86_64-linux-gnu.so
+2ad00558f000-2ad005593000 r-xp 00000000 67:70864 144116054082299496      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bz2.cpython-39-x86_64-linux-gnu.so
+2ad005593000-2ad005793000 ---p 00004000 67:70864 144116054082299496      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bz2.cpython-39-x86_64-linux-gnu.so
+2ad005793000-2ad005794000 r--p 00004000 67:70864 144116054082299496      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bz2.cpython-39-x86_64-linux-gnu.so
+2ad005794000-2ad005795000 rw-p 00005000 67:70864 144116054082299496      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bz2.cpython-39-x86_64-linux-gnu.so
+2ad005795000-2ad005798000 r--p 00000000 67:70864 144116818049541927      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_sfc64.cpython-39-x86_64-linux-gnu.so
+2ad005798000-2ad0057a3000 r-xp 00003000 67:70864 144116818049541927      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_sfc64.cpython-39-x86_64-linux-gnu.so
+2ad0057a3000-2ad0057a6000 r--p 0000e000 67:70864 144116818049541927      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_sfc64.cpython-39-x86_64-linux-gnu.so
+2ad0057a6000-2ad0057a7000 ---p 00011000 67:70864 144116818049541927      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_sfc64.cpython-39-x86_64-linux-gnu.so
+2ad0057a7000-2ad0057a8000 r--p 00011000 67:70864 144116818049541927      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_sfc64.cpython-39-x86_64-linux-gnu.so
+2ad0057a8000-2ad0057a9000 rw-p 00012000 67:70864 144116818049541927      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_sfc64.cpython-39-x86_64-linux-gnu.so
+2ad0057a9000-2ad0057aa000 rw-p 00000000 00:00 0 
+2ad0057ab000-2ad0057ba000 r-xp 00000000 08:03 148169                     /usr/lib64/libbz2.so.1.0.6
+2ad0057ba000-2ad0059b9000 ---p 0000f000 08:03 148169                     /usr/lib64/libbz2.so.1.0.6
+2ad0059b9000-2ad0059ba000 r--p 0000e000 08:03 148169                     /usr/lib64/libbz2.so.1.0.6
+2ad0059ba000-2ad0059bb000 rw-p 0000f000 08:03 148169                     /usr/lib64/libbz2.so.1.0.6
+2ad0059bb000-2ad0059c3000 r-xp 00000000 67:70864 144116054082299507      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_lzma.cpython-39-x86_64-linux-gnu.so
+2ad0059c3000-2ad005bc2000 ---p 00008000 67:70864 144116054082299507      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_lzma.cpython-39-x86_64-linux-gnu.so
+2ad005bc2000-2ad005bc3000 r--p 00007000 67:70864 144116054082299507      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_lzma.cpython-39-x86_64-linux-gnu.so
+2ad005bc3000-2ad005bc4000 rw-p 00008000 67:70864 144116054082299507      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_lzma.cpython-39-x86_64-linux-gnu.so
+2ad005bc4000-2ad005be9000 r-xp 00000000 08:03 148442                     /usr/lib64/liblzma.so.5.2.2
+2ad005be9000-2ad005de8000 ---p 00025000 08:03 148442                     /usr/lib64/liblzma.so.5.2.2
+2ad005de8000-2ad005de9000 r--p 00024000 08:03 148442                     /usr/lib64/liblzma.so.5.2.2
+2ad005de9000-2ad005dea000 rw-p 00025000 08:03 148442                     /usr/lib64/liblzma.so.5.2.2
+2ad005dea000-2ad005e2a000 rw-p 00000000 00:00 0 
+2ad005e2a000-2ad005e2d000 r-xp 00000000 67:70864 144116054082299472      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bisect.cpython-39-x86_64-linux-gnu.so
+2ad005e2d000-2ad00602c000 ---p 00003000 67:70864 144116054082299472      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bisect.cpython-39-x86_64-linux-gnu.so
+2ad00602c000-2ad00602d000 r--p 00002000 67:70864 144116054082299472      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bisect.cpython-39-x86_64-linux-gnu.so
+2ad00602d000-2ad00602e000 rw-p 00003000 67:70864 144116054082299472      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_bisect.cpython-39-x86_64-linux-gnu.so
+2ad00602e000-2ad006031000 r-xp 00000000 67:70864 144116054082299526      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_random.cpython-39-x86_64-linux-gnu.so
+2ad006031000-2ad006231000 ---p 00003000 67:70864 144116054082299526      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_random.cpython-39-x86_64-linux-gnu.so
+2ad006231000-2ad006232000 r--p 00003000 67:70864 144116054082299526      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_random.cpython-39-x86_64-linux-gnu.so
+2ad006232000-2ad006233000 rw-p 00004000 67:70864 144116054082299526      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_random.cpython-39-x86_64-linux-gnu.so
+2ad006233000-2ad006239000 r-xp 00000000 67:70864 144116054082299497      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha512.cpython-39-x86_64-linux-gnu.so
+2ad006239000-2ad006438000 ---p 00006000 67:70864 144116054082299497      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha512.cpython-39-x86_64-linux-gnu.so
+2ad006438000-2ad006439000 r--p 00005000 67:70864 144116054082299497      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha512.cpython-39-x86_64-linux-gnu.so
+2ad006439000-2ad00643a000 rw-p 00006000 67:70864 144116054082299497      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha512.cpython-39-x86_64-linux-gnu.so
+2ad00643a000-2ad0064fa000 rw-p 00000000 00:00 0 
+2ad0064fa000-2ad006504000 r--p 00000000 67:70864 144116818049541704      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/fft/_pocketfft_umath.cpython-39-x86_64-linux-gnu.so
+2ad006504000-2ad006580000 r-xp 0000a000 67:70864 144116818049541704      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/fft/_pocketfft_umath.cpython-39-x86_64-linux-gnu.so
+2ad006580000-2ad006589000 r--p 00086000 67:70864 144116818049541704      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/fft/_pocketfft_umath.cpython-39-x86_64-linux-gnu.so
+2ad006589000-2ad00658a000 r--p 0008e000 67:70864 144116818049541704      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/fft/_pocketfft_umath.cpython-39-x86_64-linux-gnu.so
+2ad00658a000-2ad00658b000 rw-p 0008f000 67:70864 144116818049541704      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/fft/_pocketfft_umath.cpython-39-x86_64-linux-gnu.so
+2ad00658b000-2ad00668b000 rw-p 00000000 00:00 0 
+2ad00668b000-2ad006690000 r--p 00000000 67:70864 144116818049541936      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/bit_generator.cpython-39-x86_64-linux-gnu.so
+2ad006690000-2ad0066b5000 r-xp 00005000 67:70864 144116818049541936      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/bit_generator.cpython-39-x86_64-linux-gnu.so
+2ad0066b5000-2ad0066bf000 r--p 0002a000 67:70864 144116818049541936      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/bit_generator.cpython-39-x86_64-linux-gnu.so
+2ad0066bf000-2ad0066c0000 ---p 00034000 67:70864 144116818049541936      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/bit_generator.cpython-39-x86_64-linux-gnu.so
+2ad0066c0000-2ad0066c1000 r--p 00034000 67:70864 144116818049541936      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/bit_generator.cpython-39-x86_64-linux-gnu.so
+2ad0066c1000-2ad0066c3000 rw-p 00035000 67:70864 144116818049541936      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/bit_generator.cpython-39-x86_64-linux-gnu.so
+2ad0066c3000-2ad0066c4000 rw-p 00000000 00:00 0 
+2ad0066c4000-2ad0066c8000 r--p 00000000 67:70864 144116818049541941      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_common.cpython-39-x86_64-linux-gnu.so
+2ad0066c8000-2ad0066fa000 r-xp 00004000 67:70864 144116818049541941      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_common.cpython-39-x86_64-linux-gnu.so
+2ad0066fa000-2ad0066fe000 r--p 00036000 67:70864 144116818049541941      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_common.cpython-39-x86_64-linux-gnu.so
+2ad0066fe000-2ad0066ff000 ---p 0003a000 67:70864 144116818049541941      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_common.cpython-39-x86_64-linux-gnu.so
+2ad0066ff000-2ad006700000 r--p 0003a000 67:70864 144116818049541941      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_common.cpython-39-x86_64-linux-gnu.so
+2ad006700000-2ad006701000 rw-p 0003b000 67:70864 144116818049541941      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_common.cpython-39-x86_64-linux-gnu.so
+2ad006701000-2ad006702000 rw-p 00000000 00:00 0 
+2ad006702000-2ad006709000 r-xp 00000000 67:70864 144116054082299490      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/binascii.cpython-39-x86_64-linux-gnu.so
+2ad006709000-2ad006908000 ---p 00007000 67:70864 144116054082299490      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/binascii.cpython-39-x86_64-linux-gnu.so
+2ad006908000-2ad006909000 r--p 00006000 67:70864 144116054082299490      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/binascii.cpython-39-x86_64-linux-gnu.so
+2ad006909000-2ad00690a000 rw-p 00007000 67:70864 144116054082299490      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/binascii.cpython-39-x86_64-linux-gnu.so
+2ad00690a000-2ad006913000 r-xp 00000000 67:70864 144116054082299510      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_hashlib.cpython-39-x86_64-linux-gnu.so
+2ad006913000-2ad006b13000 ---p 00009000 67:70864 144116054082299510      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_hashlib.cpython-39-x86_64-linux-gnu.so
+2ad006b13000-2ad006b14000 r--p 00009000 67:70864 144116054082299510      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_hashlib.cpython-39-x86_64-linux-gnu.so
+2ad006b14000-2ad006b15000 rw-p 0000a000 67:70864 144116054082299510      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_hashlib.cpython-39-x86_64-linux-gnu.so
+2ad006b15000-2ad006b7c000 r-xp 00000000 08:03 148626                     /usr/lib64/libssl.so.1.0.2k
+2ad006b7c000-2ad006d7c000 ---p 00067000 08:03 148626                     /usr/lib64/libssl.so.1.0.2k
+2ad006d7c000-2ad006d80000 r--p 00067000 08:03 148626                     /usr/lib64/libssl.so.1.0.2k
+2ad006d80000-2ad006d87000 rw-p 0006b000 08:03 148626                     /usr/lib64/libssl.so.1.0.2k
+2ad006d87000-2ad006fbe000 r-xp 00000000 08:03 148212                     /usr/lib64/libcrypto.so.1.0.2k
+2ad006fbe000-2ad0071bd000 ---p 00237000 08:03 148212                     /usr/lib64/libcrypto.so.1.0.2k
+2ad0071bd000-2ad0071d9000 r--p 00236000 08:03 148212                     /usr/lib64/libcrypto.so.1.0.2k
+2ad0071d9000-2ad0071e6000 rw-p 00252000 08:03 148212                     /usr/lib64/libcrypto.so.1.0.2k
+2ad0071e6000-2ad0071ea000 rw-p 00000000 00:00 0 
+2ad0071ea000-2ad007234000 r-xp 00000000 08:03 148341                     /usr/lib64/libgssapi_krb5.so.2.2
+2ad007234000-2ad007434000 ---p 0004a000 08:03 148341                     /usr/lib64/libgssapi_krb5.so.2.2
+2ad007434000-2ad007435000 r--p 0004a000 08:03 148341                     /usr/lib64/libgssapi_krb5.so.2.2
+2ad007435000-2ad007437000 rw-p 0004b000 08:03 148341                     /usr/lib64/libgssapi_krb5.so.2.2
+2ad007437000-2ad007510000 r-xp 00000000 08:03 148425                     /usr/lib64/libkrb5.so.3.3
+2ad007510000-2ad00770f000 ---p 000d9000 08:03 148425                     /usr/lib64/libkrb5.so.3.3
+2ad00770f000-2ad00771d000 r--p 000d8000 08:03 148425                     /usr/lib64/libkrb5.so.3.3
+2ad00771d000-2ad007720000 rw-p 000e6000 08:03 148425                     /usr/lib64/libkrb5.so.3.3
+2ad007720000-2ad007723000 r-xp 00000000 08:03 148198                     /usr/lib64/libcom_err.so.2.1
+2ad007723000-2ad007922000 ---p 00003000 08:03 148198                     /usr/lib64/libcom_err.so.2.1
+2ad007922000-2ad007923000 r--p 00002000 08:03 148198                     /usr/lib64/libcom_err.so.2.1
+2ad007923000-2ad007924000 rw-p 00003000 08:03 148198                     /usr/lib64/libcom_err.so.2.1
+2ad007924000-2ad007955000 r-xp 00000000 08:03 148417                     /usr/lib64/libk5crypto.so.3.1
+2ad007955000-2ad007b54000 ---p 00031000 08:03 148417                     /usr/lib64/libk5crypto.so.3.1
+2ad007b54000-2ad007b56000 r--p 00030000 08:03 148417                     /usr/lib64/libk5crypto.so.3.1
+2ad007b56000-2ad007b57000 rw-p 00032000 08:03 148417                     /usr/lib64/libk5crypto.so.3.1
+2ad007b57000-2ad007b65000 r-xp 00000000 08:03 148426                     /usr/lib64/libkrb5support.so.0.1
+2ad007b65000-2ad007d65000 ---p 0000e000 08:03 148426                     /usr/lib64/libkrb5support.so.0.1
+2ad007d65000-2ad007d66000 r--p 0000e000 08:03 148426                     /usr/lib64/libkrb5support.so.0.1
+2ad007d66000-2ad007d67000 rw-p 0000f000 08:03 148426                     /usr/lib64/libkrb5support.so.0.1
+2ad007d67000-2ad007d6a000 r-xp 00000000 08:03 148421                     /usr/lib64/libkeyutils.so.1.5
+2ad007d6a000-2ad007f69000 ---p 00003000 08:03 148421                     /usr/lib64/libkeyutils.so.1.5
+2ad007f69000-2ad007f6a000 r--p 00002000 08:03 148421                     /usr/lib64/libkeyutils.so.1.5
+2ad007f6a000-2ad007f6b000 rw-p 00003000 08:03 148421                     /usr/lib64/libkeyutils.so.1.5
+2ad007f6b000-2ad007f81000 r-xp 00000000 08:03 148584                     /usr/lib64/libresolv-2.17.so
+2ad007f81000-2ad008181000 ---p 00016000 08:03 148584                     /usr/lib64/libresolv-2.17.so
+2ad008181000-2ad008182000 r--p 00016000 08:03 148584                     /usr/lib64/libresolv-2.17.so
+2ad008182000-2ad008183000 rw-p 00017000 08:03 148584                     /usr/lib64/libresolv-2.17.so
+2ad008183000-2ad008185000 rw-p 00000000 00:00 0 
+2ad008185000-2ad0081a9000 r-xp 00000000 08:03 148605                     /usr/lib64/libselinux.so.1
+2ad0081a9000-2ad0083a8000 ---p 00024000 08:03 148605                     /usr/lib64/libselinux.so.1
+2ad0083a8000-2ad0083a9000 r--p 00023000 08:03 148605                     /usr/lib64/libselinux.so.1
+2ad0083a9000-2ad0083aa000 rw-p 00024000 08:03 148605                     /usr/lib64/libselinux.so.1
+2ad0083aa000-2ad0083ac000 rw-p 00000000 00:00 0 
+2ad0083ac000-2ad00840c000 r-xp 00000000 08:03 148544                     /usr/lib64/libpcre.so.1.2.0
+2ad00840c000-2ad00860c000 ---p 00060000 08:03 148544                     /usr/lib64/libpcre.so.1.2.0
+2ad00860c000-2ad00860d000 r--p 00060000 08:03 148544                     /usr/lib64/libpcre.so.1.2.0
+2ad00860d000-2ad00860e000 rw-p 00061000 08:03 148544                     /usr/lib64/libpcre.so.1.2.0
+2ad00860e000-2ad008619000 r-xp 00000000 67:70864 144116054082299527      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_blake2.cpython-39-x86_64-linux-gnu.so
+2ad008619000-2ad008819000 ---p 0000b000 67:70864 144116054082299527      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_blake2.cpython-39-x86_64-linux-gnu.so
+2ad008819000-2ad00881a000 r--p 0000b000 67:70864 144116054082299527      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_blake2.cpython-39-x86_64-linux-gnu.so
+2ad00881a000-2ad00881b000 rw-p 0000c000 67:70864 144116054082299527      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_blake2.cpython-39-x86_64-linux-gnu.so
+2ad00881b000-2ad00882e000 r-xp 00000000 67:70864 144116054082299525      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha3.cpython-39-x86_64-linux-gnu.so
+2ad00882e000-2ad008a2d000 ---p 00013000 67:70864 144116054082299525      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha3.cpython-39-x86_64-linux-gnu.so
+2ad008a2d000-2ad008a2e000 r--p 00012000 67:70864 144116054082299525      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha3.cpython-39-x86_64-linux-gnu.so
+2ad008a2e000-2ad008a2f000 rw-p 00013000 67:70864 144116054082299525      /lustre/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/lib-dynload/_sha3.cpython-39-x86_64-linux-gnu.so
+2ad008a2f000-2ad008a35000 r--p 00000000 67:70864 144116818049541932      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/mtrand.cpython-39-x86_64-linux-gnu.so
+2ad008a35000-2ad008a97000 r-xp 00006000 67:70864 144116818049541932      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/mtrand.cpython-39-x86_64-linux-gnu.so
+2ad008a97000-2ad008aea000 r--p 00068000 67:70864 144116818049541932      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/mtrand.cpython-39-x86_64-linux-gnu.so
+2ad008aea000-2ad008aeb000 r--p 000ba000 67:70864 144116818049541932      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/mtrand.cpython-39-x86_64-linux-gnu.so
+2ad008aeb000-2ad008aed000 rw-p 000bb000 67:70864 144116818049541932      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/mtrand.cpython-39-x86_64-linux-gnu.so
+2ad008aed000-2ad008b2f000 rw-p 00000000 00:00 0 
+2ad008b2f000-2ad008b33000 r--p 00000000 67:70864 144116818049541928      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_bounded_integers.cpython-39-x86_64-linux-gnu.so
+2ad008b33000-2ad008b75000 r-xp 00004000 67:70864 144116818049541928      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_bounded_integers.cpython-39-x86_64-linux-gnu.so
+2ad008b75000-2ad008b7e000 r--p 00046000 67:70864 144116818049541928      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_bounded_integers.cpython-39-x86_64-linux-gnu.so
+2ad008b7e000-2ad008b7f000 r--p 0004e000 67:70864 144116818049541928      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_bounded_integers.cpython-39-x86_64-linux-gnu.so
+2ad008b7f000-2ad008b80000 rw-p 0004f000 67:70864 144116818049541928      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_bounded_integers.cpython-39-x86_64-linux-gnu.so
+2ad008b80000-2ad008b81000 rw-p 00000000 00:00 0 
+2ad008b81000-2ad008b85000 r--p 00000000 67:70864 144116818049541930      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_mt19937.cpython-39-x86_64-linux-gnu.so
+2ad008b85000-2ad008b98000 r-xp 00004000 67:70864 144116818049541930      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_mt19937.cpython-39-x86_64-linux-gnu.so
+2ad008b98000-2ad008b9e000 r--p 00017000 67:70864 144116818049541930      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_mt19937.cpython-39-x86_64-linux-gnu.so
+2ad008b9e000-2ad008b9f000 r--p 0001c000 67:70864 144116818049541930      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_mt19937.cpython-39-x86_64-linux-gnu.so
+2ad008b9f000-2ad008ba0000 rw-p 0001d000 67:70864 144116818049541930      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_mt19937.cpython-39-x86_64-linux-gnu.so
+2ad008ba0000-2ad008ba1000 rw-p 00000000 00:00 0 
+2ad008ba1000-2ad008ba5000 r--p 00000000 67:70864 144116818049541922      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_philox.cpython-39-x86_64-linux-gnu.so
+2ad008ba5000-2ad008bb6000 r-xp 00004000 67:70864 144116818049541922      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_philox.cpython-39-x86_64-linux-gnu.so
+2ad008bb6000-2ad008bbb000 r--p 00015000 67:70864 144116818049541922      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_philox.cpython-39-x86_64-linux-gnu.so
+2ad008bbb000-2ad008bbc000 r--p 00019000 67:70864 144116818049541922      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_philox.cpython-39-x86_64-linux-gnu.so
+2ad008bbc000-2ad008bbd000 rw-p 0001a000 67:70864 144116818049541922      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_philox.cpython-39-x86_64-linux-gnu.so
+2ad008bbd000-2ad008bbe000 rw-p 00000000 00:00 0 
+2ad008bbe000-2ad008bc2000 r--p 00000000 67:70864 144116818049541924      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_pcg64.cpython-39-x86_64-linux-gnu.so
+2ad008bc2000-2ad008bd6000 r-xp 00004000 67:70864 144116818049541924      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_pcg64.cpython-39-x86_64-linux-gnu.so
+2ad008bd6000-2ad008bdc000 r--p 00018000 67:70864 144116818049541924      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_pcg64.cpython-39-x86_64-linux-gnu.so
+2ad008bdc000-2ad008bdd000 r--p 0001d000 67:70864 144116818049541924      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_pcg64.cpython-39-x86_64-linux-gnu.so
+2ad008bdd000-2ad008bde000 rw-p 0001e000 67:70864 144116818049541924      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_pcg64.cpython-39-x86_64-linux-gnu.so
+2ad008bde000-2ad008bdf000 rw-p 00000000 00:00 0 
+2ad008bdf000-2ad008be7000 r--p 00000000 67:70864 144116818049541929      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_generator.cpython-39-x86_64-linux-gnu.so
+2ad008be7000-2ad008c72000 r-xp 00008000 67:70864 144116818049541929      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_generator.cpython-39-x86_64-linux-gnu.so
+2ad008c72000-2ad008cca000 r--p 00093000 67:70864 144116818049541929      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_generator.cpython-39-x86_64-linux-gnu.so
+2ad008cca000-2ad008ccb000 r--p 000ea000 67:70864 144116818049541929      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_generator.cpython-39-x86_64-linux-gnu.so
+2ad008ccb000-2ad008cce000 rw-p 000eb000 67:70864 144116818049541929      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/numpy/random/_generator.cpython-39-x86_64-linux-gnu.so
+2ad008cce000-2ad008d90000 rw-p 00000000 00:00 0 
+2ad008d90000-2ad008d93000 r--p 00000000 67:70864 144116818049543629      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_sparsetools.cpython-39-x86_64-linux-gnu.so
+2ad008d93000-2ad009135000 r-xp 00003000 67:70864 144116818049543629      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_sparsetools.cpython-39-x86_64-linux-gnu.so
+2ad009135000-2ad009186000 r--p 003a5000 67:70864 144116818049543629      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_sparsetools.cpython-39-x86_64-linux-gnu.so
+2ad009186000-2ad009187000 r--p 003f5000 67:70864 144116818049543629      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_sparsetools.cpython-39-x86_64-linux-gnu.so
+2ad009187000-2ad009188000 rw-p 003f6000 67:70864 144116818049543629      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_sparsetools.cpython-39-x86_64-linux-gnu.so
+2ad009188000-2ad00918e000 r--p 00000000 67:70864 144116818049543619      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_csparsetools.cpython-39-x86_64-linux-gnu.so
+2ad00918e000-2ad00922d000 r-xp 00006000 67:70864 144116818049543619      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_csparsetools.cpython-39-x86_64-linux-gnu.so
+2ad00922d000-2ad00923c000 r--p 000a5000 67:70864 144116818049543619      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_csparsetools.cpython-39-x86_64-linux-gnu.so
+2ad00923c000-2ad00923d000 r--p 000b3000 67:70864 144116818049543619      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_csparsetools.cpython-39-x86_64-linux-gnu.so
+2ad00923d000-2ad009240000 rw-p 000b4000 67:70864 144116818049543619      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/_csparsetools.cpython-39-x86_64-linux-gnu.so
+2ad009240000-2ad0092c2000 rw-p 00000000 00:00 0 
+2ad0092c2000-2ad0092d0000 r--p 00000000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad0092d0000-2ad00930b000 r-xp 0000e000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad00930b000-2ad00932c000 r--p 00049000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad00932c000-2ad00932d000 ---p 0006a000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad00932d000-2ad00932e000 r--p 0006a000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad00932e000-2ad009354000 rw-p 0006b000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad009354000-2ad009357000 rw-p 00099000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad009357000-2ad009358000 rw-p 0009c000 67:70864 144116818049543787      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_fblas.cpython-39-x86_64-linux-gnu.so
+2ad009358000-2ad00945f000 r--p 00000000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00945f000-2ad009467000 r-xp 00107000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad009467000-2ad009468000 ---p 0010f000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad009468000-2ad00b0df000 r-xp 00110000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00b0df000-2ad00b2ec000 r--p 01d87000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00b2ec000-2ad00b2ed000 ---p 01f94000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00b2ed000-2ad00b2f3000 r--p 01f94000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00b2f3000-2ad00b309000 rw-p 01f9a000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00b309000-2ad00b315000 rw-p 00000000 00:00 0 
+2ad00b315000-2ad00b374000 rw-p 020bb000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00b374000-2ad00b3b9000 rw-p 0211a000 67:70864 144116818049544487      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libopenblasp-r0-01191904.3.27.so
+2ad00b3b9000-2ad00b62f000 r-xp 00000000 67:70864 144116818049544489      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libgfortran-040039e1.so.5.0.0
+2ad00b62f000-2ad00b82e000 ---p 00276000 67:70864 144116818049544489      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libgfortran-040039e1.so.5.0.0
+2ad00b82e000-2ad00b82f000 r--p 00275000 67:70864 144116818049544489      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libgfortran-040039e1.so.5.0.0
+2ad00b82f000-2ad00b831000 rw-p 00276000 67:70864 144116818049544489      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libgfortran-040039e1.so.5.0.0
+2ad00b831000-2ad00b83d000 rw-p 0027b000 67:70864 144116818049544489      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libgfortran-040039e1.so.5.0.0
+2ad00b83d000-2ad00b846000 rw-p 00287000 67:70864 144116818049544489      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libgfortran-040039e1.so.5.0.0
+2ad00b846000-2ad00b881000 r-xp 00000000 67:70864 144116818049544488      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libquadmath-96973f99.so.0.0.0
+2ad00b881000-2ad00ba80000 ---p 0003b000 67:70864 144116818049544488      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libquadmath-96973f99.so.0.0.0
+2ad00ba80000-2ad00ba81000 r--p 0003a000 67:70864 144116818049544488      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libquadmath-96973f99.so.0.0.0
+2ad00ba81000-2ad00ba82000 rw-p 0003b000 67:70864 144116818049544488      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libquadmath-96973f99.so.0.0.0
+2ad00ba82000-2ad00ba83000 rw-p 0003c000 67:70864 144116818049544488      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy.libs/libquadmath-96973f99.so.0.0.0
+2ad00ba83000-2ad00baa9000 r--p 00000000 67:70864 144116818049543822      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_flapack.cpython-39-x86_64-linux-gnu.so
+2ad00baa9000-2ad00bb64000 r-xp 00026000 67:70864 144116818049543822      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_flapack.cpython-39-x86_64-linux-gnu.so
+2ad00bb64000-2ad00bbd5000 r--p 000e1000 67:70864 144116818049543822      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_flapack.cpython-39-x86_64-linux-gnu.so
+2ad00bbd5000-2ad00bbd6000 r--p 00151000 67:70864 144116818049543822      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_flapack.cpython-39-x86_64-linux-gnu.so
+2ad00bbd6000-2ad00bc5e000 rw-p 00152000 67:70864 144116818049543822      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_flapack.cpython-39-x86_64-linux-gnu.so
+2ad00bc5e000-2ad00bc63000 rw-p 001f2000 67:70864 144116818049543822      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_flapack.cpython-39-x86_64-linux-gnu.so
+2ad00bc63000-2ad00bc65000 rw-p 001f7000 67:70864 144116818049543822      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_flapack.cpython-39-x86_64-linux-gnu.so
+2ad00bc65000-2ad00bca5000 rw-p 00000000 00:00 0 
+2ad00bca5000-2ad00bcab000 r--p 00000000 67:70864 144116818049543820      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_cythonized_array_utils.cpython-39-x86_64-linux-gnu.so
+2ad00bcab000-2ad00bd20000 r-xp 00006000 67:70864 144116818049543820      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_cythonized_array_utils.cpython-39-x86_64-linux-gnu.so
+2ad00bd20000-2ad00bd2f000 r--p 0007b000 67:70864 144116818049543820      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_cythonized_array_utils.cpython-39-x86_64-linux-gnu.so
+2ad00bd2f000-2ad00bd30000 r--p 00089000 67:70864 144116818049543820      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_cythonized_array_utils.cpython-39-x86_64-linux-gnu.so
+2ad00bd30000-2ad00bd33000 rw-p 0008a000 67:70864 144116818049543820      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_cythonized_array_utils.cpython-39-x86_64-linux-gnu.so
+2ad00bd33000-2ad00bd34000 rw-p 00000000 00:00 0 
+2ad00bd34000-2ad00bd4c000 r--p 00000000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bd4c000-2ad00bd6b000 r-xp 00018000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bd6b000-2ad00bdc3000 r--p 00037000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bdc3000-2ad00bdc4000 ---p 0008f000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bdc4000-2ad00bdc5000 r--p 0008f000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bdc5000-2ad00bdc9000 rw-p 00090000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bdc9000-2ad00bdd6000 rw-p 000bc000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bdd6000-2ad00bdda000 rw-p 000c9000 67:70864 144116818049543791      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_lapack.cpython-39-x86_64-linux-gnu.so
+2ad00bdda000-2ad00be1a000 rw-p 00000000 00:00 0 
+2ad00be1a000-2ad00be1f000 r--p 00000000 67:70864 144116818049543819      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_solve_toeplitz.cpython-39-x86_64-linux-gnu.so
+2ad00be1f000-2ad00be51000 r-xp 00005000 67:70864 144116818049543819      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_solve_toeplitz.cpython-39-x86_64-linux-gnu.so
+2ad00be51000-2ad00be59000 r--p 00037000 67:70864 144116818049543819      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_solve_toeplitz.cpython-39-x86_64-linux-gnu.so
+2ad00be59000-2ad00be5a000 ---p 0003f000 67:70864 144116818049543819      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_solve_toeplitz.cpython-39-x86_64-linux-gnu.so
+2ad00be5a000-2ad00be5b000 r--p 0003f000 67:70864 144116818049543819      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_solve_toeplitz.cpython-39-x86_64-linux-gnu.so
+2ad00be5b000-2ad00be5d000 rw-p 00040000 67:70864 144116818049543819      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_solve_toeplitz.cpython-39-x86_64-linux-gnu.so
+2ad00be5d000-2ad00be9e000 rw-p 00000000 00:00 0 
+2ad00be9e000-2ad00bea3000 r--p 00000000 67:70864 144116818049543774      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_lu_cython.cpython-39-x86_64-linux-gnu.so
+2ad00bea3000-2ad00becf000 r-xp 00005000 67:70864 144116818049543774      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_lu_cython.cpython-39-x86_64-linux-gnu.so
+2ad00becf000-2ad00bed7000 r--p 00031000 67:70864 144116818049543774      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_lu_cython.cpython-39-x86_64-linux-gnu.so
+2ad00bed7000-2ad00bed8000 r--p 00038000 67:70864 144116818049543774      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_lu_cython.cpython-39-x86_64-linux-gnu.so
+2ad00bed8000-2ad00beda000 rw-p 00039000 67:70864 144116818049543774      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_lu_cython.cpython-39-x86_64-linux-gnu.so
+2ad00beda000-2ad00bedb000 rw-p 00000000 00:00 0 
+2ad00bedb000-2ad00bee0000 r--p 00000000 67:70864 144116818049543778      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_sqrtm_triu.cpython-39-x86_64-linux-gnu.so
+2ad00bee0000-2ad00bf0d000 r-xp 00005000 67:70864 144116818049543778      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_sqrtm_triu.cpython-39-x86_64-linux-gnu.so
+2ad00bf0d000-2ad00bf15000 r--p 00032000 67:70864 144116818049543778      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_sqrtm_triu.cpython-39-x86_64-linux-gnu.so
+2ad00bf15000-2ad00bf16000 r--p 00039000 67:70864 144116818049543778      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_sqrtm_triu.cpython-39-x86_64-linux-gnu.so
+2ad00bf16000-2ad00bf18000 rw-p 0003a000 67:70864 144116818049543778      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_sqrtm_triu.cpython-39-x86_64-linux-gnu.so
+2ad00bf18000-2ad00bf19000 rw-p 00000000 00:00 0 
+2ad00bf19000-2ad00bf1e000 r--p 00000000 67:70864 144116818049543804      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_expm.cpython-39-x86_64-linux-gnu.so
+2ad00bf1e000-2ad00bf7f000 r-xp 00005000 67:70864 144116818049543804      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_expm.cpython-39-x86_64-linux-gnu.so
+2ad00bf7f000-2ad00bf8a000 r--p 00066000 67:70864 144116818049543804      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_expm.cpython-39-x86_64-linux-gnu.so
+2ad00bf8a000-2ad00bf8b000 ---p 00071000 67:70864 144116818049543804      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_expm.cpython-39-x86_64-linux-gnu.so
+2ad00bf8b000-2ad00bf8c000 r--p 00071000 67:70864 144116818049543804      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_expm.cpython-39-x86_64-linux-gnu.so
+2ad00bf8c000-2ad00bf8e000 rw-p 00072000 67:70864 144116818049543804      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_matfuncs_expm.cpython-39-x86_64-linux-gnu.so
+2ad00bf8e000-2ad00bf90000 rw-p 00000000 00:00 0 
+2ad00bf90000-2ad00bf97000 r--p 00000000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bf97000-2ad00bfc4000 r-xp 00007000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bfc4000-2ad00bfd2000 r--p 00034000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bfd2000-2ad00bfd3000 ---p 00042000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bfd3000-2ad00bfd4000 r--p 00042000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bfd4000-2ad00bfd6000 rw-p 00043000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bfd6000-2ad00bfd7000 rw-p 00000000 00:00 0 
+2ad00bfd7000-2ad00bfda000 rw-p 00051000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bfda000-2ad00bfdc000 rw-p 00054000 67:70864 144116818049543799      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/cython_blas.cpython-39-x86_64-linux-gnu.so
+2ad00bfdc000-2ad00bfe0000 r--p 00000000 67:70864 144116818049543776      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_update.cpython-39-x86_64-linux-gnu.so
+2ad00bfe0000-2ad00c01f000 r-xp 00004000 67:70864 144116818049543776      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_update.cpython-39-x86_64-linux-gnu.so
+2ad00c01f000-2ad00c02f000 r--p 00043000 67:70864 144116818049543776      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_update.cpython-39-x86_64-linux-gnu.so
+2ad00c02f000-2ad00c030000 r--p 00052000 67:70864 144116818049543776      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_update.cpython-39-x86_64-linux-gnu.so
+2ad00c030000-2ad00c031000 rw-p 00053000 67:70864 144116818049543776      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/linalg/_decomp_update.cpython-39-x86_64-linux-gnu.so
+2ad00c031000-2ad00c072000 rw-p 00000000 00:00 0 
+2ad00c072000-2ad00c075000 r--p 00000000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c075000-2ad00c0b9000 r-xp 00003000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c0b9000-2ad00c0c3000 r--p 00047000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c0c3000-2ad00c0c4000 ---p 00051000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c0c4000-2ad00c0c5000 r--p 00051000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c0c5000-2ad00c0c6000 rw-p 00052000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c0c6000-2ad00c0c8000 rw-p 0005a000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c0c8000-2ad00c0c9000 rw-p 0005c000 67:70864 144116818049543686      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_dsolve/_superlu.cpython-39-x86_64-linux-gnu.so
+2ad00c0c9000-2ad00c0cf000 r--p 00000000 67:70864 144116818049543671      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_eigen/arpack/_arpack.cpython-39-x86_64-linux-gnu.so
+2ad00c0cf000-2ad00c119000 r-xp 00006000 67:70864 144116818049543671      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_eigen/arpack/_arpack.cpython-39-x86_64-linux-gnu.so
+2ad00c119000-2ad00c12a000 r--p 00050000 67:70864 144116818049543671      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_eigen/arpack/_arpack.cpython-39-x86_64-linux-gnu.so
+2ad00c12a000-2ad00c12b000 r--p 00060000 67:70864 144116818049543671      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_eigen/arpack/_arpack.cpython-39-x86_64-linux-gnu.so
+2ad00c12b000-2ad00c136000 rw-p 00061000 67:70864 144116818049543671      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_eigen/arpack/_arpack.cpython-39-x86_64-linux-gnu.so
+2ad00c136000-2ad00c137000 rw-p 00000000 00:00 0 
+2ad00c137000-2ad00c139000 rw-p 00074000 67:70864 144116818049543671      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_eigen/arpack/_arpack.cpython-39-x86_64-linux-gnu.so
+2ad00c139000-2ad00c13a000 rw-p 00076000 67:70864 144116818049543671      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_eigen/arpack/_arpack.cpython-39-x86_64-linux-gnu.so
+2ad00c13a000-2ad00c17a000 rw-p 00000000 00:00 0 
+2ad00c17a000-2ad00c17d000 r--p 00000000 67:70864 144116818049543693      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_spropack.cpython-39-x86_64-linux-gnu.so
+2ad00c17d000-2ad00c18b000 r-xp 00003000 67:70864 144116818049543693      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_spropack.cpython-39-x86_64-linux-gnu.so
+2ad00c18b000-2ad00c190000 r--p 00011000 67:70864 144116818049543693      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_spropack.cpython-39-x86_64-linux-gnu.so
+2ad00c190000-2ad00c191000 r--p 00015000 67:70864 144116818049543693      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_spropack.cpython-39-x86_64-linux-gnu.so
+2ad00c191000-2ad00c196000 rw-p 00016000 67:70864 144116818049543693      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_spropack.cpython-39-x86_64-linux-gnu.so
+2ad00c196000-2ad00c198000 rw-p 0001e000 67:70864 144116818049543693      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_spropack.cpython-39-x86_64-linux-gnu.so
+2ad00c198000-2ad00c199000 rw-p 00020000 67:70864 144116818049543693      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_spropack.cpython-39-x86_64-linux-gnu.so
+2ad00c199000-2ad00c19c000 r--p 00000000 67:70864 144116818049543696      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_dpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c19c000-2ad00c1aa000 r-xp 00003000 67:70864 144116818049543696      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_dpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1aa000-2ad00c1af000 r--p 00011000 67:70864 144116818049543696      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_dpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1af000-2ad00c1b0000 r--p 00015000 67:70864 144116818049543696      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_dpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1b0000-2ad00c1b5000 rw-p 00016000 67:70864 144116818049543696      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_dpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1b5000-2ad00c1b7000 rw-p 0001e000 67:70864 144116818049543696      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_dpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1b7000-2ad00c1b8000 rw-p 00020000 67:70864 144116818049543696      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_dpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1b8000-2ad00c1bb000 r--p 00000000 67:70864 144116818049543695      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_cpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1bb000-2ad00c1cf000 r-xp 00003000 67:70864 144116818049543695      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_cpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1cf000-2ad00c1d4000 r--p 00017000 67:70864 144116818049543695      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_cpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1d4000-2ad00c1d5000 r--p 0001b000 67:70864 144116818049543695      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_cpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1d5000-2ad00c1da000 rw-p 0001c000 67:70864 144116818049543695      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_cpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1da000-2ad00c1f5000 rw-p 00000000 00:00 0 
+2ad00c1f5000-2ad00c1f7000 rw-p 00024000 67:70864 144116818049543695      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_cpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1f7000-2ad00c1f8000 rw-p 00026000 67:70864 144116818049543695      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_cpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1f8000-2ad00c1fb000 r--p 00000000 67:70864 144116818049543694      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_zpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c1fb000-2ad00c20d000 r-xp 00003000 67:70864 144116818049543694      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_zpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c20d000-2ad00c212000 r--p 00015000 67:70864 144116818049543694      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_zpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c212000-2ad00c213000 r--p 00019000 67:70864 144116818049543694      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_zpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c213000-2ad00c218000 rw-p 0001a000 67:70864 144116818049543694      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_zpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c218000-2ad00c24e000 rw-p 00000000 00:00 0 
+2ad00c24e000-2ad00c250000 rw-p 00022000 67:70864 144116818049543694      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_zpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c250000-2ad00c251000 rw-p 00024000 67:70864 144116818049543694      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/linalg/_propack/_zpropack.cpython-39-x86_64-linux-gnu.so
+2ad00c251000-2ad00c256000 r--p 00000000 67:70864 144116818049543733      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_shortest_path.cpython-39-x86_64-linux-gnu.so
+2ad00c256000-2ad00c2a7000 r-xp 00005000 67:70864 144116818049543733      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_shortest_path.cpython-39-x86_64-linux-gnu.so
+2ad00c2a7000-2ad00c2b9000 r--p 00056000 67:70864 144116818049543733      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_shortest_path.cpython-39-x86_64-linux-gnu.so
+2ad00c2b9000-2ad00c2ba000 ---p 00068000 67:70864 144116818049543733      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_shortest_path.cpython-39-x86_64-linux-gnu.so
+2ad00c2ba000-2ad00c2bb000 r--p 00068000 67:70864 144116818049543733      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_shortest_path.cpython-39-x86_64-linux-gnu.so
+2ad00c2bb000-2ad00c2bd000 rw-p 00069000 67:70864 144116818049543733      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_shortest_path.cpython-39-x86_64-linux-gnu.so
+2ad00c2bd000-2ad00c2fe000 rw-p 00000000 00:00 0 
+2ad00c2fe000-2ad00c301000 r--p 00000000 67:70864 144116818049543736      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_tools.cpython-39-x86_64-linux-gnu.so
+2ad00c301000-2ad00c31f000 r-xp 00003000 67:70864 144116818049543736      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_tools.cpython-39-x86_64-linux-gnu.so
+2ad00c31f000-2ad00c329000 r--p 00021000 67:70864 144116818049543736      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_tools.cpython-39-x86_64-linux-gnu.so
+2ad00c329000-2ad00c32a000 r--p 0002a000 67:70864 144116818049543736      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_tools.cpython-39-x86_64-linux-gnu.so
+2ad00c32a000-2ad00c32b000 rw-p 0002b000 67:70864 144116818049543736      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_tools.cpython-39-x86_64-linux-gnu.so
+2ad00c32b000-2ad00c32c000 rw-p 00000000 00:00 0 
+2ad00c32c000-2ad00c331000 r--p 00000000 67:70864 144116818049543728      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_traversal.cpython-39-x86_64-linux-gnu.so
+2ad00c331000-2ad00c3af000 r-xp 00005000 67:70864 144116818049543728      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_traversal.cpython-39-x86_64-linux-gnu.so
+2ad00c3af000-2ad00c3bf000 r--p 00083000 67:70864 144116818049543728      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_traversal.cpython-39-x86_64-linux-gnu.so
+2ad00c3bf000-2ad00c3c0000 ---p 00093000 67:70864 144116818049543728      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_traversal.cpython-39-x86_64-linux-gnu.so
+2ad00c3c0000-2ad00c3c1000 r--p 00093000 67:70864 144116818049543728      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_traversal.cpython-39-x86_64-linux-gnu.so
+2ad00c3c1000-2ad00c3c3000 rw-p 00094000 67:70864 144116818049543728      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_traversal.cpython-39-x86_64-linux-gnu.so
+2ad00c3c3000-2ad00c3c4000 rw-p 00000000 00:00 0 
+2ad00c3c4000-2ad00c3c9000 r--p 00000000 67:70864 144116818049543737      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_min_spanning_tree.cpython-39-x86_64-linux-gnu.so
+2ad00c3c9000-2ad00c3f2000 r-xp 00005000 67:70864 144116818049543737      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_min_spanning_tree.cpython-39-x86_64-linux-gnu.so
+2ad00c3f2000-2ad00c3fb000 r--p 0002e000 67:70864 144116818049543737      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_min_spanning_tree.cpython-39-x86_64-linux-gnu.so
+2ad00c3fb000-2ad00c3fc000 r--p 00036000 67:70864 144116818049543737      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_min_spanning_tree.cpython-39-x86_64-linux-gnu.so
+2ad00c3fc000-2ad00c3fe000 rw-p 00037000 67:70864 144116818049543737      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_min_spanning_tree.cpython-39-x86_64-linux-gnu.so
+2ad00c3fe000-2ad00c3ff000 rw-p 00000000 00:00 0 
+2ad00c3ff000-2ad00c404000 r--p 00000000 67:70864 144116818049543735      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_flow.cpython-39-x86_64-linux-gnu.so
+2ad00c404000-2ad00c43b000 r-xp 00005000 67:70864 144116818049543735      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_flow.cpython-39-x86_64-linux-gnu.so
+2ad00c43b000-2ad00c447000 r--p 0003c000 67:70864 144116818049543735      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_flow.cpython-39-x86_64-linux-gnu.so
+2ad00c447000-2ad00c448000 ---p 00048000 67:70864 144116818049543735      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_flow.cpython-39-x86_64-linux-gnu.so
+2ad00c448000-2ad00c449000 r--p 00048000 67:70864 144116818049543735      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_flow.cpython-39-x86_64-linux-gnu.so
+2ad00c449000-2ad00c44b000 rw-p 00049000 67:70864 144116818049543735      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_flow.cpython-39-x86_64-linux-gnu.so
+2ad00c44b000-2ad00c44c000 rw-p 00000000 00:00 0 
+2ad00c44c000-2ad00c451000 r--p 00000000 67:70864 144116818049543731      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_matching.cpython-39-x86_64-linux-gnu.so
+2ad00c451000-2ad00c489000 r-xp 00005000 67:70864 144116818049543731      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_matching.cpython-39-x86_64-linux-gnu.so
+2ad00c489000-2ad00c497000 r--p 0003d000 67:70864 144116818049543731      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_matching.cpython-39-x86_64-linux-gnu.so
+2ad00c497000-2ad00c498000 r--p 0004a000 67:70864 144116818049543731      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_matching.cpython-39-x86_64-linux-gnu.so
+2ad00c498000-2ad00c49a000 rw-p 0004b000 67:70864 144116818049543731      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_matching.cpython-39-x86_64-linux-gnu.so
+2ad00c49a000-2ad00c49b000 rw-p 00000000 00:00 0 
+2ad00c49b000-2ad00c4a0000 r--p 00000000 67:70864 144116818049543729      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_reordering.cpython-39-x86_64-linux-gnu.so
+2ad00c4a0000-2ad00c4d7000 r-xp 00005000 67:70864 144116818049543729      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_reordering.cpython-39-x86_64-linux-gnu.so
+2ad00c4d7000-2ad00c4e1000 r--p 0003c000 67:70864 144116818049543729      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_reordering.cpython-39-x86_64-linux-gnu.so
+2ad00c4e1000-2ad00c4e2000 r--p 00045000 67:70864 144116818049543729      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_reordering.cpython-39-x86_64-linux-gnu.so
+2ad00c4e2000-2ad00c4e4000 rw-p 00046000 67:70864 144116818049543729      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/scipy/sparse/csgraph/_reordering.cpython-39-x86_64-linux-gnu.so
+2ad00c4e4000-2ad00c4e5000 rw-p 00000000 00:00 0 
+2ad00c4e5000-2ad00c4e7000 r-xp 00000000 67:70864 144116818049549048      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libphmap.so
+2ad00c4e7000-2ad00c6e6000 ---p 00002000 67:70864 144116818049549048      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libphmap.so
+2ad00c6e6000-2ad00c6e7000 r--p 00001000 67:70864 144116818049549048      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libphmap.so
+2ad00c6e7000-2ad00c6e8000 rw-p 00002000 67:70864 144116818049549048      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libphmap.so
+2ad00c6e8000-2ad00c715000 r-xp 00000000 67:70864 144115273706875988      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgomp.so.1.0.0
+2ad00c715000-2ad00c914000 ---p 0002d000 67:70864 144115273706875988      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgomp.so.1.0.0
+2ad00c914000-2ad00c915000 r--p 0002c000 67:70864 144115273706875988      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgomp.so.1.0.0
+2ad00c915000-2ad00c916000 rw-p 0002d000 67:70864 144115273706875988      /lustre/shared/ucl/apps/gcc/8.3.0/lib64/libgomp.so.1.0.0
+2ad00c916000-2ad00ce41000 r-xp 00000000 67:70864 144116818049549049      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libpyripser++.so
+2ad00ce41000-2ad00d041000 ---p 0052b000 67:70864 144116818049549049      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libpyripser++.so
+2ad00d041000-2ad00d045000 r--p 0052b000 67:70864 144116818049549049      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libpyripser++.so
+2ad00d045000-2ad00d046000 rw-p 0052f000 67:70864 144116818049549049      /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libpyripser++.so
+2ad00d046000-2ad00d047000 rw-p 00000000 00:00 0 
+2ad00d05d000-2ad00d064000 r-xp 00000000 08:03 148593                     /usr/lib64/librt-2.17.so
+2ad00d064000-2ad00d263000 ---p 00007000 08:03 148593                     /usr/lib64/librt-2.17.so
+2ad00d263000-2ad00d264000 r--p 00006000 08:03 148593                     /usr/lib64/librt-2.17.so
+2ad00d264000-2ad00d265000 rw-p 00007000 08:03 148593                     /usr/lib64/librt-2.17.so
+2ad00d325000-2ad00d365000 rw-p 00000000 00:00 0 
+2ad00eb67000-2ad010b68000 rw-p 00000000 00:00 0 
+2ad012b69000-2ad01ab6b000 rw-p 00000000 00:00 0 
+2ad01c000000-2ad01c021000 rw-p 00000000 00:00 0 
+2ad01c021000-2ad020000000 ---p 00000000 00:00 0 
+7ffcebedd000-7ffcebeff000 rw-p 00000000 00:00 0                          [stack]
+7ffcebfa6000-7ffcebfa8000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+/var/opt/sge/node-e00a-008/job_scripts/771888: line 38: 176677 Aborted                 (core dumped) python /home/zceccgr/Scratch/zceccgr/manifoldtest/biohomology.py

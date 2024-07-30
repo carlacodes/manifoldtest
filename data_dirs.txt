@@ -1,0 +1,5 @@
+/home/zceccgr/Scratch/zceccgr/honeycomb_neural_data/rat_7/6-12-2019
+/home/zceccgr/Scratch/zceccgr/honeycomb_neural_data/rat_10/23-11-2021
+/home/zceccgr/Scratch/zceccgr/honeycomb_neural_data/rat_3/25-3-2019
+/home/zceccgr/Scratch/zceccgr/honeycomb_neural_data/rat_8/15-10-2019
+/home/zceccgr/Scratch/zceccgr/honeycomb_neural_data/rat_9/10-12-2021

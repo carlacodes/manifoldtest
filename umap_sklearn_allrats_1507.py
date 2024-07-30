@@ -9,13 +9,13 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
+import logging
 import sys
 import os
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import StandardScaler
 import numpy as np
-from sklearn.manifold import Isomap
 
 class ZScoreCV(BaseCrossValidator):
     def __init__(self, spks, custom_folds):
@@ -127,7 +127,7 @@ def train_and_test_on_umap_randcv(
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
-        ('reducer', Isomap()),
+        ('reducer', CustomUMAP()),
         ('estimator', MultiOutputRegressor(regressor()))
     ])
 
@@ -153,12 +153,24 @@ def train_and_test_on_umap_randcv(
     if use_rand_search:
 
 
+        # param_grid = {
+        #     'estimator__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
+        #     'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        #     'reducer__random_state': [42],
+        #     'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+        #     'reducer__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
+        #     'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
+        #     'reducer__random_state': [42]
+        # }
+        
         param_grid = {
             'estimator__estimator__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
             'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-            'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
+            'reducer__random_state': [42],
             'reducer__metric': ['euclidean', 'cosine', 'minkowski'],
+            'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
             'reducer__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
+            'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
         }
 
         zscore_cv = ZScoreCV(spks, custom_folds)
@@ -238,11 +250,10 @@ def train_and_test_on_umap_randcv(
 
 def main():
     base_dir = '/home/zceccgr/Scratch/zceccgr/honeycomb_neural_data/'
-    # [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
-    #                  f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-    #                  f'{base_dir}/rat_3/25-3-2019']
+    # base_dir = 'C:/neural_data/'
 
-    # for data_dir in [f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
+    # for data_dir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',
+    #                  f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
     #                  f'{base_dir}/rat_3/25-3-2019']:
     data_dir = sys.argv[1]  # Get data_dir from command line argument
 
@@ -276,11 +287,11 @@ def main():
 
     regressor = KNeighborsRegressor
     regressor_kwargs = {'n_neighbors': 70}
-    reducer = Isomap
+    reducer = UMAP
     reducer_kwargs = {
         'n_components': 3,
-        'metric': 'cosine',
-        'n_jobs': -1,
+        'metric': 'euclidean',
+        'n_jobs': 1,
     }
 
     regress = ['x', 'y', 'cos_hd', 'sin_hd']
@@ -289,7 +300,7 @@ def main():
     now_day = datetime.now().strftime("%Y-%m-%d")
     filename = f'params_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now}.npy'
     filename_mean_score = f'mean_score_all_trials_randomizedsearchcv_250bin_1000windows_jake_fold_allvar_{now_day}.npy'
-    save_dir_path = Path(f'{data_dir}/randsearch_sanitycheckallvarindepen_isomap_stdscaler_{now_day}')
+    save_dir_path = Path(f'{data_dir}/umap_randsearch_sanitycheckallvarindepen_sklearnpipeline_{now_day}')
     save_dir = save_dir_path
     save_dir.mkdir(exist_ok=True)
 
