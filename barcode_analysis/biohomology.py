@@ -44,6 +44,7 @@ def plot_barcode(diag, dim, **kwargs):
 
 def run_persistence_analysis(folder_str, use_ripser=False):
     pairs_list = []
+    dgm_dict = {}
     for i in range(5):
 
         print('at count ', i)
@@ -70,16 +71,24 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             #save the individual pairs with the count
             np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
         else:
-            dgm = ripser_parallel(reduced_data, maxdim=2, n_threads=-1)
-            print('shape of dgm', dgm.shape)
+            dgm = ripser_parallel(reduced_data, maxdim=2, n_threads=20)
+            dgm_dict[i] = dgm
+            #save the individual persistence diagrams
+            np.save(folder_str + '/dgm_fold_h2' + str(i) + '.npy', dgm)
 
           # plot_barcode(diagrams, 1)
         # plt.show()
         # plt.close('all')
     #save pairs_list
     # np.save(folder_str + '/pairs_list_h2.npy', pairs_list)
-    with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
-        pickle.dump(pairs_list, f)
+    if use_ripser:
+        with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
+            pickle.dump(pairs_list, f)
+
+    #save the dgm_dict
+    else:
+        with open(folder_str + '/dgm_dict_h2.pkl', 'wb') as f:
+            pickle.dump(dgm_dict, f)
 
     return pairs_list
 
