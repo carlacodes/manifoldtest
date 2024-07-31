@@ -190,6 +190,7 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             plt.savefig(folder_str + '/barcode_fold_filtered_h2' + str(i) + '.png', dpi=300, bbox_inches='tight')
             # Show the plot
             plt.show()
+            plt.close('all')
 
 
             plot_barcode(dgm_gtda[0], 1)
