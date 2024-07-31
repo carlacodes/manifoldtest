@@ -10,35 +10,17 @@ from gph import ripser_parallel
 from gtda.diagrams import BettiCurve
 
 def reformat_persistence_diagrams(dgms):
-    # Initialize an empty list to store the reformatted persistence diagrams
-    reformatted_diagrams = []
 
-    # Determine the maximum number of features for each homology dimension
-    max_features = {}
-    for dgm in dgms:
-        for dim in range(len(dgm)):
-            if dim not in max_features:
-                max_features[dim] = 0
-            max_features[dim] = max(max_features[dim], len(dgm[dim]))
-
-    # Iterate over the persistence diagrams
-    for dgm in dgms:
-        reformatted_dgm = []
-        for dim in range(len(dgm)):
-            # Extract the triples [b, d, q] from each persistence diagram
-            triples = np.array([[b, d, dim] for b, d in dgm[dim]])
-            # Pad with zeros to ensure the number of triples is constant
-            if len(triples) < max_features[dim]:
-                padding = np.zeros((max_features[dim] - len(triples), 3))
-                triples = np.vstack([triples, padding])
-            reformatted_dgm.append(triples)
-        # Concatenate all dimensions
-        reformatted_dgm = np.vstack(reformatted_dgm)
-        reformatted_diagrams.append(reformatted_dgm)
-
-    # Convert the list of reformatted diagrams to a NumPy array
-    X = np.array(reformatted_diagrams)
-    return X
+    for i in (0, len(dgms) - 1):
+        indiv_dgm = dgms[i]
+        # append the dimension
+        indiv_dgm[:, 2] = i
+        # append to a larger array
+        if i == 0:
+            dgm = indiv_dgm
+        else:
+            dgm = np.vstack((dgm, indiv_dgm))
+    return dgm
 def plot_barcode(diag, dim, **kwargs):
     """
     Plot the barcode for a persistence diagram using matplotlib
@@ -108,8 +90,9 @@ def run_persistence_analysis(folder_str, use_ripser=False):
 
             betti_curve_transformer = BettiCurve(n_bins=100, n_jobs=20)  # n_bins controls the resolution of the Betti curve
             dgms = dgm['dgms']
-                #X (ndarray of shape (n_samples, n_features, 3)) – Input data. Array of persistence diagrams, each a collection of triples [b, d, q] representing persistent topological features through their birth (b), death (d) and homology dimension (q). It is important that, for each possible homology dimension, the number of triples for which q equals that homology dimension is constants across the entries of X.
             reformatted_dgms = reformat_persistence_diagrams(dgms)
+
+
             betti_curves = betti_curve_transformer.fit_transform(reformatted_dgms)
             betti_curve_transformer.plot(betti_curves, sample=0, plot_method='betti')
             #save the individual persistence diagrams
