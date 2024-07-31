@@ -129,6 +129,17 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             dgm_gtda_df_filtered = dgm_gtda_df[dgm_gtda_df['difference'] >= 0.2]
             #plot the barcode for the filtered data, where the y axis represents the dimension
             plt.figure(figsize=(10, 6))
+            # Define the vertical offset for staggering the 0-dimensional bars
+            offset = 0.1
+            dimension_1_base = int(len(dgm_gtda_df_filtered[dgm_gtda_df_filtered['dim'] == 0])*0.1)+10
+            dimension_2_base = int(len(dgm_gtda_df_filtered[dgm_gtda_df_filtered['dim'] == 1])*0.1)+10 + dimension_1_base
+            # Set a base y-position for dimension 1 to ensure it is above dimension 0
+
+            # Initialize a dictionary to keep track of the current offset for each homology dimension
+            current_offsets = {}
+
+            # Prepare a list to store all y-positions for setting ticks later
+            y_positions = []
 
             # Plot each bar in the barcode
             for index, row in dgm_gtda_df_filtered.iterrows():
@@ -136,13 +147,43 @@ def run_persistence_analysis(folder_str, use_ripser=False):
                 death = row['death']
                 dimension = int(row['dim'])  # Convert dimension to integer if it's not already
 
+                # Determine the y-position for the bar
+                if dimension == 0:
+                    # If dimension is 0, apply the staggered offset
+                    if dimension not in current_offsets:
+                        current_offsets[dimension] = 0  # Initialize the offset for dimension 0
+                    y_position = dimension + current_offsets[dimension]
+                    current_offsets[dimension] += offset  # Increment the offset for the next bar
+                    color_txt = 'g-'
+                elif dimension == 1:
+                    # Ensure dimension 1 starts above the max of dimension 0
+                    y_position = dimension_1_base
+                    dimension_1_base += offset  # Increment the offset for dimension 1 to avoid overlap
+                    color_txt = 'b-'
+                else:
+                    # For higher dimensions, no need to stagger, just use the dimension as the y-position
+                    color_txt = 'r-'
+
+                    y_position = dimension_2_base
+                    dimension_2_base += offset  # Increment the offset for dimension 1 to avoid overlap
+
+
                 # Plot a horizontal line for each feature
-                plt.plot([birth, death], [dimension, dimension], 'b-', lw=2, alpha=0.2)
+                plt.plot([birth, death], [y_position, y_position], color_txt, lw=2)
+
+                # Store the y-position for tick labeling
+                y_positions.append(y_position)
+
+            # Fix the y-ticks to ensure correct labeling
+            yticks = [0, dimension_1_base]  # Standard positions for dimensions 0 and 1
+            yticklabels = ['Dimension 0', 'Dimension 1']
+
+            plt.yticks(yticks, yticklabels)
 
             # Add labels and title
             plt.xlabel('Filtration Value')
             plt.ylabel('Homology Dimension')
-            plt.title('Barcode of Filtered Persistence Diagram')
+            plt.title('Staggered Barcode of Filtered Persistence Diagram')
 
             # Add grid lines for better readability
             plt.grid(True, linestyle='--', alpha=0.7)
