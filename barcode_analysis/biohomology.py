@@ -8,8 +8,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from gph import ripser_parallel
 from gtda.diagrams import BettiCurve
+from gtda.homology._utils import _postprocess_diagrams
+from plotly import graph_objects as go
+from gtda.plotting import plot_diagram, plot_point_cloud
 
 def reformat_persistence_diagrams(dgms):
+    '''Reformat the persistence diagrams to be in the format required by the giotto package
+    Parameters
+    ----------
+    dgms: list of np.arrays: list of persistence diagrams, each of shape (num_features, 3), i.e. each feature is
+           a triplet of (birth, death, dim) as returned by e.g.
+           VietorisRipsPersistence
+           Returns
+           -------
+           dgm: np.array: of shape (num_features, 4), i.e. each feature is
+           '''
 
     for i in (0, len(dgms) - 1):
         indiv_dgm = dgms[i]
@@ -28,7 +41,7 @@ def reformat_persistence_diagrams(dgms):
     dgm = np.expand_dims(dgm, axis=0)
     return dgm
 def plot_barcode(diag, dim, **kwargs):
-    """
+    """ taken from giotto-tda issues
     Plot the barcode for a persistence diagram using matplotlib
     ----------
     diag: np.array: of shape (num_features, 3), i.e. each feature is
@@ -91,14 +104,14 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
         else:
             dgm = ripser_parallel(reduced_data, maxdim=2, n_threads=20, return_generators=True)
+            dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)[0]
+
             dgm_dict[i] = dgm
             #plot the betti curve using the giotto package
 
             betti_curve_transformer = BettiCurve(n_bins=100, n_jobs=20)  # n_bins controls the resolution of the Betti curve
-            dgms = dgm['dgms']
-            reformatted_dgms = reformat_persistence_diagrams(dgms)
 
-            betti_curves = betti_curve_transformer.fit_transform(reformatted_dgms)
+            betti_curves = betti_curve_transformer.fit_transform(dgm_gtda)
             fig = betti_curve_transformer.plot(betti_curves, sample=0)
             fig.show()
             #save plotly object figure
