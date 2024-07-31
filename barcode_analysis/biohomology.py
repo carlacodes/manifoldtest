@@ -14,7 +14,8 @@ def reformat_persistence_diagrams(dgms):
     for i in (0, len(dgms) - 1):
         indiv_dgm = dgms[i]
         # append the dimension
-        indiv_dgm[:, 2] = i
+        #add the dimension
+        indiv_dgm = np.hstack((indiv_dgm, np.ones((indiv_dgm.shape[0], 1)) * i))
         # append to a larger array
         if i == 0:
             dgm = indiv_dgm
