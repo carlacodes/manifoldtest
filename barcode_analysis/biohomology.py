@@ -40,7 +40,7 @@ def reformat_persistence_diagrams(dgms):
     #add extra dimension in first dimension
     dgm = np.expand_dims(dgm, axis=0)
     return dgm
-def plot_barcode(diag, dim, **kwargs):
+def plot_barcode(diag, dim, save_dir=None, **kwargs):
     """ taken from giotto-tda issues
     Plot the barcode for a persistence diagram using matplotlib
     ----------
@@ -68,11 +68,14 @@ def plot_barcode(diag, dim, **kwargs):
             plt.plot([b, d], [i, i], color='k', lw=kwargs.get('linewidth', 2))
         else:
             plt.plot([b, d], [i, i], color=kwargs.get('color', 'b'), lw=kwargs.get('linewidth', 2))
-    plt.title(kwargs.get('title', 'Persistence Barcode'))
+    plt.title(kwargs.get('title', 'Persistence Barcode, dim ' + str(dim) +'and fold ' + str(i)))
     plt.xlabel(kwargs.get('xlabel', 'Filtration Value'))
     plt.yticks([])
     plt.tight_layout()
-    plt.show()
+    if save_dir is not None:
+        plt.savefig(save_dir + '/barcode_fold_h2' + str(i) +'dim'+ str(dim)+'.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+
 
 def run_persistence_analysis(folder_str, use_ripser=False):
     pairs_list = []
@@ -193,7 +196,9 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             plt.close('all')
 
 
-            plot_barcode(dgm_gtda[0], 1)
+            plot_barcode(dgm_gtda[0], 1, save_dir=folder_str)
+            plot_barcode(dgm_gtda[0], 2, save_dir=folder_str)
+            plot_barcode(dgm_gtda[0], 0, save_dir=folder_str)
             dgm_gtda_df_filtered.to_csv(folder_str + '/dgm_df_filtered_fold_h2' + str(i) + '.csv')
             np.save(folder_str + '/dgm_fold_h2' + str(i) + '.npy', dgm)
 
