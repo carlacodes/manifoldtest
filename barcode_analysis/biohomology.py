@@ -21,6 +21,11 @@ def reformat_persistence_diagrams(dgms):
             dgm = indiv_dgm
         else:
             dgm = np.vstack((dgm, indiv_dgm))
+
+    ##for each row make an array
+    dgm = np.array([np.array(row) for row in dgm])
+    #add extra dimension in first dimension
+    dgm = np.expand_dims(dgm, axis=0)
     return dgm
 def plot_barcode(diag, dim, **kwargs):
     """
@@ -93,9 +98,11 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             dgms = dgm['dgms']
             reformatted_dgms = reformat_persistence_diagrams(dgms)
 
-
             betti_curves = betti_curve_transformer.fit_transform(reformatted_dgms)
-            betti_curve_transformer.plot(betti_curves, sample=0, plot_method='betti')
+            fig = betti_curve_transformer.plot(betti_curves, sample=0)
+            fig.show()
+            #save plotly object figure
+            fig.write_html(folder_str + '/betti_curve_fold_h2' + str(i) + '.html')
             #save the individual persistence diagrams
             np.save(folder_str + '/dgm_fold_h2' + str(i) + '.npy', dgm)
 
