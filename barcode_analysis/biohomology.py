@@ -7,7 +7,38 @@ import ripserplusplus as rpp
 import numpy as np
 import matplotlib.pyplot as plt
 from gph import ripser_parallel
+from gtda.diagrams import BettiCurve
 
+def reformat_persistence_diagrams(dgms):
+    # Initialize an empty list to store the reformatted persistence diagrams
+    reformatted_diagrams = []
+
+    # Determine the maximum number of features for each homology dimension
+    max_features = {}
+    for dgm in dgms:
+        for dim in range(len(dgm)):
+            if dim not in max_features:
+                max_features[dim] = 0
+            max_features[dim] = max(max_features[dim], len(dgm[dim]))
+
+    # Iterate over the persistence diagrams
+    for dgm in dgms:
+        reformatted_dgm = []
+        for dim in range(len(dgm)):
+            # Extract the triples [b, d, q] from each persistence diagram
+            triples = np.array([[b, d, dim] for b, d in dgm[dim]])
+            # Pad with zeros to ensure the number of triples is constant
+            if len(triples) < max_features[dim]:
+                padding = np.zeros((max_features[dim] - len(triples), 3))
+                triples = np.vstack([triples, padding])
+            reformatted_dgm.append(triples)
+        # Concatenate all dimensions
+        reformatted_dgm = np.vstack(reformatted_dgm)
+        reformatted_diagrams.append(reformatted_dgm)
+
+    # Convert the list of reformatted diagrams to a NumPy array
+    X = np.array(reformatted_diagrams)
+    return X
 def plot_barcode(diag, dim, **kwargs):
     """
     Plot the barcode for a persistence diagram using matplotlib
@@ -71,8 +102,16 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             #save the individual pairs with the count
             np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
         else:
-            dgm = ripser_parallel(reduced_data, maxdim=2, n_threads=20)
+            dgm = ripser_parallel(reduced_data, maxdim=2, n_threads=20, return_generators=True)
             dgm_dict[i] = dgm
+            #plot the betti curve using the giotto package
+
+            betti_curve_transformer = BettiCurve(n_bins=100, n_jobs=20)  # n_bins controls the resolution of the Betti curve
+            dgms = dgm['dgms']
+                #X (ndarray of shape (n_samples, n_features, 3)) – Input data. Array of persistence diagrams, each a collection of triples [b, d, q] representing persistent topological features through their birth (b), death (d) and homology dimension (q). It is important that, for each possible homology dimension, the number of triples for which q equals that homology dimension is constants across the entries of X.
+            reformatted_dgms = reformat_persistence_diagrams(dgms)
+            betti_curves = betti_curve_transformer.fit_transform(reformatted_dgms)
+            betti_curve_transformer.plot(betti_curves, sample=0, plot_method='betti')
             #save the individual persistence diagrams
             np.save(folder_str + '/dgm_fold_h2' + str(i) + '.npy', dgm)
 
@@ -97,8 +136,9 @@ def run_persistence_analysis(folder_str, use_ripser=False):
 def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
-    #f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021' f'{base_dir}/rat_8/15-10-2019',
-    for dir in [f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
+    #f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021' f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019'
+    for dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
+        print('at dir ', dir)
         sub_folder = dir + '/plot_results/'
         #get list of files in the directory
         files = os.listdir(sub_folder)
