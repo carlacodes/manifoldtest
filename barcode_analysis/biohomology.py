@@ -104,19 +104,55 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
         else:
             dgm = ripser_parallel(reduced_data, maxdim=2, n_threads=20, return_generators=True)
-            dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)[0]
-
+            dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+            diagram = plot_diagram(dgm_gtda[0], homology_dimensions=(0, 1,2))
+            # diagram.show()
+            diagram.write_html(folder_str + '/dgm_fold_h2' + str(i) + '.html')
             dgm_dict[i] = dgm
             #plot the betti curve using the giotto package
-
-            betti_curve_transformer = BettiCurve(n_bins=100, n_jobs=20)  # n_bins controls the resolution of the Betti curve
-
+            betti_curve_transformer = BettiCurve(n_bins=1000, n_jobs=20)  # n_bins controls the resolution of the Betti curve
             betti_curves = betti_curve_transformer.fit_transform(dgm_gtda)
             fig = betti_curve_transformer.plot(betti_curves, sample=0)
-            fig.show()
             #save plotly object figure
-            fig.write_html(folder_str + '/betti_curve_fold_h2' + str(i) + '.html')
+            fig.write_html(folder_str + '/betti_curve_fold_h2_2' + str(i) + '.html')
             #save the individual persistence diagrams
+            #subtract the first dimension from the second dimension
+            dgm_gtda_difference = dgm_gtda[0][:,1] - dgm_gtda[0][:,0]
+            dgm_gtda_copy = copy.deepcopy(dgm_gtda[0])
+            dgm_gtda_difference = dgm_gtda_difference.reshape(-1, 1)
+
+            dgm_gtda_copy = np.hstack((dgm_gtda_copy, dgm_gtda_difference))
+            #convert to a dataframe
+            import pandas as pd
+            dgm_gtda_df = pd.DataFrame(dgm_gtda_copy, columns=['birth', 'death', 'dim', 'difference'])
+            #filter for when difference is greater than 0
+            dgm_gtda_df_filtered = dgm_gtda_df[dgm_gtda_df['difference'] >= 0.2]
+            #plot the barcode for the filtered data, where the y axis represents the dimension
+            plt.figure(figsize=(10, 6))
+
+            # Plot each bar in the barcode
+            for index, row in dgm_gtda_df_filtered.iterrows():
+                birth = row['birth']
+                death = row['death']
+                dimension = int(row['dim'])  # Convert dimension to integer if it's not already
+
+                # Plot a horizontal line for each feature
+                plt.plot([birth, death], [dimension, dimension], 'b-', lw=2, alpha=0.2)
+
+            # Add labels and title
+            plt.xlabel('Filtration Value')
+            plt.ylabel('Homology Dimension')
+            plt.title('Barcode of Filtered Persistence Diagram')
+
+            # Add grid lines for better readability
+            plt.grid(True, linestyle='--', alpha=0.7)
+
+            # Show the plot
+            plt.show()
+
+
+            plot_barcode(dgm_gtda[0], 1)
+            dgm_gtda_df_filtered.to_csv(folder_str + '/dgm_df_filtered_fold_h2' + str(i) + '.csv')
             np.save(folder_str + '/dgm_fold_h2' + str(i) + '.npy', dgm)
 
           # plot_barcode(diagrams, 1)
