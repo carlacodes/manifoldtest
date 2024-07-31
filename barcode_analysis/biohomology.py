@@ -183,11 +183,11 @@ def run_persistence_analysis(folder_str, use_ripser=False):
             # Add labels and title
             plt.xlabel('Filtration Value')
             plt.ylabel('Homology Dimension')
-            plt.title('Staggered Barcode of Filtered Persistence Diagram')
+            plt.title(f'Staggered Barcode of Filtered Persistence Diagram, fold: {i}, animal: {folder_str.split("/")[-4]}')
 
             # Add grid lines for better readability
             plt.grid(True, linestyle='--', alpha=0.7)
-
+            plt.savefig(folder_str + '/barcode_fold_filtered_h2' + str(i) + '.png', dpi=300, bbox_inches='tight')
             # Show the plot
             plt.show()
 
