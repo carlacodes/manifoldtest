@@ -386,6 +386,7 @@ def main():
             labels = labels.astype(np.float32)
             labels_file_name = f'labels_{window_size}_raw'
             col_names_file_name = f'col_names_{window_size}_raw'
+            print('saving labels for:', rs)
             np.save(f'{dlc_dir}/{col_names_file_name}.npy', col_names)
             np.save(f'{dlc_dir}/{labels_file_name}.npy', labels)
 

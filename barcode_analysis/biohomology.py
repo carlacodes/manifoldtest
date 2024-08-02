@@ -78,7 +78,7 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
     # plt.show()
 
 
-def run_persistence_analysis(folder_str, use_ripser=False):
+def run_persistence_analysis(folder_str, input_df, use_ripser=False):
     pairs_list = []
     dgm_dict = {}
     for i in range(5):
@@ -236,6 +236,16 @@ def main():
         # filter for window_size
         window_df = window_df[window_df['window_size'] == 250]
         num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
+        #read the input label data
+        spike_dir = os.path.join(dir, 'physiology_data')
+        dlc_dir = os.path.join(dir, 'positional_data')
+        labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
+        col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
+        #make input df
+        input_df = pd.DataFrame(labels, columns=col_list)
+
+
+
 
 
         print('at dir ', dir)
@@ -251,7 +261,7 @@ def main():
         else:
             savedir = sub_folder + files[0]
 
-        pairs_list = run_persistence_analysis(savedir)
+        pairs_list = run_persistence_analysis(savedir, input_df)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 
