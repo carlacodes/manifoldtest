@@ -1,4 +1,5 @@
 import copy
+import pandas as pd
 from datetime import datetime
 from sklearn.multioutput import MultiOutputRegressor
 import pickle
@@ -11,7 +12,6 @@ from gtda.diagrams import BettiCurve
 from gtda.homology._utils import _postprocess_diagrams
 from plotly import graph_objects as go
 from gtda.plotting import plot_diagram, plot_point_cloud
-import pandas as pd
 from helpers.utils import create_folds
 def reformat_persistence_diagrams(dgms):
     '''Reformat the persistence diagrams to be in the format required by the giotto package
@@ -78,16 +78,18 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
     # plt.show()
 
 
-def run_persistence_analysis(folder_str, use_ripser=False, num_windows = None):
+def run_persistence_analysis(folder_str, use_ripser=False):
     pairs_list = []
     dgm_dict = {}
     for i in range(5):
 
         print('at count ', i)
         reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
-        num_timesteps = reduced_data.shape[0]
-        # create folds
-        folds = create_folds(num_timesteps, num_folds = 5, num_windows = num_windows)
+        #import the folds
+        folds_data = pd.read_csv(folder_str + '/custom_folds.csv')
+        #load the test indices
+        fold_data = folds_data['test'][i]
+
 
         if use_ripser:
             pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data)[2]
@@ -130,7 +132,6 @@ def run_persistence_analysis(folder_str, use_ripser=False, num_windows = None):
 
             dgm_gtda_copy = np.hstack((dgm_gtda_copy, dgm_gtda_difference))
             #convert to a dataframe
-            import pandas as pd
             dgm_gtda_df = pd.DataFrame(dgm_gtda_copy, columns=['birth', 'death', 'dim', 'difference'])
             #filter for when difference is greater than 0
             dgm_gtda_df_filtered = dgm_gtda_df[dgm_gtda_df['difference'] >= 0.2]
@@ -250,7 +251,7 @@ def main():
         else:
             savedir = sub_folder + files[0]
 
-        pairs_list = run_persistence_analysis(savedir, num_windows = num_windows)
+        pairs_list = run_persistence_analysis(savedir)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 

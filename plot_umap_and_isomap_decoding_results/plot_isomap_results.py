@@ -118,7 +118,7 @@ def train_and_test_on_isomap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, barcode_analysis=True):
+        reducer_kwargs, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, barcode_analysis=True, just_folds = True):
 
 
     y = bhv[regress].values
@@ -127,6 +127,11 @@ def train_and_test_on_isomap_randcv(
     n_timesteps = spks.shape[0]
 
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
+    #save the custom_folds
+    if just_folds:
+        custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
+        custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
+        return None, None, None, None
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
@@ -238,6 +243,8 @@ def train_and_test_on_isomap_randcv(
             # Assuming 'reducer' is the name of the dimensionality reduction step in your pipeline
             X_test_transformed = pipeline.named_steps['reducer'].transform(
                 pipeline.named_steps['scaler'].transform(spks_test))
+            X_train_transformed = pipeline.named_steps['reducer'].transform(
+                pipeline.named_steps['scaler'].transform(spks_train))
 
             actual_angle = np.arctan2(y_test[:, 2], y_test[:, 3])
             actual_distance = np.sqrt(y_test[:, 0] ** 2 + y_test[:, 1] ** 2)
@@ -300,8 +307,10 @@ def train_and_test_on_isomap_randcv(
 
 
             filename = f"{savedir}/X_test_transformed_fold_{count}.npy"
+            filename_train = f"{savedir}/X_train_transformed_fold_{count}.npy"
             logging.info(f'Saving transformed test data to {filename}')
             np.save(filename, X_test_transformed)
+            np.save(filename_train, X_train_transformed)
             # count += 1
 
             # Calculate the mean training and test scores
@@ -321,8 +330,8 @@ def main():
     big_result_df_shuffle = pd.DataFrame()
     # f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
     # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
-
-    for data_dir in [ f'{base_dir}/rat_10/23-11-2021']:
+    just_folds = False
+    for data_dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
 
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
@@ -385,15 +394,21 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, num_windows = num_windows, savedir=save_dir, manual_params=manual_params_rat
+            reducer_kwargs, num_windows = num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds = just_folds
         )
-        result_df['rat_id'] = rat_id
-        result_df_shuffle['rat_id'] = rat_id
+        if just_folds == True:
+            continue
+        else:
+            result_df['rat_id'] = rat_id
+            result_df_shuffle['rat_id'] = rat_id
 
-        big_result_df = pd.concat([big_result_df, result_df], axis=0)
-        big_result_df_shuffle = pd.concat([big_result_df_shuffle, result_df_shuffle], axis=0)
-    big_result_df.to_csv(f'{base_dir}/big_result_df_isomap_250.csv', index=False)
-    big_result_df_shuffle.to_csv(f'{base_dir}/big_result_df_shuffle_isomap_250.csv', index=False)
+            big_result_df = pd.concat([big_result_df, result_df], axis=0)
+            big_result_df_shuffle = pd.concat([big_result_df_shuffle, result_df_shuffle], axis=0)
+    if just_folds == True:
+        return None
+    else:
+        big_result_df.to_csv(f'{base_dir}/big_result_df_isomap_250.csv', index=False)
+        big_result_df_shuffle.to_csv(f'{base_dir}/big_result_df_shuffle_isomap_250.csv', index=False)
 
 
 
