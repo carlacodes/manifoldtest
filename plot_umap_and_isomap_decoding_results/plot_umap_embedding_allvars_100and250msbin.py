@@ -35,7 +35,8 @@ import scipy
 import pickle as pkl
 from sklearn.base import BaseEstimator
 from ripser import ripser
-from ripser import Rips
+
+
 
 plt.rcParams.update(plt.rcParamsDefault)
 
@@ -537,7 +538,7 @@ def run_umap_pipeline_across_rats():
         now_day = datetime.now().strftime("%Y-%m-%d")
         filename = f'params_all_trials_randsearch_{bin_size}bin_340windows_jake_fold_allvars_{now}.npy'
         filename_mean_score = f'mean_score_all_trials_randsearch_{bin_size}bin_340windows_jake_fold_{now}.npy'
-        save_dir_path = Path(f'{data_dir}/plotting_alloangleonly_{now_day}')
+        save_dir_path = Path(f'{data_dir}/test/plotting_alloangleonly_{now_day}')
         save_dir_path.mkdir(parents=True, exist_ok=True)
         # initalise a logger
         logger = logging.getLogger(__name__)
