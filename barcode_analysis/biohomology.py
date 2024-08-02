@@ -11,7 +11,8 @@ from gtda.diagrams import BettiCurve
 from gtda.homology._utils import _postprocess_diagrams
 from plotly import graph_objects as go
 from gtda.plotting import plot_diagram, plot_point_cloud
-
+import pandas as pd
+from helpers.utils import create_folds
 def reformat_persistence_diagrams(dgms):
     '''Reformat the persistence diagrams to be in the format required by the giotto package
     Parameters
@@ -77,13 +78,16 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
     # plt.show()
 
 
-def run_persistence_analysis(folder_str, use_ripser=False):
+def run_persistence_analysis(folder_str, use_ripser=False, num_windows = None):
     pairs_list = []
     dgm_dict = {}
     for i in range(5):
 
         print('at count ', i)
         reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
+        num_timesteps = reduced_data.shape[0]
+        # create folds
+        folds = create_folds(num_timesteps, num_folds = 5, num_windows = num_windows)
 
         if use_ripser:
             pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data)[2]
@@ -219,12 +223,20 @@ def run_persistence_analysis(folder_str, use_ripser=False):
     return pairs_list
 
 
-
 def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     #f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021' f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019'
     for dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
+        window_df = pd.read_csv(
+            f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
+        # find the rat_id
+        rat_id = dir.split('/')[-2]
+        # filter for window_size
+        window_df = window_df[window_df['window_size'] == 250]
+        num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
+
+
         print('at dir ', dir)
         sub_folder = dir + '/plot_results/'
         #get list of files in the directory
@@ -238,7 +250,7 @@ def main():
         else:
             savedir = sub_folder + files[0]
 
-        pairs_list = run_persistence_analysis(savedir)
+        pairs_list = run_persistence_analysis(savedir, num_windows = num_windows)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 
