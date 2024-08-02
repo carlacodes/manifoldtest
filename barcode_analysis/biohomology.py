@@ -89,6 +89,16 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
         folds_data = pd.read_csv(folder_str + '/custom_folds.csv')
         #load the test indices
         fold_data = folds_data['test'][i]
+        #convert this to an int array
+        #remove the first bracket and the last bracket
+        fold_data = fold_data.strip('[]')  # Remove brackets
+
+        fold_data = np.array(fold_data.split(',')).astype(int)
+        #load the corresponding trial info
+        trial_info = input_df.iloc[fold_data]
+        trial_indices = trial_info['trial']
+        #load the trial info
+
 
 
         if use_ripser:
