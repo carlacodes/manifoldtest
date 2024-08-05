@@ -191,6 +191,14 @@ def train_and_test_on_isomap_randcv(
         fold_dataframe = pd.DataFrame()
         fold_dataframe_shuffle = pd.DataFrame()
         print('beginning cv with custom folds')
+        pipeline_copy = copy.deepcopy(pipeline)
+        pipeline_copy.set_params(**manual_params)
+        pipeline_copy.fit(spks, y)
+
+        full_set_transformed = pipeline_copy.named_steps['reducer'].transform(
+            pipeline_copy.named_steps['scaler'].transform(spks))
+        np.save(f'{savedir}/full_set_transformed.npy', full_set_transformed)
+
         for count, (train_index, test_index) in enumerate(custom_folds):
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
@@ -245,6 +253,8 @@ def train_and_test_on_isomap_randcv(
                 pipeline.named_steps['scaler'].transform(spks_test))
             X_train_transformed = pipeline.named_steps['reducer'].transform(
                 pipeline.named_steps['scaler'].transform(spks_train))
+
+
 
             actual_angle = np.arctan2(y_test[:, 2], y_test[:, 3])
             actual_distance = np.sqrt(y_test[:, 0] ** 2 + y_test[:, 1] ** 2)
