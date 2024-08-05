@@ -126,40 +126,6 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
 
 
 
-    # #get the fold_data indices that are continuous and part of the same trial info in the trial_indices
-    # #get the indices of the trial info
-    #
-    # #sort the fold data into continuous sgements
-    # sorted_list = []
-    # for k, g in groupby(enumerate(fold_data), lambda ix: ix[0] - ix[1]):
-    #     sorted_list.append(list(map(itemgetter(1), g)))
-    # #get the trial indices
-    # not_same_list = []
-    # for sorted_segment in sorted_list:
-    #     # print('trial indices', trial_indices[sorted_segment[0]])
-    #     # Check if all the trial indices are the same
-    #     if len(set(trial_indices[sorted_segment])) == 1:
-    #         # print('all the same')
-    #         pass
-    #     else:
-    #         print('not all the same')
-    #         not_same_list.append(sorted_segment)
-    #         # Remove the segment from the sorted_list
-    #         sorted_list.remove(sorted_segment)
-    #         # Subdivide the segment to ensure indices are continuous and from the same trial
-    #         subdivided_segments = []
-    #         for k, g in groupby(enumerate(sorted_segment), lambda ix: ix[0] - ix[1]):
-    #             continuous_segment = list(map(itemgetter(1), g))
-    #             # Further subdivide by trial indices
-    #             trial_subdivisions = []
-    #             for k, g in groupby(continuous_segment, key=lambda x: trial_indices[x]):
-    #                 trial_subdivisions.append(list(g))
-    #             subdivided_segments.extend(trial_subdivisions)
-    #         # Add the subdivided segments back to the sorted_list
-    #         sorted_list.extend(subdivided_segments)
-
-
-
     for j in range(len(sorted_list)):
         reduced_data_loop = reduced_data[sorted_list[j], :]
         if use_ripser:
