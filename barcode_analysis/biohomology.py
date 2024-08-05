@@ -86,7 +86,11 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
     for i in range(5):
 
         print('at count ', i)
-        reduced_data = np.load(folder_str + '/X_train_transformed_fold_' + str(i) + '.npy')
+        ##REDUCED DATA NEEDS TO BE JUST SPKS TRANSFORMED
+        reduced_data = (
+
+
+            np.load(folder_str + '/X_train_transformed_fold_' + str(i) + '.npy'))
         #import the folds
         folds_data = pd.read_csv(folder_str + '/custom_folds.csv')
         #load the test indices
@@ -109,10 +113,11 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
         #get the trial indices
         not_same_list = []
         for sorted_segment in sorted_list:
-            print('trial indices', trial_indices[sorted_segment[0]])
+            # print('trial indices', trial_indices[sorted_segment[0]])
             # Check if all the trial indices are the same
             if len(set(trial_indices[sorted_segment])) == 1:
-                print('all the same')
+                # print('all the same')
+                pass
             else:
                 print('not all the same')
                 not_same_list.append(sorted_segment)
@@ -155,7 +160,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
                 plt.xlabel('birth')
                 plt.ylabel('death')
                 plt.title('Persistence scatter plot')
-                plt.show()
+                # plt.show()
                 #save the individual pairs with the count
                 np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
             else:
@@ -163,14 +168,14 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
                 diagram = plot_diagram(dgm_gtda[0], homology_dimensions=(0, 1,2))
                 # diagram.show()
-                diagram.write_html(folder_str + '/dgm_fold_h2' + str(i) + '.html')
+                diagram.write_html(folder_str + '/dgm_fold_h2_fold' + str(i) + '_interval_' + str(j) + '.html')
                 dgm_dict[i] = dgm
                 #plot the betti curve using the giotto package
                 betti_curve_transformer = BettiCurve(n_bins=1000, n_jobs=20)  # n_bins controls the resolution of the Betti curve
                 betti_curves = betti_curve_transformer.fit_transform(dgm_gtda)
                 fig = betti_curve_transformer.plot(betti_curves, sample=0)
                 #save plotly object figure
-                fig.write_html(folder_str + '/betti_curve_fold_h2_2' + str(i) + '.html')
+                fig.write_html(folder_str + '/betti_curve_fold_h2_fold' + str(i)  + '_interval_' + str(j) + '.html')
                 #save the individual persistence diagrams
                 #subtract the first dimension from the second dimension
                 dgm_gtda_difference = dgm_gtda[0][:,1] - dgm_gtda[0][:,0]
@@ -244,15 +249,15 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
                 plt.grid(True, linestyle='--', alpha=0.7)
                 plt.savefig(folder_str + '/barcode_fold_filtered_h2' + str(i) + '.png', dpi=300, bbox_inches='tight')
                 # Show the plot
-                plt.show()
+                # plt.show()
                 plt.close('all')
 
 
                 plot_barcode(dgm_gtda[0], 1,fold = i,  save_dir=folder_str)
                 plot_barcode(dgm_gtda[0], 2,fold=i, save_dir=folder_str)
                 plot_barcode(dgm_gtda[0], 0, fold= i, save_dir=folder_str)
-                dgm_gtda_df_filtered.to_csv(folder_str + '/dgm_df_filtered_fold_h2' + str(i) + '.csv')
-                np.save(folder_str + '/dgm_fold_h2' + str(i) + '.npy', dgm)
+                dgm_gtda_df_filtered.to_csv(folder_str + '/dgm_df_filtered_fold_h2' + str(i) + '_interval_' + str(j) + '.csv')
+                np.save(folder_str + '/dgm_fold_h2' + str(i) + '_interval_' + str(j) + '.npy', dgm)
 
           # plot_barcode(diagrams, 1)
         # plt.show()
