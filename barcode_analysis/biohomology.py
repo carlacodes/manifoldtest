@@ -261,6 +261,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
 
     df_output = plot_homology_changes_heatmap(dgm_dict, folder_str)
+    fit_params = fit_sinusoid_data(df_output, folder_str)
 
     if use_ripser:
         with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
