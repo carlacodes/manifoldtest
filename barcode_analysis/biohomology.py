@@ -83,6 +83,8 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
 def run_persistence_analysis(folder_str, input_df, use_ripser=False):
     pairs_list = []
     dgm_dict = {}
+    sorted_list = []
+
 
     reduced_data = (
         np.load(folder_str + '/full_set_transformed.npy'))
@@ -98,6 +100,29 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
     # #load the corresponding trial info
     trial_info = input_df
     trial_indices = trial_info['trial']
+    #sort the data into segments of 40 smamples and check they are all part of the same trial
+
+
+    for i in range(int(len(reduced_data)/ 40)):
+        reduced_data_loop = reduced_data[i*40:(i+1)*40]
+        #check they are all part of the same trial
+        if len(set(trial_indices[i*40:(i+1)*40])) == 1:
+            sorted_list.append(list(range(i * 40, (i + 1) * 40)))
+        else:
+            #subdivide the segments into continuous segments
+            subdivided_indices = []
+            for k, g in groupby(enumerate(range(i * 40, (i + 1) * 40)), lambda ix: ix[0] - ix[1]):
+                continuous_segment = list(map(itemgetter(1), g))
+                # Further subdivide by trial indices
+                trial_subdivisions = []
+                for k, g in groupby(continuous_segment, key=lambda x: trial_indices[x]):
+                    if len(list(g)) >= 20:
+                        trial_subdivisions.append(list(g))
+                subdivided_indices.extend(trial_subdivisions)
+            sorted_list.extend(subdivided_indices)
+
+
+
     # #get the fold_data indices that are continuous and part of the same trial info in the trial_indices
     # #get the indices of the trial info
     #
@@ -130,12 +155,10 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
     #         # Add the subdivided segments back to the sorted_list
     #         sorted_list.extend(subdivided_segments)
 
-    sorted_list = []
 
 
     for j in range(len(sorted_list)):
-        reduced_data_loop = reduced_data[sorted_list[j]]
-
+        reduced_data_loop = reduced_data[sorted_list[j], :]
         if use_ripser:
             pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data_loop)[2]
             print('pairs shape', pairs.shape)
