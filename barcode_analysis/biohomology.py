@@ -84,7 +84,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
     for i in range(5):
 
         print('at count ', i)
-        reduced_data = np.load(folder_str + '/X_test_transformed_fold_' + str(i) + '.npy')
+        reduced_data = np.load(folder_str + '/X_train_transformed_fold_' + str(i) + '.npy')
         #import the folds
         folds_data = pd.read_csv(folder_str + '/custom_folds.csv')
         #load the test indices
@@ -263,7 +263,7 @@ def main():
         #get list of files in the directory
         files = os.listdir(sub_folder)
         #check if more than two dirs
-        if len(files) > 2:
+        if len(files) >= 2:
             #choose the most recently modified directory
             files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
             #get the most recently modified directory
