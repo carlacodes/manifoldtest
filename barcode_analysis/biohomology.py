@@ -5,8 +5,6 @@ from sklearn.multioutput import MultiOutputRegressor
 import pickle
 import os
 import ripserplusplus as rpp
-import numpy as np
-import matplotlib.pyplot as plt
 from gph import ripser_parallel
 from gtda.diagrams import BettiCurve
 from gtda.homology._utils import _postprocess_diagrams
@@ -16,6 +14,10 @@ from helpers.utils import create_folds
 from itertools import groupby
 from operator import itemgetter
 import seaborn as sns
+import numpy as np
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+
 
 def plot_homology_changes_heatmap(dgm_dict, save_dir):
     """
@@ -56,6 +58,69 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir):
     plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals.png', dpi=300, bbox_inches='tight')
     plt.show()
     plt.close()
+    return df
+
+
+def calculate_goodness_of_fit(x_data, y_data, params):
+    # Calculate the fitted values
+    y_fitted = sinusoidal(x_data, *params)
+
+    # Calculate residuals
+    residuals = y_data - y_fitted
+
+    # Sum of squared residuals (SSR)
+    ssr = np.sum(residuals ** 2)
+
+    # Total sum of squares (SST)
+    sst = np.sum((y_data - np.mean(y_data)) ** 2)
+
+    # R-squared
+    r_squared = 1 - (ssr / sst)
+
+    return r_squared
+
+def sinusoidal(x, A, B, C, D):
+    return A * np.sin(B * x + C) + D
+
+def fit_sinusoid_data(df, save_dir):
+
+    # Define a sinusoidal function for fitting
+
+    # Extract data from the heatmap
+    heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
+
+    # Prepare to store fit parameters
+    fit_params = {}
+
+    # Fit the function for each homology dimension
+    for dim in heatmap_data.columns:
+        x_data = heatmap_data.index.values
+        y_data = heatmap_data[dim].values
+
+        # Initial guess for the parameters
+        initial_guess = [1, 1, 0, np.mean(y_data)]
+
+        # Fit the sinusoidal function to the data
+        params, _ = curve_fit(sinusoidal, x_data, y_data, p0=initial_guess)
+        fit_params[dim] = params
+        r_squared = calculate_goodness_of_fit(x_data, y_data, params)
+        print(f'R-squared for dimension {dim}: {r_squared}')
+
+        # Plot the original data and the fitted function
+        plt.figure(figsize=(10, 6))
+        plt.plot(x_data, y_data, 'bo', label='Original Data')
+        plt.plot(x_data, sinusoidal(x_data, *params), 'r-', label='Fitted Function')
+        plt.title(f'Sinusoidal Fit for Homology Dimension {dim}')
+        plt.xlabel('Interval (j)')
+        plt.ylabel('Mean Death - Birth')
+        plt.legend()
+        plt.show()
+
+    # Print the fit parameters for each dimension
+    for dim, params in fit_params.items():
+        print(f'Dimension {dim}: A={params[0]}, B={params[1]}, C={params[2]}, D={params[3]}')
+
+    return fit_params
 
 
 def plot_homology_changes_over_j(dgm_dict, save_dir):
@@ -195,7 +260,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             dgm_dict[j] = dgm
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
 
-    plot_homology_changes_heatmap(dgm_dict, folder_str)
+    df_output = plot_homology_changes_heatmap(dgm_dict, folder_str)
 
     if use_ripser:
         with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
