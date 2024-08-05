@@ -121,6 +121,9 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
                 subdivided_indices.extend(trial_subdivisions)
             sorted_list.extend(subdivided_indices)
 
+    #remove the empty lists
+    sorted_list = [x for x in sorted_list if x != []]
+
 
 
     # #get the fold_data indices that are continuous and part of the same trial info in the trial_indices
@@ -178,20 +181,20 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             plt.title('Persistence scatter plot')
             # plt.show()
             #save the individual pairs with the count
-            np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
+            np.save(folder_str + '/pairs_fold_h2' + str(j) + '.npy', pairs)
         else:
             dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
             dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
             diagram = plot_diagram(dgm_gtda[0], homology_dimensions=(0, 1,2))
             # diagram.show()
-            diagram.write_html(folder_str + '/dgm_fold_h2_fold' + str(i) + '_interval_' + str(j) + '.html')
+            diagram.write_html(folder_str + '/dgm_fold_h2_fold'+ '_interval_' + str(j) + '.html')
             dgm_dict[i] = dgm
             #plot the betti curve using the giotto package
             betti_curve_transformer = BettiCurve(n_bins=1000, n_jobs=20)  # n_bins controls the resolution of the Betti curve
             betti_curves = betti_curve_transformer.fit_transform(dgm_gtda)
             fig = betti_curve_transformer.plot(betti_curves, sample=0)
             #save plotly object figure
-            fig.write_html(folder_str + '/betti_curve_fold_h2_fold' + str(i)  + '_interval_' + str(j) + '.html')
+            fig.write_html(folder_str + '/betti_curve_fold_h2_fold' + '_interval_' + str(j) + '.html')
             #save the individual persistence diagrams
             #subtract the first dimension from the second dimension
             dgm_gtda_difference = dgm_gtda[0][:,1] - dgm_gtda[0][:,0]
@@ -259,11 +262,11 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             # Add labels and title
             plt.xlabel('Filtration Value')
             plt.ylabel('Homology Dimension')
-            plt.title(f'Staggered Barcode of Filtered Persistence Diagram, fold: {i}, animal: {folder_str.split("/")[-4]}')
+            plt.title(f'Staggered Barcode of Filtered Persistence Diagram, interval: {j}, animal: {folder_str.split("/")[-4]}')
 
             # Add grid lines for better readability
             plt.grid(True, linestyle='--', alpha=0.7)
-            plt.savefig(folder_str + '/barcode_fold_filtered_h2' + str(i) + '.png', dpi=300, bbox_inches='tight')
+            plt.savefig(folder_str + '/barcode_fold_filtered_h2_interval' + str(j) + '.png', dpi=300, bbox_inches='tight')
             # Show the plot
             # plt.show()
             plt.close('all')
@@ -272,8 +275,8 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             plot_barcode(dgm_gtda[0], 1,fold = i,  save_dir=folder_str)
             plot_barcode(dgm_gtda[0], 2,fold=i, save_dir=folder_str)
             plot_barcode(dgm_gtda[0], 0, fold= i, save_dir=folder_str)
-            dgm_gtda_df_filtered.to_csv(folder_str + '/dgm_df_filtered_fold_h2' + str(i) + '_interval_' + str(j) + '.csv')
-            np.save(folder_str + '/dgm_fold_h2' + str(i) + '_interval_' + str(j) + '.npy', dgm)
+            dgm_gtda_df_filtered.to_csv(folder_str + '/dgm_df_filtered_fold_h2' + '_interval_' + str(j) + '.csv')
+            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
 
           # plot_barcode(diagrams, 1)
         # plt.show()
