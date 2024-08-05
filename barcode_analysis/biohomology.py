@@ -19,7 +19,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
 
-def plot_homology_changes_heatmap(dgm_dict, save_dir):
+def plot_homology_changes_heatmap(dgm_dict, save_dir, trial_indices):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
 
@@ -41,6 +41,15 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir):
         for birth, death, dim in zip(birth_times, death_times, dimensions):
             heatmap_data.append([j, birth, death, dim])
 
+    trial_indices = np.array(trial_indices)
+    #calcuate where the value of trial_indices changes
+    trial_indices_diff = np.diff(trial_indices)
+    #get the indices where the trial_indices change
+    trial_indices_change = np.where(trial_indices_diff != 0)[0]
+    #get the start and end indices
+    start_indices = np.insert(trial_indices_change + 1, 0, 0)
+    end_indices = np.append(trial_indices_change, len(trial_indices) - 1)
+
     df = pd.DataFrame(heatmap_data, columns=['Interval', 'Birth', 'Death', 'Dimension'])
     df['death_minus_birth'] = df['Death'] - df['Birth']
 
@@ -48,6 +57,11 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir):
     heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
 
     ax = sns.heatmap(heatmap_data, cmap='viridis')
+    #mark the start and end trial indices
+    for start, end in zip(start_indices, end_indices):
+        ax.axhline(start, color='r', linestyle='--')
+        ax.axhline(end, color='r', linestyle='--')
+
     cbar = ax.collections[0].colorbar
     cbar.set_label('Death - Birth')
     plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}')
@@ -259,8 +273,8 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
             dgm_dict[j] = dgm
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
-
-    df_output = plot_homology_changes_heatmap(dgm_dict, folder_str)
+    #generate the trial indices where the trial changes
+    df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, trial_indices)
     fit_params = fit_sinusoid_data(df_output, folder_str)
 
     if use_ripser:
