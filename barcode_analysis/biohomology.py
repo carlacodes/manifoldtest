@@ -19,7 +19,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
 
-def plot_homology_changes_heatmap(dgm_dict, save_dir, trial_indices):
+def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices, end_indices):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
 
@@ -41,14 +41,10 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, trial_indices):
         for birth, death, dim in zip(birth_times, death_times, dimensions):
             heatmap_data.append([j, birth, death, dim])
 
-    trial_indices = np.array(trial_indices)
-    #calcuate where the value of trial_indices changes
-    trial_indices_diff = np.diff(trial_indices)
-    #get the indices where the trial_indices change
-    trial_indices_change = np.where(trial_indices_diff != 0)[0]
-    #get the start and end indices
-    start_indices = np.insert(trial_indices_change + 1, 0, 0)
-    end_indices = np.append(trial_indices_change, len(trial_indices) - 1)
+
+
+    #find which interval this corresponds to
+
 
     df = pd.DataFrame(heatmap_data, columns=['Interval', 'Birth', 'Death', 'Dimension'])
     df['death_minus_birth'] = df['Death'] - df['Birth']
@@ -58,9 +54,12 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, trial_indices):
 
     ax = sns.heatmap(heatmap_data, cmap='viridis')
     #mark the start and end trial indices
-    for start, end in zip(start_indices, end_indices):
+    # for start, end in zip(start_indices, end_indices):
+    #     ax.axhline(start, color='r', linestyle='--')
+    #     ax.axhline(end, color='r', linestyle='--')
+
+    for start in  start_indices:
         ax.axhline(start, color='r', linestyle='--')
-        ax.axhline(end, color='r', linestyle='--')
 
     cbar = ax.collections[0].colorbar
     cbar.set_label('Death - Birth')
@@ -255,10 +254,30 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
                 continuous_segment = list(map(itemgetter(1), g))
                 trial_subdivisions = []
                 for k, g in groupby(continuous_segment, key=lambda x: trial_indices[x]):
-                    if len(list(g)) >= 20:
-                        trial_subdivisions.append(list(g))
+                    # if len(list(g)) >= 20:
+                    trial_subdivisions.append(list(g))
                 subdivided_indices.extend(trial_subdivisions)
             sorted_list.extend(subdivided_indices)
+
+
+    trial_indices = np.array(trial_indices)
+    #calcuate where the value of trial_indices changes
+    trial_indices_diff = np.diff(trial_indices)
+    #get the indices where the trial_indices change
+    trial_indices_change = np.where(trial_indices_diff != 0)[0]
+    #get the start and end indices
+    start_indices = np.insert(trial_indices_change + 1, 0, 0)
+    end_indices = np.append(trial_indices_change, len(trial_indices) - 1)
+    #get the corresponding sorted_list interval number
+
+    ##find the start indices for each sorted_list component
+    start_intervals = []
+    end_intervals = []
+    for i in range(len(sorted_list)):
+        if sorted_list[i][0] in start_indices:
+            start_intervals.append(i)
+        if sorted_list[i][-1] in end_indices:
+            end_intervals.append(i)
 
     sorted_list = [x for x in sorted_list if x != []]
 
@@ -274,7 +293,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             dgm_dict[j] = dgm
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
     #generate the trial indices where the trial changes
-    df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, trial_indices)
+    df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
     fit_params = fit_sinusoid_data(df_output, folder_str)
 
     if use_ripser:
