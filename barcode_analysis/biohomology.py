@@ -1,12 +1,9 @@
 import copy
 import pandas as pd
-from datetime import datetime
-from sklearn.multioutput import MultiOutputRegressor
 import pickle
 import os
 import ripserplusplus as rpp
 from gph import ripser_parallel
-from gtda.diagrams import BettiCurve
 from gtda.homology._utils import _postprocess_diagrams
 from itertools import groupby
 from operator import itemgetter
@@ -368,7 +365,7 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
 
 
 
-def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=80):
+def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40):
     pairs_list = []
     dgm_dict = {}
     sorted_list = []
@@ -427,7 +424,8 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
     #generate the trial indices where the trial changes
     df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
-    fit_params = utils.fit_sinusoid_data_per_interval(df_output, folder_str, start_intervals, end_intervals)
+    fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str)
+    # fit_params = utils.fit_sinusoid_data_per_interval(df_output, folder_str, start_intervals, end_intervals)
 
     if use_ripser:
         with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
