@@ -2,6 +2,7 @@ import numpy as np
 import numpy as np
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import pandas as pd
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps / n_windows_total
@@ -52,7 +53,7 @@ def fit_sinusoid_data_per_interval(df, save_dir, start_indices, end_indices):
         sst = np.sum((y_data - np.mean(y_data)) ** 2)
         r_squared = 1 - (ssr / sst)
         return r_squared
-
+    r_squared_df = pd.DataFrame(columns=['Interval', 'Dimension', 'R-squared'])
     for idx, (start, end) in enumerate(zip(start_indices, end_indices)):
         segment_df = df[(df['Interval'] >= start) & (df['Interval'] <= end)]
         heatmap_data = segment_df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
@@ -70,12 +71,15 @@ def fit_sinusoid_data_per_interval(df, save_dir, start_indices, end_indices):
 
             fit_params[dim] = params
             r_squared = calculate_goodness_of_fit(x_data, y_data, sinusoidal(x_data, *params))
+            ##append to r_squared_df
+            r_squared_df_indiv = pd.DataFrame({'Interval': idx, 'Dimension': dim, 'R-squared': r_squared}, index=[0])
+            r_squared_df = pd.concat([r_squared_df, r_squared_df_indiv], ignore_index=True)
             print(f'R-squared for dimension {dim} in interval {start}-{end}: {r_squared}')
 
             plt.figure(figsize=(10, 6))
             plt.plot(x_data, y_data, 'bo', label='Original Data')
             plt.plot(x_data, sinusoidal(x_data, *params), 'r-', label='Fitted Function')
-            plt.title(f'Sinusoidal Fit for Homology Dimension {dim} in Interval {start}-{end}')
+            plt.title(f'Sinusoidal Fit for Homology Dimension {dim} in Interval {start}-{end}, r2 score: {r_squared:.2f}')
             plt.xlabel('Interval (j)')
             plt.ylabel('Mean Death - Birth')
             plt.legend()
@@ -85,5 +89,7 @@ def fit_sinusoid_data_per_interval(df, save_dir, start_indices, end_indices):
 
         for dim, params in fit_params.items():
             print(f'Dimension {dim} in interval {start}-{end}: A={params[0]}, B={params[1]}, C={params[2]}, D={params[3]}')
+    r_squared_df['mean_r_squared'] = r_squared_df.groupby('Dimension')['R-squared'].transform('mean')
 
+    r_squared_df.to_csv(f'{save_dir}/r_squared_values.csv', index=False)
     return fit_params

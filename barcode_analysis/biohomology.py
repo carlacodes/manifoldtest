@@ -368,7 +368,7 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
 
 
 
-def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40):
+def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=80):
     pairs_list = []
     dgm_dict = {}
     sorted_list = []
@@ -442,7 +442,6 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
-    #f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021' f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019'
     for dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
         window_df = pd.read_csv(
             f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
