@@ -51,8 +51,24 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
         heatmap_data = segment_df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
 
         ax = sns.heatmap(heatmap_data, cmap='viridis')
-        ax.axhline(start, color='r', linestyle='--')
-        ax.axhline(end, color='r', linestyle='--')
+        # ax.axhline(start, color='r', linestyle='--')
+        # ax.axhline(end+1, color='r', linestyle='--')
+        y_ticks = heatmap_data.index.values
+
+        mapped_start_indices = [np.where(y_ticks == start)[0][0] for start in start_indices if start in y_ticks]
+        mapped_end_indices = [np.where(y_ticks == end)[0][0] for end in end_indices if end in y_ticks]
+
+        # Map start indices to y-tick positions
+
+        # Annotate y-ticks with start indices
+        for idx, (start_annotate, end_annotate) in enumerate(zip(mapped_start_indices, mapped_end_indices)):
+            ax.annotate('Start', xy=(0, start_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points', color='r',
+                        fontsize=12, ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
+            ax.annotate('End', xy=(0, end_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points', color='r', fontsize=12,
+                        ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
+
+
+
 
         cbar = ax.collections[0].colorbar
         cbar.set_label('Death - Birth')
@@ -88,10 +104,6 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices, end_indices
             heatmap_data.append([j, birth, death, dim])
 
 
-
-    #find which interval this corresponds to
-
-
     df = pd.DataFrame(heatmap_data, columns=['Interval', 'Birth', 'Death', 'Dimension'])
     df['death_minus_birth'] = df['Death'] - df['Birth']
 
@@ -103,9 +115,23 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices, end_indices
     # for start, end in zip(start_indices, end_indices):
     #     ax.axhline(start, color='r', linestyle='--')
     #     ax.axhline(end, color='r', linestyle='--')
+    y_ticks = heatmap_data.index.values
 
-    for start in  start_indices:
-        ax.axhline(start, color='r', linestyle='--')
+    # for idx, (start, end) in enumerate(zip(start_indices, end_indices)):
+
+    mapped_start_indices = [np.where(y_ticks == start)[0][0] for start in start_indices if start in y_ticks]
+    mapped_end_indices = [np.where(y_ticks == end)[0][0] for end in end_indices if end in y_ticks]
+
+    # Map start indices to y-tick positions
+
+    # Annotate y-ticks with start indices
+    for idx, (start_annotate, end_annotate) in enumerate(zip(mapped_start_indices, mapped_end_indices)):
+        ax.annotate('Start', xy=(0, start_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
+                    color='r',
+                    fontsize=12, ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
+        # ax.annotate('End', xy=(0, end_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
+        #             color='r', fontsize=12,
+        #             ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
 
     cbar = ax.collections[0].colorbar
     cbar.set_label('Death - Birth')
@@ -339,7 +365,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             dgm_dict[j] = dgm
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
     #generate the trial indices where the trial changes
-    df_output = plot_homology_changes_heatmap_interval(dgm_dict, folder_str, start_intervals, end_intervals)
+    df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
     fit_params = fit_sinusoid_data(df_output, folder_str)
 
     if use_ripser:
