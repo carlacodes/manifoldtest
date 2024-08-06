@@ -8,9 +8,6 @@ import ripserplusplus as rpp
 from gph import ripser_parallel
 from gtda.diagrams import BettiCurve
 from gtda.homology._utils import _postprocess_diagrams
-from plotly import graph_objects as go
-from gtda.plotting import plot_diagram, plot_point_cloud
-from helpers.utils import create_folds
 from itertools import groupby
 from operator import itemgetter
 import seaborn as sns
@@ -18,6 +15,55 @@ import numpy as np
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
+def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
+    """
+    Plot how the homology changes over the range of `j` using a heatmap.
+
+    Parameters
+    ----------
+    dgm_dict: dict
+        Dictionary containing persistence diagrams for each `j`.
+    save_dir: str
+        Directory to save the plot.
+    start_indices: list
+        List of start indices for each segment.
+    end_indices: list
+        List of end indices for each segment.
+    """
+    heatmap_data = []
+
+    for j, dgm in dgm_dict.items():
+        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+        birth_times = dgm_gtda[0][:, 0]
+        death_times = dgm_gtda[0][:, 1]
+        dimensions = dgm_gtda[0][:, 2]
+
+        for birth, death, dim in zip(birth_times, death_times, dimensions):
+            heatmap_data.append([j, birth, death, dim])
+
+    df = pd.DataFrame(heatmap_data, columns=['Interval', 'Birth', 'Death', 'Dimension'])
+    df['death_minus_birth'] = df['Death'] - df['Birth']
+
+    for idx, (start, end) in enumerate(zip(start_indices, end_indices)):
+        segment_df = df[(df['Interval'] >= start) & (df['Interval'] <= end)]
+
+        plt.figure(figsize=(12, 8))
+        heatmap_data = segment_df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
+
+        ax = sns.heatmap(heatmap_data, cmap='viridis')
+        ax.axhline(start, color='r', linestyle='--')
+        ax.axhline(end, color='r', linestyle='--')
+
+        cbar = ax.collections[0].colorbar
+        cbar.set_label('Death - Birth')
+        plt.title(f'Homology Changes Heatmap Over Intervals {start}-{end} for animal: {save_dir.split("/")[-4]}')
+        plt.xlabel('Homology Dimension')
+        plt.ylabel('Interval (j)')
+        plt.tight_layout()
+        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_{start}_{end}.png', dpi=300, bbox_inches='tight')
+        plt.show()
+        plt.close()
+    return df
 
 def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices, end_indices):
     """
@@ -293,7 +339,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False):
             dgm_dict[j] = dgm
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
     #generate the trial indices where the trial changes
-    df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
+    df_output = plot_homology_changes_heatmap_interval(dgm_dict, folder_str, start_intervals, end_intervals)
     fit_params = fit_sinusoid_data(df_output, folder_str)
 
     if use_ripser:
