@@ -61,7 +61,7 @@ def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False):
         print(f'Dimension {dim}: A={params[0]}, B={params[1]}, C={params[2]}, D={params[3]}')
 
     r_squared_df['mean_r_squared'] = r_squared_df['R-squared'].mean()
-    r_squared_df.to_csv(f'{save_dir}/r_squared_values_whole.csv', index=False)
+    r_squared_df.to_csv(f'{save_dir}/r_squared_values_whole_cumulative_{cumulative_param}.csv', index=False)
 
     return fit_params
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
@@ -152,5 +152,5 @@ def fit_sinusoid_data_per_interval(df, save_dir, start_indices, end_indices, cum
             print(f'Dimension {dim} in interval {start}-{end}: A={params[0]}, B={params[1]}, C={params[2]}, D={params[3]}')
     r_squared_df['mean_r_squared'] = r_squared_df.groupby('Dimension')['R-squared'].transform('mean')
 
-    r_squared_df.to_csv(f'{save_dir}/r_squared_values.csv', index=False)
+    r_squared_df.to_csv(f'{save_dir}/r_squared_values_cumulative_{cumulative_param}.csv', index=False)
     return fit_params

@@ -364,33 +364,54 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
     # plt.show()
 
 
+
+
+
 def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
     sorted_list = []
     current_index = 0
+    total_length = len(trial_indices)
 
-    for i in range(int(len(reduced_data) / segment_length)):
-        if cumulative:
-            start_index = current_index
-            end_index = current_index + segment_length
-            current_index = end_index
-        else:
+    if cumulative:
+        for i in range(int(len(reduced_data) / segment_length)):
+            start_index = 0  # Always start from the beginning when cumulative is True
+            end_index = min(current_index + segment_length, total_length)  # Accumulate to the current segment
+
+            if len(set(trial_indices[start_index:end_index])) == 1:
+                sorted_list.append(list(range(start_index, end_index)))
+            else:
+                subdivided_indices = []
+                continuous_segment = list(range(start_index, end_index))
+                for _, g in groupby(enumerate(continuous_segment), lambda ix: ix[0] - ix[1]):
+                    segment = list(map(itemgetter(1), g))
+                    trial_subdivisions = []
+                    for _, g in groupby(segment, key=lambda x: trial_indices[x]):
+                        trial_subdivisions.append(list(g))
+                    subdivided_indices.extend(trial_subdivisions)
+                sorted_list.extend(subdivided_indices)
+
+            current_index = end_index  # Move the current index forward for the next iteration
+
+    else:
+        for i in range(int(len(reduced_data) / segment_length)):
             start_index = i * segment_length
-            end_index = (i + 1) * segment_length
+            end_index = min((i + 1) * segment_length, total_length)
 
-        reduced_data_loop = reduced_data[start_index:end_index]
-        if len(set(trial_indices[start_index:end_index])) == 1:
-            sorted_list.append(list(range(start_index, end_index)))
-        else:
-            subdivided_indices = []
-            for k, g in groupby(enumerate(range(start_index, end_index)), lambda ix: ix[0] - ix[1]):
-                continuous_segment = list(map(itemgetter(1), g))
-                trial_subdivisions = []
-                for k, g in groupby(continuous_segment, key=lambda x: trial_indices[x]):
-                    trial_subdivisions.append(list(g))
-                subdivided_indices.extend(trial_subdivisions)
-            sorted_list.extend(subdivided_indices)
+            if len(set(trial_indices[start_index:end_index])) == 1:
+                sorted_list.append(list(range(start_index, end_index)))
+            else:
+                subdivided_indices = []
+                continuous_segment = list(range(start_index, end_index))
+                for _, g in groupby(enumerate(continuous_segment), lambda ix: ix[0] - ix[1]):
+                    segment = list(map(itemgetter(1), g))
+                    trial_subdivisions = []
+                    for _, g in groupby(segment, key=lambda x: trial_indices[x]):
+                        trial_subdivisions.append(list(g))
+                    subdivided_indices.extend(trial_subdivisions)
+                sorted_list.extend(subdivided_indices)
 
     return sorted_list
+
 
 def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
     pairs_list = []
@@ -484,7 +505,7 @@ def main():
         else:
             savedir = sub_folder + files[0]
 
-        pairs_list = run_persistence_analysis(savedir, input_df)
+        pairs_list = run_persistence_analysis(savedir, input_df, cumulative_param=True)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 
