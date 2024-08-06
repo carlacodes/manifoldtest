@@ -365,50 +365,41 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
 
 
 
-
-
 def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
     sorted_list = []
     current_index = 0
     total_length = len(trial_indices)
 
-    if cumulative:
-        for i in range(int(len(reduced_data) / segment_length)):
-            start_index = 0  # Always start from the beginning when cumulative is True
-            end_index = min(current_index + segment_length, total_length)  # Accumulate to the current segment
+    while current_index < total_length:
+        # Determine segment boundaries
+        if cumulative:
+            # Cumulative mode: increase the segment length as we progress
+            start_index = current_index
+            end_index = min(current_index + segment_length, total_length)
+            current_trial = trial_indices[start_index]  # Track the current trial
+        else:
+            # Non-cumulative mode: fixed segment size
+            start_index = current_index
+            end_index = min(current_index + segment_length, total_length)
 
-            if len(set(trial_indices[start_index:end_index])) == 1:
-                sorted_list.append(list(range(start_index, end_index)))
-            else:
-                subdivided_indices = []
-                continuous_segment = list(range(start_index, end_index))
-                for _, g in groupby(enumerate(continuous_segment), lambda ix: ix[0] - ix[1]):
-                    segment = list(map(itemgetter(1), g))
-                    trial_subdivisions = []
-                    for _, g in groupby(segment, key=lambda x: trial_indices[x]):
-                        trial_subdivisions.append(list(g))
-                    subdivided_indices.extend(trial_subdivisions)
-                sorted_list.extend(subdivided_indices)
+        # Check if the segment spans multiple trials
+        if len(set(trial_indices[start_index:end_index])) == 1:
+            # If the entire segment is within one trial, append the range
+            sorted_list.append(list(range(start_index, end_index)))
+            current_index = end_index
+        else:
+            # If the segment crosses into a new trial, we need to subdivide it
+            for i in range(start_index, end_index):
+                if trial_indices[i] != trial_indices[start_index]:
+                    # We've hit a new trial, so stop the current cumulative segment here
+                    sorted_list.append(list(range(start_index, i)))
+                    # Reset the start index and current trial for the new segment
+                    start_index = i
+                    break
 
-            current_index = end_index  # Move the current index forward for the next iteration
-
-    else:
-        for i in range(int(len(reduced_data) / segment_length)):
-            start_index = i * segment_length
-            end_index = min((i + 1) * segment_length, total_length)
-
-            if len(set(trial_indices[start_index:end_index])) == 1:
-                sorted_list.append(list(range(start_index, end_index)))
-            else:
-                subdivided_indices = []
-                continuous_segment = list(range(start_index, end_index))
-                for _, g in groupby(enumerate(continuous_segment), lambda ix: ix[0] - ix[1]):
-                    segment = list(map(itemgetter(1), g))
-                    trial_subdivisions = []
-                    for _, g in groupby(segment, key=lambda x: trial_indices[x]):
-                        trial_subdivisions.append(list(g))
-                    subdivided_indices.extend(trial_subdivisions)
-                sorted_list.extend(subdivided_indices)
+            # After resetting, add the new cumulative segment (or part of it)
+            sorted_list.append(list(range(start_index, end_index)))
+            current_index = end_index
 
     return sorted_list
 
