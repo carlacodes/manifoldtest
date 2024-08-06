@@ -4,7 +4,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def fit_sinusoid_data_whole(df, save_dir):
+def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False):
     """
     Fit a sinusoidal function to the entire dataset and plot the results.
 
@@ -53,7 +53,7 @@ def fit_sinusoid_data_whole(df, save_dir):
         plt.xlabel('Interval (j)')
         plt.ylabel('Mean Death - Birth')
         plt.legend()
-        plt.savefig(f'{save_dir}/sinusoidal_fit_dimension_{dim}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(f'{save_dir}/sinusoidal_fit_dimension_{dim}_cumulative_{cumulative_param}.png', dpi=300, bbox_inches='tight')
         plt.show()
         plt.close('all')
 
@@ -90,7 +90,7 @@ def create_folds(n_timesteps, num_folds=5, num_windows=10):
 
     return folds
 
-def fit_sinusoid_data_per_interval(df, save_dir, start_indices, end_indices):
+def fit_sinusoid_data_per_interval(df, save_dir, start_indices, end_indices, cumulative_param = False):
     """
     Fit a sinusoidal function to the data in each interval and plot the results.
 
@@ -144,7 +144,7 @@ def fit_sinusoid_data_per_interval(df, save_dir, start_indices, end_indices):
             plt.xlabel('Interval (j)')
             plt.ylabel('Mean Death - Birth')
             plt.legend()
-            plt.savefig(f'{save_dir}/sinusoidal_fit_dimension_{dim}_interval_{start}_{end}.png', dpi=300, bbox_inches='tight')
+            plt.savefig(f'{save_dir}/sinusoidal_fit_dimension_{dim}_interval_{start}_{end}_cumulative_{cumulative_param}.png', dpi=300, bbox_inches='tight')
             plt.show()
             plt.close('all')
 

@@ -364,8 +364,35 @@ def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
     # plt.show()
 
 
+def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
+    sorted_list = []
+    current_index = 0
 
-def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40):
+    for i in range(int(len(reduced_data) / segment_length)):
+        if cumulative:
+            start_index = current_index
+            end_index = current_index + segment_length
+            current_index = end_index
+        else:
+            start_index = i * segment_length
+            end_index = (i + 1) * segment_length
+
+        reduced_data_loop = reduced_data[start_index:end_index]
+        if len(set(trial_indices[start_index:end_index])) == 1:
+            sorted_list.append(list(range(start_index, end_index)))
+        else:
+            subdivided_indices = []
+            for k, g in groupby(enumerate(range(start_index, end_index)), lambda ix: ix[0] - ix[1]):
+                continuous_segment = list(map(itemgetter(1), g))
+                trial_subdivisions = []
+                for k, g in groupby(continuous_segment, key=lambda x: trial_indices[x]):
+                    trial_subdivisions.append(list(g))
+                subdivided_indices.extend(trial_subdivisions)
+            sorted_list.extend(subdivided_indices)
+
+    return sorted_list
+
+def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
     pairs_list = []
     dgm_dict = {}
     sorted_list = []
@@ -374,21 +401,8 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
     trial_info = input_df
     trial_indices = trial_info['trial']
 
-    for i in range(int(len(reduced_data) / segment_length)):
-        reduced_data_loop = reduced_data[i * segment_length:(i + 1) * segment_length]
-        if len(set(trial_indices[i * segment_length:(i + 1) * segment_length])) == 1:
-            sorted_list.append(list(range(i * segment_length, (i + 1) * segment_length)))
-        else:
-            subdivided_indices = []
-            for k, g in groupby(enumerate(range(i * segment_length, (i + 1) * segment_length)), lambda ix: ix[0] - ix[1]):
-                continuous_segment = list(map(itemgetter(1), g))
-                trial_subdivisions = []
-                for k, g in groupby(continuous_segment, key=lambda x: trial_indices[x]):
-                    # if len(list(g)) >= 20:
-                    trial_subdivisions.append(list(g))
-                subdivided_indices.extend(trial_subdivisions)
-            sorted_list.extend(subdivided_indices)
-
+    #get the sorted list
+    sorted_list = process_data(reduced_data, trial_indices, segment_length, cumulative=cumulative_param)
 
     trial_indices = np.array(trial_indices)
     #calcuate where the value of trial_indices changes
@@ -421,10 +435,10 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
             dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
             dgm_dict[j] = dgm
-            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + '.npy', dgm)
+            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + f'_cumulative_{cumulative_param}.npy', dgm)
     #generate the trial indices where the trial changes
     df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
-    fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str)
+    fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param = cumulative_param)
     # fit_params = utils.fit_sinusoid_data_per_interval(df_output, folder_str, start_intervals, end_intervals)
 
     if use_ripser:
