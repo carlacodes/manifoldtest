@@ -80,7 +80,7 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
         plt.close()
     return df
 
-def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None, cumulative_param = False):
+def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None, cumulative_param = False, trial_number = None):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
 
@@ -134,12 +134,23 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
 
     cbar = ax.collections[0].colorbar
     cbar.set_label('Death - Birth')
-    plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}')
+    if trial_number is not None:
+        plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}')
+        plt.xlabel('Homology Dimension')
+        plt.ylabel('Interval (j)')
+        plt.tight_layout()
+        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}.png', dpi=300,
+                    bbox_inches='tight')
+
+    else:
+        plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}')
+        plt.xlabel('Homology Dimension')
+        plt.ylabel('Interval (j)')
+        plt.tight_layout()
+        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}.png', dpi=300,
+                    bbox_inches='tight')
     #add a colorbar label
-    plt.xlabel('Homology Dimension')
-    plt.ylabel('Interval (j)')
-    plt.tight_layout()
-    plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param }.png', dpi=300, bbox_inches='tight')
+
     plt.show()
     plt.close()
     return df
@@ -425,7 +436,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
 
-            df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param)
+            df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param, trial_number = i)
             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
 
 
