@@ -80,7 +80,7 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
         plt.close()
     return df
 
-def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices, end_indices):
+def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
 
@@ -117,20 +117,20 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices, end_indices
     y_ticks = heatmap_data.index.values
 
     # for idx, (start, end) in enumerate(zip(start_indices, end_indices)):
+    if start_indices is not None:
+        mapped_start_indices = [np.where(y_ticks == start)[0][0] for start in start_indices if start in y_ticks]
+        mapped_end_indices = [np.where(y_ticks == end)[0][0] for end in end_indices if end in y_ticks]
 
-    mapped_start_indices = [np.where(y_ticks == start)[0][0] for start in start_indices if start in y_ticks]
-    mapped_end_indices = [np.where(y_ticks == end)[0][0] for end in end_indices if end in y_ticks]
+        # Map start indices to y-tick positions
 
-    # Map start indices to y-tick positions
-
-    # Annotate y-ticks with start indices
-    for idx, (start_annotate, end_annotate) in enumerate(zip(mapped_start_indices, mapped_end_indices)):
-        ax.annotate('Start', xy=(0, start_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
-                    color='r',
-                    fontsize=12, ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
-        # ax.annotate('End', xy=(0, end_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
-        #             color='r', fontsize=12,
-        #             ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
+        # Annotate y-ticks with start indices
+        for idx, (start_annotate, end_annotate) in enumerate(zip(mapped_start_indices, mapped_end_indices)):
+            ax.annotate('Start', xy=(0, start_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
+                        color='r',
+                        fontsize=12, ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
+            # ax.annotate('End', xy=(0, end_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
+            #             color='r', fontsize=12,
+            #             ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
 
     cbar = ax.collections[0].colorbar
     cbar.set_label('Death - Birth')
@@ -415,15 +415,14 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             for j in range(0, len(sorted_data_trial), segment_length):
                 #needs to be cumulative
                 reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
-                if use_ripser:
-                    pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data_loop)[2]
-                    pairs_list.append(pairs)
-                    np.save(folder_str + '/pairs_fold_h2' + str(i) + '.npy', pairs)
-                else:
-                    dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-                    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                    dgm_dict[i] = dgm
-                    np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
+
+                dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+                dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                dgm_dict[i] = dgm
+                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
+
+                df_output = plot_homology_changes_heatmap(dgm_dict, folder_str)
+                fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
 
 
     else:
