@@ -128,16 +128,27 @@ def train_and_test_on_isomap_randcv(
 
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
     #save the custom_folds
-    if just_folds:
-        custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
-        custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
-        return None, None, None, None
+
     # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
         ('reducer', Isomap(n_jobs=-1)),
         ('estimator', MultiOutputRegressor(regressor(n_jobs=-1)))
     ])
+
+
+    if just_folds:
+        pipeline_copy = copy.deepcopy(pipeline)
+        pipeline_copy.set_params(**manual_params)
+        pipeline_copy.fit(spks, y)
+
+        custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
+        custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
+        full_set_transformed = pipeline_copy.named_steps['reducer'].transform(
+            pipeline_copy.named_steps['scaler'].transform(spks))
+        np.save(f'{savedir}/full_set_transformed.npy', full_set_transformed)
+        return None, None, None, None
+
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = open(f"{savedir}/random_search_{now}.log", "w")
 
@@ -191,6 +202,10 @@ def train_and_test_on_isomap_randcv(
         fold_dataframe = pd.DataFrame()
         fold_dataframe_shuffle = pd.DataFrame()
         print('beginning cv with custom folds')
+
+
+
+
         for count, (train_index, test_index) in enumerate(custom_folds):
             # Split the data into training and testing sets
             spks_train, spks_test = spks[train_index], spks[test_index]
@@ -245,6 +260,8 @@ def train_and_test_on_isomap_randcv(
                 pipeline.named_steps['scaler'].transform(spks_test))
             X_train_transformed = pipeline.named_steps['reducer'].transform(
                 pipeline.named_steps['scaler'].transform(spks_train))
+
+
 
             actual_angle = np.arctan2(y_test[:, 2], y_test[:, 3])
             actual_distance = np.sqrt(y_test[:, 0] ** 2 + y_test[:, 1] ** 2)
@@ -330,9 +347,8 @@ def main():
     big_result_df_shuffle = pd.DataFrame()
     # f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
     # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
-    just_folds = False
-    for data_dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
-
+    just_folds = True
+    for data_dir in [ f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
         'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
@@ -394,7 +410,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, num_windows = num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds = just_folds
+            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds
         )
         if just_folds == True:
             continue
