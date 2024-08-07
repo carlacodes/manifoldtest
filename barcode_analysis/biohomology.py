@@ -431,13 +431,14 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                 reduced_data_loop_list.append(reduced_data_loop)
                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                dgm_dict[j] = dgm
+                dgm_dict[i, j] = dgm
 
-
-            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
+                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_{j}_cumulative_{cumulative_param}.npy', dgm)
 
             df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param, trial_number = i)
             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
+        with open(folder_str + f'/dgm_dict_h2_cumulative_{cumulative_param}.pkl', 'wb') as f:
+            pickle.dump(dgm_dict, f)
 
 
     else:
