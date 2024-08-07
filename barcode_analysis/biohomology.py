@@ -80,7 +80,7 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
         plt.close()
     return df
 
-def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None):
+def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None, cumulative_param = False):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
 
@@ -139,7 +139,7 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
     plt.xlabel('Homology Dimension')
     plt.ylabel('Interval (j)')
     plt.tight_layout()
-    plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param }.png', dpi=300, bbox_inches='tight')
     plt.show()
     plt.close()
     return df
@@ -412,17 +412,21 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
         for i in range(len(sorted_list)):
             sorted_data_trial = reduced_data[sorted_list[i], :]
             #break each sorted_data_trial into chunks of segment_length
+            reduced_data_loop_list = []
             for j in range(0, len(sorted_data_trial), segment_length):
                 #needs to be cumulative
                 reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
-
+                #append to a list
+                reduced_data_loop_list.append(reduced_data_loop)
                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                dgm_dict[i] = dgm
-                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
+                dgm_dict[j] = dgm
 
-                df_output = plot_homology_changes_heatmap(dgm_dict, folder_str)
-                fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
+
+            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
+
+            df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param)
+            # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
 
 
     else:
