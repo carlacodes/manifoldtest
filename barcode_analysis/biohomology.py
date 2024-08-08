@@ -1,4 +1,6 @@
 import copy
+
+import gtda.diagrams
 import pandas as pd
 import pickle
 import os
@@ -410,7 +412,6 @@ def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
 
 def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
     pairs_list = []
-    dgm_dict = {}
     dgm_dict_storage = {}
     sorted_list = []
 
@@ -422,6 +423,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
     sorted_list = process_data(reduced_data, trial_indices, segment_length, cumulative=cumulative_param)
     if cumulative_param:
         for i in range(len(sorted_list)):
+            dgm_dict = {}
             sorted_data_trial = reduced_data[sorted_list[i], :]
             #break each sorted_data_trial into chunks of segment_length
             reduced_data_loop_list = []
@@ -433,14 +435,21 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
                 dgm_dict[j] = dgm
-                dgm_dict_storage[i, j]=dgm
-
+                # dgm_dict_storage[i, j]=dgm
+                dgm_dict_storage[(i, j)] = dgm_gtda
 
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
 
 
             df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param, trial_number = i)
             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
+        #calculate the bottleneck distance for each pairwise combination of dgm
+        # gtda.diagrams.PairwiseDistance(metric='bottleneck', n_jobs=20).fit_transform(reformat_persistence_diagrams(dgm_dict_storage))
+        diagrams_list = [dgm_dict_storage[key] for key in sorted(dgm_dict_storage.keys())]
+
+        # Calculate the bottleneck distance for each pairwise combination of persistence diagrams
+        pairwise_distances = gtda.diagrams.PairwiseDistance(metric='bottleneck', n_jobs=20).fit_transform(diagrams_list)
+
         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(dgm_dict_storage, f)
 
