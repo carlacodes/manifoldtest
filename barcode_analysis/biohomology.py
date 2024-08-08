@@ -481,8 +481,6 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                                                       trial_number=i)
             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
 
-        # Calculate pairwise bottleneck distances
-
 
         with open(folder_str + '/all_diagrams_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(all_diagrams, f)
@@ -491,7 +489,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             pickle.dump(dgm_dict_storage, f)
 
 
-    return distance_matrix_dict
+    return all_diagrams
 
 
 # def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
