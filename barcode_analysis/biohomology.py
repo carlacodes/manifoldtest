@@ -438,9 +438,13 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
                 distance_matrix[m, n] = bottleneck(first_array, second_array)
 
         # Save the distance matrix
+        #remove the diagonal from the matrix
+        distance_matrix = np.triu(distance_matrix)
         distance_matrix_dict[l] = distance_matrix
     with open(folder_str + '/distance_matrix_dict.pkl', 'wb') as f:
         pickle.dump(distance_matrix_dict, f)
+    #remove the diagonal from the matrix
+
     return distance_matrix_dict
 
 def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True):
