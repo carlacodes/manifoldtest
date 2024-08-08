@@ -457,12 +457,10 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
         num_diagrams = len(all_diagrams)
 
         ##Todo: remove ripser_parallel functionality
-
-
         # Stack diagrams into a single ndarray
         distance_matrix_dict = {}
         for l in [0, 1, 2]:
-            distance_matrix = np.zeros((num_diagrams, num_diagrams)) * np.nan()
+            distance_matrix = np.zeros((num_diagrams, num_diagrams))+np.nan
             for m in range(num_diagrams):
                 for n in range(m + 1, num_diagrams):
                     first_array = all_diagrams[m]
