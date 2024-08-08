@@ -17,6 +17,8 @@ from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
 
+##Todo: remove ripser_parallel functionality
+
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
@@ -414,7 +416,6 @@ def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
 
 def calculate_bottleneck_distance(all_diagrams, folder_str):
     num_diagrams = len(all_diagrams)
-    ##Todo: remove ripser_parallel functionality, need to separate this out into a separate function so can compare across animals
     # Stack diagrams into a single ndarray
     distance_matrix_dict = {}
     for l in [0, 1, 2]:
@@ -489,7 +490,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             pickle.dump(dgm_dict_storage, f)
 
 
-    return all_diagrams
+    return all_diagrams, dgm_dict_storage
 
 
 # def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
@@ -582,6 +583,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
+    big_list = []
     for dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
         window_df = pd.read_csv(
             f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
@@ -612,7 +614,13 @@ def main():
         else:
             savedir = sub_folder + files[0]
 
-        pairs_list = run_persistence_analysis(savedir, input_df, cumulative_param=True)
+        pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True)
+        #append pairs_list to a big_list
+        big_list.append(pairs_list)
+
+        #calculate the bottleneck distance
+
+    distance_matrix_dict = calculate_bottleneck_distance(big_list, savedir)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 
