@@ -412,7 +412,35 @@ def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
     return sorted_list
 
 
+def calculate_bottleneck_distance(all_diagrams, folder_str):
+    num_diagrams = len(all_diagrams)
+    ##Todo: remove ripser_parallel functionality, need to separate this out into a separate function so can compare across animals
+    # Stack diagrams into a single ndarray
+    distance_matrix_dict = {}
+    for l in [0, 1, 2]:
+        distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
+        for m in range(num_diagrams):
+            for n in range(m + 1, num_diagrams):
+                first_array = all_diagrams[m]
+                first_array = np.squeeze(first_array)  # Remove the extra dimension
+                # filter for the dimension
+                first_array = first_array[first_array[:, 2] == l]
+                # now take the first two columns for persim formatting
+                first_array = first_array[:, 0:2]
 
+                second_array = all_diagrams[n]
+                second_array = np.squeeze(second_array)  # Remove the extra dimension
+                # filter for the dimension
+                second_array = second_array[second_array[:, 2] == l]
+                # now take the first two columns for persim formatting
+                second_array = second_array[:, 0:2]
+                distance_matrix[m, n] = bottleneck(first_array, second_array)
+
+        # Save the distance matrix
+        distance_matrix_dict[l] = distance_matrix
+    with open(folder_str + '/distance_matrix_dict.pkl', 'wb') as f:
+        pickle.dump(distance_matrix_dict, f)
+    return distance_matrix_dict
 
 def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True):
     pairs_list = []
@@ -454,41 +482,15 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
 
         # Calculate pairwise bottleneck distances
-        num_diagrams = len(all_diagrams)
-
-        ##Todo: remove ripser_parallel functionality
-        # Stack diagrams into a single ndarray
-        distance_matrix_dict = {}
-        for l in [0, 1, 2]:
-            distance_matrix = np.zeros((num_diagrams, num_diagrams))+np.nan
-            for m in range(num_diagrams):
-                for n in range(m + 1, num_diagrams):
-                    first_array = all_diagrams[m]
-                    first_array = np.squeeze(first_array)  # Remove the extra dimension
-                    #filter for the dimension
-                    first_array = first_array[first_array[:, 2] == l]
-                    #now take the first two columns for persim formatting
-                    first_array = first_array[:, 0:2]
 
 
-
-                    second_array = all_diagrams[n]
-                    second_array = np.squeeze(second_array)  # Remove the extra dimension
-                    #filter for the dimension
-                    second_array = second_array[second_array[:, 2] == l]
-                    #now take the first two columns for persim formatting
-                    second_array = second_array[:, 0:2]
-                    distance_matrix[m, n] = bottleneck(first_array, second_array)
-
-
-            # Save the distance matrix
-            distance_matrix_dict[l] = distance_matrix
-            np.save(folder_str + '/bottleneck_distance_matrix.npy', distance_matrix)
+        with open(folder_str + '/all_diagrams_h2_cumulative_trialbysegment.pkl', 'wb') as f:
+            pickle.dump(all_diagrams, f)
 
         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(dgm_dict_storage, f)
-        with open(folder_str + '/distance_matrix_dict.pkl', 'wb') as f:
-            pickle.dump(distance_matrix_dict, f)
+
+
     return distance_matrix_dict
 
 
