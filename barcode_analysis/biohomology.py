@@ -410,96 +410,151 @@ def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
 
     return sorted_list
 
-def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
+
+
+
+def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True):
     pairs_list = []
     dgm_dict_storage = {}
+    distance_matrix_dict = {}  # Dictionary to store pairwise distances
     sorted_list = []
 
     reduced_data = np.load(folder_str + '/full_set_transformed.npy')
     trial_info = input_df
     trial_indices = trial_info['trial']
 
-    #get the sorted list
+    # Get the sorted list
     sorted_list = process_data(reduced_data, trial_indices, segment_length, cumulative=cumulative_param)
+
     if cumulative_param:
+        all_diagrams = []  # List to store all persistence diagrams
         for i in range(len(sorted_list)):
             dgm_dict = {}
             sorted_data_trial = reduced_data[sorted_list[i], :]
-            #break each sorted_data_trial into chunks of segment_length
+            # Break each sorted_data_trial into chunks of segment_length
             reduced_data_loop_list = []
             for j in range(0, len(sorted_data_trial), segment_length):
-                #needs to be cumulative
+                # Needs to be cumulative
                 reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
-                #append to a list
+                # Append to a list
                 reduced_data_loop_list.append(reduced_data_loop)
                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
                 dgm_dict[j] = dgm
-                # dgm_dict_storage[i, j]=dgm
+
                 dgm_dict_storage[(i, j)] = dgm_gtda
+                all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
-            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
+            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
+                    dgm_dict)
 
-
-            df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param, trial_number = i)
+            df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
+                                                      trial_number=i)
             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
-        #calculate the bottleneck distance for each pairwise combination of dgm
-        # gtda.diagrams.PairwiseDistance(metric='bottleneck', n_jobs=20).fit_transform(reformat_persistence_diagrams(dgm_dict_storage))
-        diagrams_list = [dgm_dict_storage[key] for key in sorted(dgm_dict_storage.keys())]
 
-        # Calculate the bottleneck distance for each pairwise combination of persistence diagrams
-        pairwise_distances = gtda.diagrams.PairwiseDistance(metric='bottleneck', n_jobs=20).fit_transform(diagrams_list)
+        # Calculate pairwise bottleneck distances
+        num_diagrams = len(all_diagrams)
+        distance_matrix = np.zeros((num_diagrams, num_diagrams))
+        bottleneck_distance = gtda.diagrams.PairwiseDistance(metric="bottleneck", n_jobs=-1)
+
+        for m in range(num_diagrams):
+            for n in range(m + 1, num_diagrams):
+                distance = bottleneck_distance.fit_transform(all_diagrams[m], all_diagrams[n])
+                distance_matrix[m, n] = distance[0]
+                distance_matrix[n, m] = distance[0]  # Symmetric matrix
+
+        # Save the distance matrix
+        np.save(folder_str + '/bottleneck_distance_matrix.npy', distance_matrix)
 
         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(dgm_dict_storage, f)
 
 
-    else:
-        trial_indices = np.array(trial_indices)
-        #calcuate where the value of trial_indices changes
-        trial_indices_diff = np.diff(trial_indices)
-        #get the indices where the trial_indices change
-        trial_indices_change = np.where(trial_indices_diff != 0)[0]
-        #get the start and end indices
-        start_indices = np.insert(trial_indices_change + 1, 0, 0)
-        end_indices = np.append(trial_indices_change, len(trial_indices) - 1)
-        #get the corresponding sorted_list interval number
-
-        ##find the start indices for each sorted_list component
-        start_intervals = []
-        end_intervals = []
-        for i in range(len(sorted_list)):
-            if sorted_list[i][0] in start_indices:
-                start_intervals.append(i)
-            if sorted_list[i][-1] in end_indices:
-                end_intervals.append(i)
-
-        sorted_list = [x for x in sorted_list if x != []]
-
-        for j in range(len(sorted_list)):
-            reduced_data_loop = reduced_data[sorted_list[j], :]
-            if use_ripser:
-                pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data_loop)[2]
-                pairs_list.append(pairs)
-                np.save(folder_str + '/pairs_fold_h2' + str(j) + '.npy', pairs)
-            else:
-                dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-                dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                dgm_dict[j] = dgm
-                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + f'_cumulative_{cumulative_param}.npy', dgm)
-        #generate the trial indices where the trial changes
-        df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
-        fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param = cumulative_param)
-        # fit_params = utils.fit_sinusoid_data_per_interval(df_output, folder_str, start_intervals, end_intervals)
-
-        if use_ripser:
-            with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
-                pickle.dump(pairs_list, f)
-        else:
-            with open(folder_str + '/dgm_dict_h2.pkl', 'wb') as f:
-                pickle.dump(dgm_dict, f)
-
-    return pairs_list
+# def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
+#     pairs_list = []
+#     dgm_dict_storage = {}
+#     sorted_list = []
+#
+#     reduced_data = np.load(folder_str + '/full_set_transformed.npy')
+#     trial_info = input_df
+#     trial_indices = trial_info['trial']
+#
+#     #get the sorted list
+#     sorted_list = process_data(reduced_data, trial_indices, segment_length, cumulative=cumulative_param)
+#     if cumulative_param:
+#         for i in range(len(sorted_list)):
+#             dgm_dict = {}
+#             sorted_data_trial = reduced_data[sorted_list[i], :]
+#             #break each sorted_data_trial into chunks of segment_length
+#             reduced_data_loop_list = []
+#             for j in range(0, len(sorted_data_trial), segment_length):
+#                 #needs to be cumulative
+#                 reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
+#                 #append to a list
+#                 reduced_data_loop_list.append(reduced_data_loop)
+#                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+#                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+#                 dgm_dict[j] = dgm
+#
+#
+#                 dgm_dict_storage[(i, j)] = dgm
+#
+#             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
+#
+#
+#             df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param, trial_number = i)
+#             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
+#
+#         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
+#             pickle.dump(dgm_dict_storage, f)
+#
+#
+#     else:
+#         trial_indices = np.array(trial_indices)
+#         #calcuate where the value of trial_indices changes
+#         trial_indices_diff = np.diff(trial_indices)
+#         #get the indices where the trial_indices change
+#         trial_indices_change = np.where(trial_indices_diff != 0)[0]
+#         #get the start and end indices
+#         start_indices = np.insert(trial_indices_change + 1, 0, 0)
+#         end_indices = np.append(trial_indices_change, len(trial_indices) - 1)
+#         #get the corresponding sorted_list interval number
+#
+#         ##find the start indices for each sorted_list component
+#         start_intervals = []
+#         end_intervals = []
+#         for i in range(len(sorted_list)):
+#             if sorted_list[i][0] in start_indices:
+#                 start_intervals.append(i)
+#             if sorted_list[i][-1] in end_indices:
+#                 end_intervals.append(i)
+#
+#         sorted_list = [x for x in sorted_list if x != []]
+#
+#         for j in range(len(sorted_list)):
+#             reduced_data_loop = reduced_data[sorted_list[j], :]
+#             if use_ripser:
+#                 pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data_loop)[2]
+#                 pairs_list.append(pairs)
+#                 np.save(folder_str + '/pairs_fold_h2' + str(j) + '.npy', pairs)
+#             else:
+#                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+#                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+#                 dgm_dict[j] = dgm
+#                 np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + f'_cumulative_{cumulative_param}.npy', dgm)
+#         #generate the trial indices where the trial changes
+#         df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
+#         fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param = cumulative_param)
+#         # fit_params = utils.fit_sinusoid_data_per_interval(df_output, folder_str, start_intervals, end_intervals)
+#
+#         if use_ripser:
+#             with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
+#                 pickle.dump(pairs_list, f)
+#         else:
+#             with open(folder_str + '/dgm_dict_h2.pkl', 'wb') as f:
+#                 pickle.dump(dgm_dict, f)
+#
+#     return pairs_list
 
 
 def main():
