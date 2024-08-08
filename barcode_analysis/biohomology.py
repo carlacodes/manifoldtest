@@ -456,7 +456,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
         # Calculate pairwise bottleneck distances
         num_diagrams = len(all_diagrams)
 
-
+        ##Todo: remove ripser_parallel functionality
 
 
         # Stack diagrams into a single ndarray
