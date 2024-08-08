@@ -15,6 +15,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
 from helpers import utils
+from persim import bottleneck
 
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
     """
@@ -454,20 +455,43 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
         # Calculate pairwise bottleneck distances
         num_diagrams = len(all_diagrams)
-        distance_matrix = np.zeros((num_diagrams, num_diagrams))
-        bottleneck_distance = gtda.diagrams.PairwiseDistance(metric="bottleneck", n_jobs=-1)
 
-        for m in range(num_diagrams):
-            for n in range(m + 1, num_diagrams):
-                distance = bottleneck_distance.fit_transform(all_diagrams[m], all_diagrams[n])
-                distance_matrix[m, n] = distance[0]
-                distance_matrix[n, m] = distance[0]  # Symmetric matrix
 
-        # Save the distance matrix
-        np.save(folder_str + '/bottleneck_distance_matrix.npy', distance_matrix)
+
+
+        # Stack diagrams into a single ndarray
+        distance_matrix_dict = {}
+        for l in [0, 1, 2]:
+            distance_matrix = np.zeros((num_diagrams, num_diagrams)) * np.nan()
+            for m in range(num_diagrams):
+                for n in range(m + 1, num_diagrams):
+                    first_array = all_diagrams[m]
+                    first_array = np.squeeze(first_array)  # Remove the extra dimension
+                    #filter for the dimension
+                    first_array = first_array[first_array[:, 2] == l]
+                    #now take the first two columns for persim formatting
+                    first_array = first_array[:, 0:2]
+
+
+
+                    second_array = all_diagrams[n]
+                    second_array = np.squeeze(second_array)  # Remove the extra dimension
+                    #filter for the dimension
+                    second_array = second_array[second_array[:, 2] == l]
+                    #now take the first two columns for persim formatting
+                    second_array = second_array[:, 0:2]
+                    distance_matrix[m, n] = bottleneck(first_array, second_array)
+
+
+            # Save the distance matrix
+            distance_matrix_dict[l] = distance_matrix
+            np.save(folder_str + '/bottleneck_distance_matrix.npy', distance_matrix)
 
         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(dgm_dict_storage, f)
+        with open(folder_str + '/distance_matrix_dict.pkl', 'wb') as f:
+            pickle.dump(distance_matrix_dict, f)
+    return distance_matrix_dict
 
 
 # def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
