@@ -603,25 +603,25 @@ def main():
 
     else:
 
-        for dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
+        for subdir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
             window_df = pd.read_csv(
                 f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
             # find the rat_id
-            rat_id = dir.split('/')[-2]
+            rat_id = subdir.split('/')[-2]
             # filter for window_size
             window_df = window_df[window_df['window_size'] == 250]
             num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
             #read the input label data
-            spike_dir = os.path.join(dir, 'physiology_data')
-            dlc_dir = os.path.join(dir, 'positional_data')
+            spike_dir = os.path.join(subdir, 'physiology_data')
+            dlc_dir = os.path.join(subdir, 'positional_data')
             labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
             col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
             #make input df
             input_df = pd.DataFrame(labels, columns=col_list)
 
 
-            print('at dir ', dir)
-            sub_folder = dir + '/plot_results/'
+            print('at dir ', subdir)
+            sub_folder = subdir + '/plot_results/'
             #get list of files in the directory
             files = os.listdir(sub_folder)
             #check if more than two dirs
