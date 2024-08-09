@@ -415,21 +415,29 @@ def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
 
 
 def calculate_bottleneck_distance(all_diagrams, folder_str):
-    num_diagrams = len(all_diagrams)
+    #concatenate the diagrams all together into one mega list
+    mega_diagram_list = []
+    for i in range(len(all_diagrams)):
+        diagram = all_diagrams[i]
+        mega_diagram_list.extend(diagram)
+
+
     # Stack diagrams into a single ndarray
+    num_diagrams = len(mega_diagram_list)
+
     distance_matrix_dict = {}
     for l in [0, 1, 2]:
         distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
         for m in range(num_diagrams):
             for n in range(m + 1, num_diagrams):
-                first_array = all_diagrams[m]
+                first_array = mega_diagram_list[m]
                 first_array = np.squeeze(first_array)  # Remove the extra dimension
                 # filter for the dimension
                 first_array = first_array[first_array[:, 2] == l]
                 # now take the first two columns for persim formatting
                 first_array = first_array[:, 0:2]
 
-                second_array = all_diagrams[n]
+                second_array = mega_diagram_list[n]
                 second_array = np.squeeze(second_array)  # Remove the extra dimension
                 # filter for the dimension
                 second_array = second_array[second_array[:, 2] == l]
@@ -588,43 +596,50 @@ def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    for dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
-        window_df = pd.read_csv(
-            f'C:/neural_data/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
-        # find the rat_id
-        rat_id = dir.split('/')[-2]
-        # filter for window_size
-        window_df = window_df[window_df['window_size'] == 250]
-        num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
-        #read the input label data
-        spike_dir = os.path.join(dir, 'physiology_data')
-        dlc_dir = os.path.join(dir, 'positional_data')
-        labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
-        col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
-        #make input df
-        input_df = pd.DataFrame(labels, columns=col_list)
+    #check if all_diagrams.pkl exists in the base directory
+    if os.path.exists(f'{base_dir}/all_diagrams.pkl'):
+        with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
+            big_list = pickle.load(f)
+
+    else:
+
+        for dir in [ f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
+            window_df = pd.read_csv(
+                f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
+            # find the rat_id
+            rat_id = dir.split('/')[-2]
+            # filter for window_size
+            window_df = window_df[window_df['window_size'] == 250]
+            num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
+            #read the input label data
+            spike_dir = os.path.join(dir, 'physiology_data')
+            dlc_dir = os.path.join(dir, 'positional_data')
+            labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
+            col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
+            #make input df
+            input_df = pd.DataFrame(labels, columns=col_list)
 
 
-        print('at dir ', dir)
-        sub_folder = dir + '/plot_results/'
-        #get list of files in the directory
-        files = os.listdir(sub_folder)
-        #check if more than two dirs
-        if len(files) >= 2:
-            #choose the most recently modified directory
-            files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
-            #get the most recently modified directory
-            savedir = sub_folder + files[-1]
-        else:
-            savedir = sub_folder + files[0]
+            print('at dir ', dir)
+            sub_folder = dir + '/plot_results/'
+            #get list of files in the directory
+            files = os.listdir(sub_folder)
+            #check if more than two dirs
+            if len(files) >= 2:
+                #choose the most recently modified directory
+                files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
+                #get the most recently modified directory
+                savedir = sub_folder + files[-1]
+            else:
+                savedir = sub_folder + files[0]
 
-        pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True)
-        #append pairs_list to a big_list
-        big_list.append(pairs_list)
+            pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True)
+            #append pairs_list to a big_list
+            big_list.append(pairs_list)
 
         #calculate the bottleneck distance
 
-    distance_matrix_dict = calculate_bottleneck_distance(big_list, savedir)
+    distance_matrix_dict = calculate_bottleneck_distance(big_list, base_dir)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 
