@@ -124,18 +124,21 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
     equal_peak_sanity = None
     if use_peak_control:
         #compare to old peak_info
-        peak_info_old = pd.read_csv(f'{save_dir}/peak_info.csv')
+        peak_interval = peak_interval + new_segment_length
+        peak_info_old = pd.read_csv(f'{save_dir}/peak_info_trial_{trial_number}.csv')
         peak_interval_old = peak_info_old['peak_interval'].values[0] + old_segment_length
         #compare to old peak_info
+        assert new_segment_length == peak_interval_old
+
         if peak_interval != peak_interval_old:
             print('not equal')
             equal_peak_sanity = 0
         else:
             print('equal')
             equal_peak_sanity = 1
-        peak_info.to_csv(f'{save_dir}/peak_info_control_{use_peak_control}.csv')
+        peak_info.to_csv(f'{save_dir}/peak_info_control_{use_peak_control}_trial_{trial_number}.csv')
     else:
-        peak_info.to_csv(f'{save_dir}/peak_info.csv')
+        peak_info.to_csv(f'{save_dir}/peak_info_trial_{trial_number}.csv')
 
     plt.figure(figsize=(12, 8))
     heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
@@ -541,16 +544,16 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                                                           trial_number=i)
                 # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
         elif use_peak_control:
-            peak_info = pd.read_csv(folder_str + '/peak_info.csv')
-            peak_interval = peak_info['peak_interval'].values[0]
-            peak_index = peak_info['peak_index'].values[0]
-            segment_length_new = peak_interval + segment_length
+
             equal_peak_sanity_list = []
             for i in range(len(sorted_list)):
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
                 # Break each sorted_data_trial into chunks of segment_length
                 reduced_data_loop_list = []
+                peak_info = pd.read_csv(folder_str + f'/peak_info_trial_{i}.csv')
+                peak_interval = peak_info['peak_interval'].values[0]
+                segment_length_new = peak_interval + segment_length
                 for j in range(0, len(sorted_data_trial), segment_length_new):
                     # Needs to be cumulative
                     reduced_data_loop = sorted_data_trial[j:j + segment_length_new, :]
@@ -727,7 +730,7 @@ def main():
             else:
                 savedir = sub_folder + files[0]
 
-            pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True, use_peak_control=False)
+            pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True, use_peak_control=True)
             #append pairs_list to a big_list
             big_list.append(pairs_list)
 
