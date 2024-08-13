@@ -85,7 +85,7 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
         plt.close()
     return df
 
-def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None, cumulative_param = False, trial_number = None):
+def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None, cumulative_param = False, trial_number = None, use_peak_control = False, old_segment_length = None, new_segment_length = None):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
 
@@ -113,13 +113,29 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
     #figure out which interval has the peak in persistence
 
 
-    peak = np.max(df['death_minus_birth'])
-    #find the interval where the peak occurs
-    peak_interval = df[df['death_minus_birth'] == peak]['Interval'].values[0]
-    peak_index = df[df['death_minus_birth'] == peak].index[0]
+    #find the max mean peak across intervals
+    df_zeroth_homology = df[df['Dimension'] == 0]
+    mean_peak_by_interval = df_zeroth_homology.groupby('Interval')['death_minus_birth'].mean()
+    peak = mean_peak_by_interval.max()
+    peak_interval = mean_peak_by_interval.idxmax()
 
-    peak_info = pd.DataFrame({'peak': [peak], 'peak_interval': [peak_interval], 'peak_index': [peak_index], 'cumulative': [cumulative_param], 'dimension': [df['Dimension'][peak_index]]})
-    peak_info.to_csv(f'{save_dir}/peak_info.csv')
+
+    peak_info = pd.DataFrame({'peak': [peak], 'peak_interval': [peak_interval],  'segment length': [new_segment_length], 'cumulative': [cumulative_param]})
+    equal_peak_sanity = None
+    if use_peak_control:
+        #compare to old peak_info
+        peak_info_old = pd.read_csv(f'{save_dir}/peak_info.csv')
+        peak_interval_old = peak_info_old['peak_interval'].values[0] + old_segment_length
+        #compare to old peak_info
+        if peak_interval != peak_interval_old:
+            print('not equal')
+            equal_peak_sanity = 0
+        else:
+            print('equal')
+            equal_peak_sanity = 1
+        peak_info.to_csv(f'{save_dir}/peak_info_control_{use_peak_control}.csv')
+    else:
+        peak_info.to_csv(f'{save_dir}/peak_info.csv')
 
     plt.figure(figsize=(12, 8))
     heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
@@ -150,25 +166,31 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
     cbar = ax.collections[0].colorbar
     cbar.set_label('Death - Birth')
     if trial_number is not None:
-        plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}')
+        if use_peak_control:
+            plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}, control: {use_peak_control}')
+        else:
+            plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}')
         plt.xlabel('Homology Dimension')
         plt.ylabel('Interval (j)')
         plt.tight_layout()
-        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}.png', dpi=300,
+        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}_control_{use_peak_control}.png', dpi=300,
                     bbox_inches='tight')
 
     else:
-        plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}')
+        if use_peak_control:
+            plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, control: {use_peak_control}')
+        else:
+            plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}')
         plt.xlabel('Homology Dimension')
         plt.ylabel('Interval (j)')
         plt.tight_layout()
-        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}.png', dpi=300,
+        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_control_{use_peak_control}.png', dpi=300,
                     bbox_inches='tight')
     #add a colorbar label
 
     plt.show()
     plt.close()
-    return df
+    return df, equal_peak_sanity
 
 
 def sinusoidal(x, A, B, C, D):
@@ -479,7 +501,7 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
 
 
 
-def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True):
+def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True, use_peak_control = False):
     pairs_list = []
     dgm_dict_storage = {}
     distance_matrix_dict = {}  # Dictionary to store pairwise distances
@@ -494,29 +516,62 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
     if cumulative_param:
         all_diagrams = []  # List to store all persistence diagrams
-        for i in range(len(sorted_list)):
-            dgm_dict = {}
-            sorted_data_trial = reduced_data[sorted_list[i], :]
-            # Break each sorted_data_trial into chunks of segment_length
-            reduced_data_loop_list = []
-            for j in range(0, len(sorted_data_trial), segment_length):
-                # Needs to be cumulative
-                reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
-                # Append to a list
-                reduced_data_loop_list.append(reduced_data_loop)
-                dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-                dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                dgm_dict[j] = dgm
+        if use_peak_control == False:
+            for i in range(len(sorted_list)):
+                dgm_dict = {}
+                sorted_data_trial = reduced_data[sorted_list[i], :]
+                # Break each sorted_data_trial into chunks of segment_length
+                reduced_data_loop_list = []
+                for j in range(0, len(sorted_data_trial), segment_length):
+                    # Needs to be cumulative
+                    reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
+                    # Append to a list
+                    reduced_data_loop_list.append(reduced_data_loop)
+                    dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+                    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                    dgm_dict[j] = dgm
 
-                dgm_dict_storage[(i, j)] = dgm_gtda
-                all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+                    dgm_dict_storage[(i, j)] = dgm_gtda
+                    all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
-            np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
-                    dgm_dict)
+                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
+                        dgm_dict)
 
-            df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
-                                                      trial_number=i)
-            # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
+                df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
+                                                          trial_number=i)
+                # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
+        elif use_peak_control:
+            peak_info = pd.read_csv(folder_str + '/peak_info.csv')
+            peak_interval = peak_info['peak_interval'].values[0]
+            peak_index = peak_info['peak_index'].values[0]
+            segment_length_new = peak_interval + segment_length
+            equal_peak_sanity_list = []
+            for i in range(len(sorted_list)):
+                dgm_dict = {}
+                sorted_data_trial = reduced_data[sorted_list[i], :]
+                # Break each sorted_data_trial into chunks of segment_length
+                reduced_data_loop_list = []
+                for j in range(0, len(sorted_data_trial), segment_length_new):
+                    # Needs to be cumulative
+                    reduced_data_loop = sorted_data_trial[j:j + segment_length_new, :]
+                    # Append to a list
+                    reduced_data_loop_list.append(reduced_data_loop)
+                    dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+                    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                    dgm_dict[j] = dgm
+
+                    dgm_dict_storage[(i, j)] = dgm_gtda
+                    all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+
+                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}_control_{use_peak_control}.npy',
+                        dgm_dict)
+
+                df_output, equal_peak_sanity = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
+                                                          trial_number=i, use_peak_control = use_peak_control, old_segment_length=segment_length, new_segment_length=segment_length_new)
+                equal_peak_sanity_list.append(equal_peak_sanity)
+                #get the fraction of 1s
+                frac_of_ones = len([x for x in equal_peak_sanity_list if x == 1])/len(equal_peak_sanity_list)
+
 
 
         with open(folder_str + '/all_diagrams_h2_cumulative_trialbysegment.pkl', 'wb') as f:
@@ -524,10 +579,12 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(dgm_dict_storage, f)
+
+
+
     else:
         all_diagrams = []
         for i in range(len(sorted_list)):
-            #break into segments of segment_length chunk
             sorted_data_trial = reduced_data[sorted_list[i], :]
             #plot the persistence barcode across the whole trial
             for dim in [0, 1, 2]:
@@ -640,7 +697,7 @@ def main():
 
     else:
 
-        for subdir in [ f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
+        for subdir in [ f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',]:
             window_df = pd.read_csv(
                 f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
             # find the rat_id
@@ -670,7 +727,7 @@ def main():
             else:
                 savedir = sub_folder + files[0]
 
-            pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True)
+            pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True, use_peak_control=False)
             #append pairs_list to a big_list
             big_list.append(pairs_list)
 
