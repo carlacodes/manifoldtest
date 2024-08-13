@@ -1,14 +1,9 @@
 import copy
-
 import gtda.diagrams
 import pandas as pd
-import pickle
 import os
-import ripserplusplus as rpp
 from gph import ripser_parallel
 from gtda.homology._utils import _postprocess_diagrams
-from itertools import groupby
-from operator import itemgetter
 import seaborn as sns
 import numpy as np
 from scipy.optimize import curve_fit
@@ -16,7 +11,8 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
-
+import pickle
+from concurrent.futures import ProcessPoolExecutor, as_completed
 ##Todo: remove ripser_parallel functionality
 
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
@@ -110,16 +106,6 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
 
     df = pd.DataFrame(heatmap_data, columns=['Interval', 'Birth', 'Death', 'Dimension'])
     df['death_minus_birth'] = df['Death'] - df['Birth']
-    #figure out which interval has the peak in persistence
-
-
-    peak = np.max(df['death_minus_birth'])
-    #find the interval where the peak occurs
-    peak_interval = df[df['death_minus_birth'] == peak]['Interval'].values[0]
-    peak_index = df[df['death_minus_birth'] == peak].index[0]
-
-    peak_info = pd.DataFrame({'peak': [peak], 'peak_interval': [peak_interval], 'peak_index': [peak_index], 'cumulative': [cumulative_param], 'dimension': [df['Dimension'][peak_index]]})
-    peak_info.to_csv(f'{save_dir}/peak_info.csv')
 
     plt.figure(figsize=(12, 8))
     heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
@@ -351,7 +337,7 @@ def reformat_persistence_diagrams(dgms):
     #add extra dimension in first dimension
     dgm = np.expand_dims(dgm, axis=0)
     return dgm
-def plot_barcode(diag, dim, save_dir=None,count = 0, **kwargs):
+def plot_barcode(diag, dim, save_dir=None,fold = 0, **kwargs):
     """ taken from giotto-tda issues
     Plot the barcode for a persistence diagram using matplotlib
     ----------
@@ -374,29 +360,18 @@ def plot_barcode(diag, dim, save_dir=None,count = 0, **kwargs):
         inf_end = 2
     death[death == np.inf] = inf_end
     plt.figure(figsize=kwargs.get('figsize', (10, 5)))
-    hom_group_text = ''
     for i, (b, d) in enumerate(zip(birth, death)):
         if d == inf_end:
             plt.plot([b, d], [i, i], color='k', lw=kwargs.get('linewidth', 2))
-        elif dim == 0:
-            hom_group_text = 'H0'
+        else:
             plt.plot([b, d], [i, i], color=kwargs.get('color', 'b'), lw=kwargs.get('linewidth', 2))
-        elif dim == 1:
-            hom_group_text = 'H1'
-            plt.plot([b, d], [i, i], color=kwargs.get('color', 'r'), lw=kwargs.get('linewidth', 2))
-        elif dim == 2:
-            hom_group_text = 'H2'
-            plt.plot([b, d], [i, i], color=kwargs.get('color', 'g'), lw=kwargs.get('linewidth', 2))
-
-
-    plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) +' and trial ' + str(count)))
+    plt.title(kwargs.get('title', 'Persistence Barcode, dim ' + str(dim) +'and fold ' + str(fold)))
     plt.xlabel(kwargs.get('xlabel', 'Filtration Value'))
     plt.yticks([])
     plt.tight_layout()
     if save_dir is not None:
-        plt.savefig(save_dir + '/barcode_fold_trialid_' + str(count) +'_dim_'+ str(dim)+'_.png', dpi=300, bbox_inches='tight')
-    # plt.show()
-    plt.close('all')
+        plt.savefig(save_dir + '/barcode_fold_h2' + str(fold) +'dim'+ str(dim)+'.png', dpi=300, bbox_inches='tight')
+    plt.show()
 
     # plt.show()
 
@@ -435,48 +410,55 @@ def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
     return sorted_list
 
 
+
+
+def compute_distance(mega_diagram_list, m, n, l):
+    first_array = np.asarray(mega_diagram_list[m])
+    first_array = np.squeeze(first_array)  # Remove the extra dimension
+    first_array = first_array[first_array[:, 2] == l]
+    first_array = first_array[:, 0:2]
+
+    second_array = np.asarray(mega_diagram_list[n])
+    second_array = np.squeeze(second_array)  # Remove the extra dimension
+    second_array = second_array[second_array[:, 2] == l]
+    second_array = second_array[:, 0:2]
+
+    return m, n, bottleneck(first_array, second_array)
+
 def calculate_bottleneck_distance(all_diagrams, folder_str):
-    #concatenate the diagrams all together into one mega list
     print('..calculating distance matrix')
     mega_diagram_list = []
     for i in range(len(all_diagrams)):
         diagram = all_diagrams[i]
         mega_diagram_list.extend(diagram)
 
-
-    # Stack diagrams into a single ndarray
     num_diagrams = len(mega_diagram_list)
-
     distance_matrix_dict = {}
-    for l in [0, 1, 2]:
-        distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
-        for m in range(num_diagrams):
-            for n in range(m + 1, num_diagrams):
-                first_array = mega_diagram_list[m]
-                first_array = np.squeeze(first_array)  # Remove the extra dimension
-                # filter for the dimension
-                first_array = first_array[first_array[:, 2] == l]
-                # now take the first two columns for persim formatting
-                first_array = first_array[:, 0:2]
 
-                second_array = mega_diagram_list[n]
-                second_array = np.squeeze(second_array)  # Remove the extra dimension
-                # filter for the dimension
-                second_array = second_array[second_array[:, 2] == l]
-                # now take the first two columns for persim formatting
-                second_array = second_array[:, 0:2]
-                distance_matrix[m, n] = bottleneck(first_array, second_array)
+    with ProcessPoolExecutor(max_workers=15) as executor:
+        for l in [0]:
+            print('calculating distance matrix for dimension ', l)
+            distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
+            futures = [
+                executor.submit(compute_distance, mega_diagram_list, m, n, l)
+                for m in range(num_diagrams) for n in range(m + 1, num_diagrams)
+            ]
+            for future in as_completed(futures, timeout=60):  # Add a timeout of 60 seconds
+                try:
+                    m, n, distance = future.result()
+                    distance_matrix[m, n] = distance
+                except Exception as e:
+                    print(f"Task failed with exception: {e}")
 
-        # Save the distance matrix
-        #remove the diagonal from the matrix
-        distance_matrix = np.triu(distance_matrix)
-        distance_matrix_dict[l] = distance_matrix
+            distance_matrix = np.triu(distance_matrix)
+            distance_matrix_dict[l] = distance_matrix
+            print('the mean distance for dimension ', l, ' is ', np.nanmean(distance_matrix))
+            print('the mean standard deviation for dimension ', l, ' is ', np.nanstd(distance_matrix))
+
     with open(folder_str + '/distance_matrix_dict.pkl', 'wb') as f:
         pickle.dump(distance_matrix_dict, f)
-    #remove the diagonal from the matrix
 
     return distance_matrix_dict
-
 
 
 def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True):
@@ -490,7 +472,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
     trial_indices = trial_info['trial']
 
     # Get the sorted list
-    sorted_list = process_data(reduced_data, trial_indices, segment_length, cumulative=True)
+    sorted_list = process_data(reduced_data, trial_indices, segment_length, cumulative=cumulative_param)
 
     if cumulative_param:
         all_diagrams = []  # List to store all persistence diagrams
@@ -524,123 +506,25 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(dgm_dict_storage, f)
-    else:
-        all_diagrams = []
-        for i in range(len(sorted_list)):
-            #break into segments of segment_length chunk
-            sorted_data_trial = reduced_data[sorted_list[i], :]
-            #plot the persistence barcode across the whole trial
-            for dim in [0, 1, 2]:
-                dgm = ripser_parallel(sorted_data_trial, maxdim=2, n_threads=20, return_generators=True)
-                dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                #remove the first axis
-                dgm_gtda = dgm_gtda[0]
-                plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
 
 
     return all_diagrams, dgm_dict_storage
 
 
-# def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param = True):
-#     pairs_list = []
-#     dgm_dict_storage = {}
-#     sorted_list = []
-#
-#     reduced_data = np.load(folder_str + '/full_set_transformed.npy')
-#     trial_info = input_df
-#     trial_indices = trial_info['trial']
-#
-#     #get the sorted list
-#     sorted_list = process_data(reduced_data, trial_indices, segment_length, cumulative=cumulative_param)
-#     if cumulative_param:
-#         for i in range(len(sorted_list)):
-#             dgm_dict = {}
-#             sorted_data_trial = reduced_data[sorted_list[i], :]
-#             #break each sorted_data_trial into chunks of segment_length
-#             reduced_data_loop_list = []
-#             for j in range(0, len(sorted_data_trial), segment_length):
-#                 #needs to be cumulative
-#                 reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
-#                 #append to a list
-#                 reduced_data_loop_list.append(reduced_data_loop)
-#                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-#                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-#                 dgm_dict[j] = dgm
-#
-#
-#                 dgm_dict_storage[(i, j)] = dgm
-#
-#             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy', dgm)
-#
-#
-#             df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param, trial_number = i)
-#             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
-#
-#         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
-#             pickle.dump(dgm_dict_storage, f)
-#
-#
-#     else:
-#         trial_indices = np.array(trial_indices)
-#         #calcuate where the value of trial_indices changes
-#         trial_indices_diff = np.diff(trial_indices)
-#         #get the indices where the trial_indices change
-#         trial_indices_change = np.where(trial_indices_diff != 0)[0]
-#         #get the start and end indices
-#         start_indices = np.insert(trial_indices_change + 1, 0, 0)
-#         end_indices = np.append(trial_indices_change, len(trial_indices) - 1)
-#         #get the corresponding sorted_list interval number
-#
-#         ##find the start indices for each sorted_list component
-#         start_intervals = []
-#         end_intervals = []
-#         for i in range(len(sorted_list)):
-#             if sorted_list[i][0] in start_indices:
-#                 start_intervals.append(i)
-#             if sorted_list[i][-1] in end_indices:
-#                 end_intervals.append(i)
-#
-#         sorted_list = [x for x in sorted_list if x != []]
-#
-#         for j in range(len(sorted_list)):
-#             reduced_data_loop = reduced_data[sorted_list[j], :]
-#             if use_ripser:
-#                 pairs = rpp.run("--format point-cloud --dim " + str(2), reduced_data_loop)[2]
-#                 pairs_list.append(pairs)
-#                 np.save(folder_str + '/pairs_fold_h2' + str(j) + '.npy', pairs)
-#             else:
-#                 dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-#                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-#                 dgm_dict[j] = dgm
-#                 np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(j) + f'_cumulative_{cumulative_param}.npy', dgm)
-#         #generate the trial indices where the trial changes
-#         df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, start_intervals, end_intervals)
-#         fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param = cumulative_param)
-#         # fit_params = utils.fit_sinusoid_data_per_interval(df_output, folder_str, start_intervals, end_intervals)
-#
-#         if use_ripser:
-#             with open(folder_str + '/pairs_list_h2.pkl', 'wb') as f:
-#                 pickle.dump(pairs_list, f)
-#         else:
-#             with open(folder_str + '/dgm_dict_h2.pkl', 'wb') as f:
-#                 pickle.dump(dgm_dict, f)
-#
-#     return pairs_list
 
 
 def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    calculate_distance = False
     #check if all_diagrams.pkl exists in the base directory
-    if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance:
+    if os.path.exists(f'{base_dir}/all_diagrams.pkl'):
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
             big_list = pickle.load(f)
 
     else:
 
-        for subdir in [ f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
+        for subdir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
             window_df = pd.read_csv(
                 f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
             # find the rat_id
@@ -676,7 +560,7 @@ def main():
 
         #calculate the bottleneck distance
 
-    # distance_matrix_dict = calculate_bottleneck_distance(big_list, base_dir)
+    distance_matrix_dict = calculate_bottleneck_distance(big_list, base_dir)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 
