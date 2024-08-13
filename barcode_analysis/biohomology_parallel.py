@@ -435,7 +435,7 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     num_diagrams = len(mega_diagram_list)
     distance_matrix_dict = {}
 
-    with ProcessPoolExecutor(max_workers=15) as executor:
+    with ProcessPoolExecutor(max_workers=25) as executor:
         for l in [0]:
             print('calculating distance matrix for dimension ', l)
             distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
@@ -447,6 +447,7 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
                 try:
                     m, n, distance = future.result()
                     distance_matrix[m, n] = distance
+                    # print('distance computed')
                 except Exception as e:
                     print(f"Task failed with exception: {e}")
 
@@ -513,7 +514,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
 
 
-def main():
+if __name__ == '__main__':
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
@@ -569,9 +570,3 @@ def main():
 
 
 
-
-
-
-
-if __name__ == '__main__':
-    main()
