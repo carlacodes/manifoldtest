@@ -557,7 +557,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
                 df_output, _ = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
                                                              trial_number=i)
-                fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str,
+                fit_params, df_means = utils.fit_sinusoid_data_filtered(df_output, folder_str,
                                                                      cumulative_param=cumulative_param, trial_number=i)
                 sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
         elif shuffled_control:

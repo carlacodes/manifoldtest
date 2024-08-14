@@ -1,8 +1,79 @@
+
 import numpy as np
-import numpy as np
-from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+
+def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False,
+                               threshold=0.5):
+    """
+    Fit a sinusoidal function to the filtered dataset where death_minus_birth is above a threshold.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame containing the raw data to fit.
+    save_dir: str
+        Directory to save the plot.
+    threshold: float
+        Threshold for filtering death_minus_birth values.
+    """
+
+    def sinusoidal(x, A, B, C, D):
+        return A * np.sin(B * x + C) + D
+
+    def calculate_goodness_of_fit(x_data, y_data, y_fitted):
+        residuals = y_data - y_fitted
+        ssr = np.sum(residuals ** 2)
+        sst = np.sum((y_data - np.mean(y_data)) ** 2)
+        r_squared = 1 - (ssr / sst)
+        return r_squared
+
+    fit_params = {}
+    r_squared_df = pd.DataFrame(columns=['Dimension', 'R-squared'])
+
+    for dim in df['Dimension'].unique():
+        dim_data = df[df['Dimension'] == dim]
+
+        # Filter data based on the threshold
+        filtered_data = dim_data[dim_data['death_minus_birth'] > threshold]
+        if filtered_data.empty:
+            print(f"No data points above threshold {threshold} for dimension {dim}.")
+            continue
+
+        x_data = filtered_data['Interval'].values
+        y_data = filtered_data['death_minus_birth'].values
+
+        initial_guess = [1, 1, 0, np.mean(y_data)]
+        try:
+            params, _ = curve_fit(sinusoidal, x_data, y_data, p0=initial_guess)
+        except Exception as e:
+            print(f'Failed to fit sinusoidal function for dimension {dim}, error: {e}')
+            continue
+
+        fit_params[dim] = params
+        r_squared = calculate_goodness_of_fit(x_data, y_data, sinusoidal(x_data, *params))
+        r_squared_df_indiv = pd.DataFrame({'Dimension': dim, 'R-squared': r_squared}, index=[0])
+        r_squared_df = pd.concat([r_squared_df, r_squared_df_indiv], ignore_index=True)
+        print(f'R-squared for dimension {dim}: {r_squared}')
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(x_data, y_data, 'bo', label='Filtered Data')
+        plt.plot(x_data, sinusoidal(x_data, *params), 'r-', label='Fitted Function')
+        plt.title(f'Sinusoidal Fit for Homology Dimension {dim}, r2 score: {r_squared:.2f}')
+        plt.xlabel('Interval (j)')
+        plt.ylabel('Death - Birth')
+        plt.legend()
+        plt.savefig(
+            f'{save_dir}/sinusoidal_fit_dimension_{dim}_filtered_cumulative_{cumulative_param}_trial_{trial_number}_shuffled_{shuffled_control}.png',
+            dpi=300, bbox_inches='tight')
+        plt.show()
+        plt.close('all')
+
+    r_squared_df.to_csv(
+        f'{save_dir}/r_squared_values_filtered_cumulative_{cumulative_param}_shuffle_{shuffled_control}.csv
+
 
 def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False, trial_number = None, shuffled_control = False):
     """
