@@ -4,7 +4,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False):
+def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False, trial_number = None):
     """
     Fit a sinusoidal function to the entire dataset and plot the results.
 
@@ -53,17 +53,16 @@ def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False):
         plt.xlabel('Interval (j)')
         plt.ylabel('Mean Death - Birth')
         plt.legend()
-        plt.savefig(f'{save_dir}/sinusoidal_fit_dimension_{dim}_cumulative_{cumulative_param}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(f'{save_dir}/sinusoidal_fit_dimension_{dim}_cumulative_{cumulative_param}_trial_{trial_number}_1308.png', dpi=300, bbox_inches='tight')
         plt.show()
         plt.close('all')
 
     for dim, params in fit_params.items():
         print(f'Dimension {dim}: A={params[0]}, B={params[1]}, C={params[2]}, D={params[3]}')
 
-    r_squared_df['mean_r_squared'] = r_squared_df['R-squared'].mean()
     r_squared_df.to_csv(f'{save_dir}/r_squared_values_whole_cumulative_{cumulative_param}.csv', index=False)
 
-    return fit_params
+    return fit_params, r_squared_df
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
     n_windows_total = num_folds * num_windows
     window_size = n_timesteps / n_windows_total
