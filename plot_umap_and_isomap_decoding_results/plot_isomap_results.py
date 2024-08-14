@@ -118,7 +118,7 @@ def train_and_test_on_isomap_randcv(
         regressor,
         regressor_kwargs,
         reducer,
-        reducer_kwargs, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, barcode_analysis=True, just_folds = True):
+        reducer_kwargs, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, barcode_analysis=True, just_folds = True, null_distribution=False):
 
 
     y = bhv[regress].values
@@ -140,13 +140,26 @@ def train_and_test_on_isomap_randcv(
     if just_folds:
         pipeline_copy = copy.deepcopy(pipeline)
         pipeline_copy.set_params(**manual_params)
-        pipeline_copy.fit(spks, y)
+        if null_distribution:
+            spks_copy = copy.deepcopy(spks)
+            np.random.shuffle(spks_copy, axis=0)
+            assert np.all(spks_copy != spks)
+            pipeline_copy.fit(spks_copy, y)
+            custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
+            custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
+            full_set_transformed = pipeline_copy.named_steps['reducer'].transform(
+                pipeline_copy.named_steps['scaler'].transform(spks_copy))
+            np.save(f'{savedir}/full_set_transformed_null.npy', full_set_transformed)
 
-        custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
-        custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
-        full_set_transformed = pipeline_copy.named_steps['reducer'].transform(
-            pipeline_copy.named_steps['scaler'].transform(spks))
-        np.save(f'{savedir}/full_set_transformed.npy', full_set_transformed)
+        else:
+
+            pipeline_copy.fit(spks, y)
+
+            custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
+            custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
+            full_set_transformed = pipeline_copy.named_steps['reducer'].transform(
+                pipeline_copy.named_steps['scaler'].transform(spks))
+            np.save(f'{savedir}/full_set_transformed.npy', full_set_transformed)
         return None, None, None, None
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -348,6 +361,7 @@ def main():
     # f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
     # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
     just_folds = True
+    null_distribution = True
     for data_dir in [ f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
@@ -410,7 +424,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds
+            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds, null_distribution = null_distribution
         )
         if just_folds == True:
             continue
