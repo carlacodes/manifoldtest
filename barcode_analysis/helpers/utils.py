@@ -1,12 +1,23 @@
+import numpy as np
+import numpy as np
+from scipy.optimize import curve_fit
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
+def generate_white_noise_control(df, noise_level=1.0, iterations=1000, savedir = ''):
+    r_squared_values = []
+    for _ in range(iterations):
+        noise = np.random.normal(0, noise_level, len(df))
+        noise_df = df.copy()
+        noise_df['death_minus_birth'] += noise
+        _, r_squared_df = fit_sinusoid_data_filtered(noise_df, savedir , threshold=0)
+        r_squared_values.append(r_squared_df['R-squared'].mean())
+    return r_squared_values
 
 def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False,
-                               threshold=0.5):
+                               threshold=0):
     """
     Fit a sinusoidal function to the filtered dataset where death_minus_birth is above a threshold.
 
@@ -44,6 +55,8 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
 
         x_data = filtered_data['Interval'].values
         y_data = filtered_data['death_minus_birth'].values
+        #take the mean y_data for each x_data
+        y_data = np.array([np.mean(y_data[np.where(x_data == i)]) for i in x_data])
 
         initial_guess = [1, 1, 0, np.mean(y_data)]
         try:
@@ -72,7 +85,10 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         plt.close('all')
 
     r_squared_df.to_csv(
-        f'{save_dir}/r_squared_values_filtered_cumulative_{cumulative_param}_shuffle_{shuffled_control}.csv
+        f'{save_dir}/r_squared_values_filtered_cumulative_{cumulative_param}_shuffle_{shuffled_control}.csv',
+        index=False)
+
+    return fit_params, r_squared_df
 
 
 def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False, trial_number = None, shuffled_control = False):

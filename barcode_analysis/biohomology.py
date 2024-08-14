@@ -16,9 +16,6 @@ from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
 
-
-##Todo: remove ripser_parallel functionality
-
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
@@ -201,190 +198,6 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices=None, end_in
     return df, equal_peak_sanity
 
 
-def sinusoidal(x, A, B, C, D):
-    return A * np.sin(B * x + C) + D
-
-
-def fit_sinusoid_data(df, save_dir):
-    # Define a sinusoidal function for fitting
-
-    # Extract data from the heatmap
-    heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
-
-    # Prepare to store fit parameters
-    fit_params = {}
-
-    # Fit the function for each homology dimension
-    for dim in heatmap_data.columns:
-        x_data = heatmap_data.index.values
-        y_data = heatmap_data[dim].values
-
-        # Initial guess for the parameters
-        initial_guess = [1, 1, 0, np.mean(y_data)]
-
-        # Fit the sinusoidal function to the data
-        params, _ = curve_fit(sinusoidal, x_data, y_data, p0=initial_guess)
-        fit_params[dim] = params
-        r_squared = calculate_goodness_of_fit(x_data, y_data, params)
-
-        print(f'R-squared for dimension {dim}: {r_squared}')
-
-        # Plot the original data and the fitted function
-        plt.figure(figsize=(10, 6))
-        plt.plot(x_data, y_data, 'bo', label='Original Data')
-        # plt.plot(x_data, sinusoidal(x_data, *params), 'r-', label='Fitted Function')
-        plt.title(f'Sinusoidal Fit for Homology Dimension {dim}')
-        plt.xlabel('Interval (j)')
-        plt.ylabel('Mean Death - Birth')
-        plt.legend()
-        plt.show()
-
-    # Print the fit parameters for each dimension
-    for dim, params in fit_params.items():
-        print(f'Dimension {dim}: A={params[0]}, B={params[1]}, C={params[2]}, D={params[3]}')
-
-    return fit_params
-
-
-def fit_smooth_function(df, save_dir):
-    """
-    Fit a smooth function to the data and plot the results.
-
-    Parameters
-    ----------
-    df: pd.DataFrame
-        DataFrame containing the data to fit.
-    save_dir: str
-        Directory to save the plot.
-    """
-    # Extract data from the heatmap
-    heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
-
-    # Prepare to store fit parameters
-    fit_params = {}
-
-    # Fit the function for each homology dimension
-    for dim in heatmap_data.columns:
-        x_data = heatmap_data.index.values
-        y_data = heatmap_data[dim].values
-
-        # Fit a smooth spline to the data
-        spline = UnivariateSpline(x_data, y_data, s=1)
-        fit_params[dim] = spline
-        r_squared = calculate_goodness_of_fit(x_data, y_data, spline(x_data))
-        print(f'R-squared for dimension {dim}: {r_squared}')
-
-        # Plot the original data and the fitted function
-        plt.figure(figsize=(10, 6))
-        plt.plot(x_data, y_data, 'bo', label='Original Data')
-        plt.plot(x_data, spline(x_data), 'r-', label='Fitted Function')
-        plt.title(f'Smooth Fit for Homology Dimension {dim}')
-        plt.xlabel('Interval (j)')
-        plt.ylabel('Mean Death - Birth')
-        plt.legend()
-        plt.show()
-
-    # Print the fit parameters for each dimension
-    for dim, spline in fit_params.items():
-        print(f'Dimension {dim}: Spline knots={spline.get_knots()}')
-
-    return fit_params
-
-
-def calculate_goodness_of_fit(x_data, y_data, y_fitted):
-    """
-    Calculate the goodness of fit (R-squared) for the fitted function.
-
-    Parameters
-    ----------
-    x_data: np.array
-        Array of x data points.
-    y_data: np.array
-        Array of y data points.
-    y_fitted: np.array
-        Array of fitted y data points.
-
-    Returns
-    -------
-    float
-        R-squared value.
-    """
-    # Calculate residuals
-    residuals = y_data - y_fitted
-
-    # Sum of squared residuals (SSR)
-    ssr = np.sum(residuals ** 2)
-
-    # Total sum of squares (SST)
-    sst = np.sum((y_data - np.mean(y_data)) ** 2)
-
-    # R-squared
-    r_squared = 1 - (ssr / sst)
-
-    return r_squared
-
-
-def plot_homology_changes_over_j(dgm_dict, save_dir):
-    """
-    Plot how the homology changes over the range of `j`.
-
-    Parameters
-    ----------
-    dgm_dict: dict
-        Dictionary containing persistence diagrams for each `j`.
-    save_dir: str
-        Directory to save the plot.
-    """
-    plt.figure(figsize=(12, 8))
-
-    for j, dgm in dgm_dict.items():
-        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-        birth_times = dgm_gtda[0][:, 0]
-        death_times = dgm_gtda[0][:, 1]
-        dimensions = dgm_gtda[0][:, 2]
-
-        plt.plot([j] * len(birth_times), birth_times, 'go', label='Birth' if j == 0 else "")
-        plt.plot([j] * len(death_times), death_times, 'ro', label='Death' if j == 0 else "")
-
-    plt.xlabel('Interval (j)')
-    plt.ylabel('Filtration Value')
-    plt.title('Homology Changes Over Intervals')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(f'{save_dir}/homology_changes_over_intervals.png', dpi=300)
-    plt.show()
-    plt.close()
-
-
-def reformat_persistence_diagrams(dgms):
-    '''Reformat the persistence diagrams to be in the format required by the giotto package
-    Parameters
-    ----------
-    dgms: list of np.arrays: list of persistence diagrams, each of shape (num_features, 3), i.e. each feature is
-           a triplet of (birth, death, dim) as returned by e.g.
-           VietorisRipsPersistence
-           Returns
-           -------
-           dgm: np.array: of shape (num_features, 4), i.e. each feature is
-           '''
-
-    for i in (0, len(dgms) - 1):
-        indiv_dgm = dgms[i]
-        # append the dimension
-        #add the dimension
-        indiv_dgm = np.hstack((indiv_dgm, np.ones((indiv_dgm.shape[0], 1)) * i))
-        # append to a larger array
-        if i == 0:
-            dgm = indiv_dgm
-        else:
-            dgm = np.vstack((dgm, indiv_dgm))
-
-    ##for each row make an array
-    dgm = np.array([np.array(row) for row in dgm])
-    #add extra dimension in first dimension
-    dgm = np.expand_dims(dgm, axis=0)
-    return dgm
-
 
 def plot_barcode(diag, dim, save_dir=None, count=0, **kwargs):
     """ taken from giotto-tda issues
@@ -560,6 +373,8 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                 fit_params, df_means = utils.fit_sinusoid_data_filtered(df_output, folder_str,
                                                                      cumulative_param=cumulative_param, trial_number=i)
                 sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
+
+                fit_params_white, df_means_white = utils.generate_white_noise_control(df_output, savedir=folder_str)
         elif shuffled_control:
             all_diagrams = []  # List to store all persistence diagrams
             sinusoid_df_across_trials = pd.DataFrame()
@@ -718,6 +533,7 @@ def main():
                                                                                 cumulative_windows=cumul_windows)
             sinusoid_df_across_trials_and_animals = pd.concat(
                 [sinusoid_df_across_trials_and_animals, sinusoid_df_across_trials])
+
             #append pairs_list to a big_list
             big_list.append(pairs_list)
         sinusoid_df_across_trials_and_animals['mean_across_animals'] = \
@@ -725,11 +541,21 @@ def main():
         sinusoid_df_across_trials_and_animals.to_csv(
             f'{base_dir}/r_squared_values_sinusoidfit_whole_cumulative_{cumul_windows}_across_animals_shuffled_{shuffle_control}.csv', index=False)
 
+
         #calculate the bottleneck distance
 
     # distance_matrix_dict = calculate_bottleneck_distance(big_list, base_dir)
     #save the pairs list
     # np.save(savedir + '/pairs_list.npy', pairs_list)
+def generate_white_noise_control(df, noise_level=1.0, iterations=1000, savedir = ''):
+    r_squared_values = []
+    for _ in range(iterations):
+        noise = np.random.normal(0, noise_level, len(df))
+        noise_df = df.copy()
+        noise_df['death_minus_birth'] += noise
+        _, r_squared_df = utils.fit_sinusoid_data_filtered(noise_df, savedir , threshold=0)
+        r_squared_values.append(r_squared_df['R-squared'].mean())
+    return r_squared_values
 
 
 if __name__ == '__main__':
