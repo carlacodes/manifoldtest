@@ -49,8 +49,8 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
 
         # Filter data based on the threshold
         filtered_data = dim_data[dim_data['death_minus_birth'] > threshold]
-        if filtered_data.empty:
-            print(f"No data points above threshold {threshold} for dimension {dim}.")
+        if filtered_data.empty or len(filtered_data) < 4:
+            print(f"No data points above threshold {threshold} for dimension {dim} or less than 4 data points.")
             continue
 
         x_data = filtered_data['Interval'].values
@@ -67,8 +67,10 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
 
         fit_params[dim] = params
         r_squared = calculate_goodness_of_fit(x_data, y_data, sinusoidal(x_data, *params))
-        r_squared_df_indiv = pd.DataFrame({'Dimension': dim, 'R-squared': r_squared}, index=[0])
-        r_squared_df = pd.concat([r_squared_df, r_squared_df_indiv], ignore_index=True)
+        r_squared_df_individual = pd.DataFrame([{'Dimension': dim, 'R-squared': r_squared}])
+
+        # Concatenate with the existing DataFrame
+        r_squared_df = pd.concat([r_squared_df, r_squared_df_individual], ignore_index=True)
         print(f'R-squared for dimension {dim}: {r_squared}')
 
         plt.figure(figsize=(10, 6))

@@ -326,7 +326,7 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     return distance_matrix_dict
 
 
-def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True,
+def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20, cumulative_param=True,
                              use_peak_control=False, cumulative_windows=False, shuffled_control=False):
     dgm_dict_storage = {}
     sinusoid_df_across_trials = None
@@ -339,27 +339,28 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
     if cumulative_param:
         all_diagrams = []  # List to store all persistence diagrams
-        if use_peak_control==False and shuffled_control==False:
+        if not use_peak_control and not shuffled_control:
             sinusoid_df_across_trials = pd.DataFrame()
             for i in range(len(sorted_list)):
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
-                # Break each sorted_data_trial into chunks of segment_length
+                # Break each sorted_data_trial into sliding windows
                 reduced_data_loop_list = []
-                for j in range(0, len(sorted_data_trial), segment_length):
+                for start in range(0, len(sorted_data_trial) - segment_length + 1, stride):
+                    end = start + segment_length
                     # Needs to be cumulative
                     if cumulative_windows:
-                        reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
+                        reduced_data_loop = sorted_data_trial[:end, :]
                     else:
-                        reduced_data_loop = sorted_data_trial[j:j + segment_length, :]
+                        reduced_data_loop = sorted_data_trial[start:end, :]
 
                     # Append to a list
                     reduced_data_loop_list.append(reduced_data_loop)
                     dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
                     dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                    dgm_dict[j] = dgm
+                    dgm_dict[start] = dgm
 
-                    dgm_dict_storage[(i, j)] = dgm_gtda
+                    dgm_dict_storage[(i, start)] = dgm_gtda
                     all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
                 np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
@@ -371,33 +372,33 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                                                                      cumulative_param=cumulative_param, trial_number=i)
                 sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
 
-                fit_params_white, df_means_white = utils.generate_white_noise_control(df_output, savedir=folder_str)
         elif shuffled_control:
             all_diagrams = []  # List to store all persistence diagrams
             sinusoid_df_across_trials = pd.DataFrame()
             for i in range(len(sorted_list)):
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
-                shuffled_sorted_data_trial = copy.deepcopy(sorted_data_trial)
+                shuffled_sorted_data_trial = np.copy(sorted_data_trial)
                 np.random.shuffle(shuffled_sorted_data_trial)
-                #check if the shuffled data is the same as the original
-                assert np.array_equal(sorted_data_trial, shuffled_sorted_data_trial) == False
-                # Break each sorted_data_trial into chunks of segment_length
+                # Check if the shuffled data is the same as the original
+                assert not np.array_equal(sorted_data_trial, shuffled_sorted_data_trial)
+                # Break each shuffled_sorted_data_trial into sliding windows
                 reduced_data_loop_list = []
-                for j in range(0, len(shuffled_sorted_data_trial), segment_length):
+                for start in range(0, len(shuffled_sorted_data_trial) - segment_length + 1, stride):
+                    end = start + segment_length
                     # Needs to be cumulative
                     if cumulative_windows:
-                        reduced_data_loop = shuffled_sorted_data_trial[0:j + segment_length, :]
+                        reduced_data_loop = shuffled_sorted_data_trial[:end, :]
                     else:
-                        reduced_data_loop = shuffled_sorted_data_trial[j:j + segment_length, :]
+                        reduced_data_loop = shuffled_sorted_data_trial[start:end, :]
 
                     # Append to a list
                     reduced_data_loop_list.append(reduced_data_loop)
                     dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
                     dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                    dgm_dict[j] = dgm
+                    dgm_dict[start] = dgm
 
-                    dgm_dict_storage[(i, j)] = dgm_gtda
+                    dgm_dict_storage[(i, start)] = dgm_gtda
                     all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
                 np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
@@ -406,32 +407,29 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                 df_output, _ = plot_homology_changes_heatmap(dgm_dict, folder_str,
                                                              cumulative_param=cumulative_param,
                                                              trial_number=i, shuffled_control=shuffled_control)
-                fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str,
-                                                                     cumulative_param=cumulative_param,
-                                                                     trial_number=i, shuffled_control=shuffled_control)
-                sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
+                # fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str,
+                #                                                      cumulative_param=cumulative_param,
+                #                                                      trial_number=i, shuffled_control=shuffled_control)
+                # sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
 
         elif use_peak_control:
-
             equal_peak_sanity_list = []
             for i in range(len(sorted_list)):
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
-                # Break each sorted_data_trial into chunks of segment_length
-                reduced_data_loop_list = []
+                # Break each sorted_data_trial into sliding windows with peak control
                 peak_info = pd.read_csv(folder_str + f'/peak_info_trial_{i}.csv')
                 peak_interval = peak_info['peak_interval'].values[0]
                 segment_length_new = peak_interval + segment_length
-                for j in range(0, len(sorted_data_trial), segment_length_new):
-                    # Needs to be cumulative
-                    reduced_data_loop = sorted_data_trial[j:j + segment_length_new, :]
+                for start in range(0, len(sorted_data_trial) - segment_length_new + 1, stride):
+                    end = start + segment_length_new
+                    reduced_data_loop = sorted_data_trial[start:end, :]
                     # Append to a list
-                    reduced_data_loop_list.append(reduced_data_loop)
                     dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
                     dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                    dgm_dict[j] = dgm
+                    dgm_dict[start] = dgm
 
-                    dgm_dict_storage[(i, j)] = dgm_gtda
+                    dgm_dict_storage[(i, start)] = dgm_gtda
                     all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
                 np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(
@@ -445,11 +443,11 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                                                                              old_segment_length=segment_length,
                                                                              new_segment_length=segment_length_new)
                 equal_peak_sanity_list.append(equal_peak_sanity)
-                #get the fraction of 1s
+                # Get the fraction of 1s
                 frac_of_ones = len([x for x in equal_peak_sanity_list if x == 1]) / len(equal_peak_sanity_list)
 
         if sinusoid_df_across_trials is not None:
-            #calculate the mean per dimension
+            # Calculate the mean per dimension
             sinusoid_df_across_trials['mean'] = sinusoid_df_across_trials.groupby(['Dimension'])['R-squared'].transform(
                 'mean')
             sinusoid_df_across_trials.to_csv(
@@ -466,15 +464,16 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
         all_diagrams = []
         for i in range(len(sorted_list)):
             sorted_data_trial = reduced_data[sorted_list[i], :]
-            #plot the persistence barcode across the whole trial
+            # Plot the persistence barcode across the whole trial
             for dim in [0, 1, 2]:
                 dgm = ripser_parallel(sorted_data_trial, maxdim=2, n_threads=20, return_generators=True)
                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                #remove the first axis
+                # Remove the first axis
                 dgm_gtda = dgm_gtda[0]
                 plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
 
     return all_diagrams, dgm_dict_storage, sinusoid_df_across_trials
+
 
 
 def main():
