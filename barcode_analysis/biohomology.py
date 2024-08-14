@@ -515,8 +515,8 @@ def main():
             if len(files) >= 2:
                 #choose the most recently modified directory
                 files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
-                #get the most recently modified directory
-                savedir = sub_folder + files[-1]
+                #get the second most recently modified directory
+                savedir = sub_folder + files[-2]
             else:
                 savedir = sub_folder + files[0]
 

@@ -424,7 +424,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds
+            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds, null_distribution = null_distribution
         )
         if just_folds == True:
             continue
