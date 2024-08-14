@@ -328,10 +328,7 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
 
 def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True,
                              use_peak_control=False, cumulative_windows=False, shuffled_control=False):
-    pairs_list = []
     dgm_dict_storage = {}
-    distance_matrix_dict = {}  # Dictionary to store pairwise distances
-    sorted_list = []
     sinusoid_df_across_trials = None
     reduced_data = np.load(folder_str + '/full_set_transformed.npy')
     trial_info = input_df
@@ -342,7 +339,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
     if cumulative_param:
         all_diagrams = []  # List to store all persistence diagrams
-        if use_peak_control == False and shuffled_control == False:
+        if use_peak_control==False and shuffled_control==False:
             sinusoid_df_across_trials = pd.DataFrame()
             for i in range(len(sorted_list)):
                 dgm_dict = {}
@@ -464,8 +461,6 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
         with open(folder_str + '/dgm_dict_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(dgm_dict_storage, f)
-
-
 
     else:
         all_diagrams = []
