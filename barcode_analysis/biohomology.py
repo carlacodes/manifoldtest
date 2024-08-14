@@ -16,6 +16,7 @@ from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
 
+
 ##Todo: remove ripser_parallel functionality
 
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
@@ -51,7 +52,8 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
         segment_df = df[(df['Interval'] >= start) & (df['Interval'] <= end)]
 
         plt.figure(figsize=(12, 8))
-        heatmap_data = segment_df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
+        heatmap_data = segment_df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth',
+                                              aggfunc='mean')
 
         ax = sns.heatmap(heatmap_data, cmap='viridis')
         # ax.axhline(start, color='r', linestyle='--')
@@ -65,13 +67,12 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
 
         # Annotate y-ticks with start indices
         for idx, (start_annotate, end_annotate) in enumerate(zip(mapped_start_indices, mapped_end_indices)):
-            ax.annotate('Start', xy=(0, start_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points', color='r',
+            ax.annotate('Start', xy=(0, start_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
+                        color='r',
                         fontsize=12, ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
-            ax.annotate('End', xy=(0, end_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points', color='r', fontsize=12,
+            ax.annotate('End', xy=(0, end_annotate), xycoords='data', xytext=(-50, 0), textcoords='offset points',
+                        color='r', fontsize=12,
                         ha='right', va='center', arrowprops=dict(arrowstyle='->', color='r'))
-
-
-
 
         cbar = ax.collections[0].colorbar
         cbar.set_label('Death - Birth')
@@ -79,12 +80,16 @@ def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, en
         plt.xlabel('Homology Dimension')
         plt.ylabel('Interval (j)')
         plt.tight_layout()
-        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_{start}_{end}.png', dpi=300, bbox_inches='tight')
+        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_{start}_{end}.png', dpi=300,
+                    bbox_inches='tight')
         plt.show()
         plt.close()
     return df
 
-def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_indices = None, cumulative_param = False, trial_number = None, use_peak_control = False, old_segment_length = None, new_segment_length = None):
+
+def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices=None, end_indices=None, cumulative_param=False,
+                                  trial_number=None, use_peak_control=False, old_segment_length=None,
+                                  new_segment_length=None, shuffled_control=False):
     """
     Plot how the homology changes over the range of `j` using a heatmap.
 
@@ -106,11 +111,9 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
         for birth, death, dim in zip(birth_times, death_times, dimensions):
             heatmap_data.append([j, birth, death, dim])
 
-
     df = pd.DataFrame(heatmap_data, columns=['Interval', 'Birth', 'Death', 'Dimension'])
     df['death_minus_birth'] = df['Death'] - df['Birth']
     #figure out which interval has the peak in persistence
-
 
     #find the max mean peak across intervals
     df_zeroth_homology = df[df['Dimension'] == 0]
@@ -118,8 +121,8 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
     peak = mean_peak_by_interval.max()
     peak_interval = mean_peak_by_interval.idxmax()
 
-
-    peak_info = pd.DataFrame({'peak': [peak], 'peak_interval': [peak_interval],  'segment length': [new_segment_length], 'cumulative': [cumulative_param]})
+    peak_info = pd.DataFrame({'peak': [peak], 'peak_interval': [peak_interval], 'segment length': [new_segment_length],
+                              'cumulative': [cumulative_param]})
     equal_peak_sanity = None
     if use_peak_control:
         #compare to old peak_info
@@ -137,16 +140,12 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
             equal_peak_sanity = 1
         peak_info.to_csv(f'{save_dir}/peak_info_control_{use_peak_control}_trial_{trial_number}.csv')
     else:
-        peak_info.to_csv(f'{save_dir}/peak_info_trial_{trial_number}.csv')
+        peak_info.to_csv(f'{save_dir}/peak_info_trial_{trial_number}_shuffled_{shuffled_control}.csv')
 
     plt.figure(figsize=(12, 8))
     heatmap_data = df.pivot_table(index='Interval', columns='Dimension', values='death_minus_birth', aggfunc='mean')
 
     ax = sns.heatmap(heatmap_data, cmap='viridis')
-    #mark the start and end trial indices
-    # for start, end in zip(start_indices, end_indices):
-    #     ax.axhline(start, color='r', linestyle='--')
-    #     ax.axhline(end, color='r', linestyle='--')
     y_ticks = heatmap_data.index.values
 
     # for idx, (start, end) in enumerate(zip(start_indices, end_indices)):
@@ -169,25 +168,32 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
     cbar.set_label('Death - Birth')
     if trial_number is not None:
         if use_peak_control:
-            plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}, control: {use_peak_control}')
+            plt.title(
+                f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}, control: {use_peak_control}')
         else:
-            plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}')
+            plt.title(
+                f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, trial number: {trial_number}')
         plt.xlabel('Homology Dimension')
         plt.ylabel('Interval (j)')
         plt.tight_layout()
-        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}_control_{use_peak_control}.png', dpi=300,
-                    bbox_inches='tight')
+        plt.savefig(
+            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}_control_{use_peak_control}_shuffled_{shuffled_control}.png',
+            dpi=300,
+            bbox_inches='tight')
 
     else:
         if use_peak_control:
-            plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, control: {use_peak_control}')
+            plt.title(
+                f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}, control: {use_peak_control}')
         else:
             plt.title(f'Homology Changes Heatmap Over Intervals for animal: {save_dir.split("/")[-4]}')
         plt.xlabel('Homology Dimension')
         plt.ylabel('Interval (j)')
         plt.tight_layout()
-        plt.savefig(f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_control_{use_peak_control}.png', dpi=300,
-                    bbox_inches='tight')
+        plt.savefig(
+            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_control_{use_peak_control}_shuffled_{shuffled_control}.png',
+            dpi=300,
+            bbox_inches='tight')
     #add a colorbar label
 
     plt.show()
@@ -198,8 +204,8 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices = None, end_
 def sinusoidal(x, A, B, C, D):
     return A * np.sin(B * x + C) + D
 
-def fit_sinusoid_data(df, save_dir):
 
+def fit_sinusoid_data(df, save_dir):
     # Define a sinusoidal function for fitting
 
     # Extract data from the heatmap
@@ -238,7 +244,6 @@ def fit_sinusoid_data(df, save_dir):
         print(f'Dimension {dim}: A={params[0]}, B={params[1]}, C={params[2]}, D={params[3]}')
 
     return fit_params
-
 
 
 def fit_smooth_function(df, save_dir):
@@ -285,6 +290,7 @@ def fit_smooth_function(df, save_dir):
 
     return fit_params
 
+
 def calculate_goodness_of_fit(x_data, y_data, y_fitted):
     """
     Calculate the goodness of fit (R-squared) for the fitted function.
@@ -316,6 +322,8 @@ def calculate_goodness_of_fit(x_data, y_data, y_fitted):
     r_squared = 1 - (ssr / sst)
 
     return r_squared
+
+
 def plot_homology_changes_over_j(dgm_dict, save_dir):
     """
     Plot how the homology changes over the range of `j`.
@@ -347,6 +355,7 @@ def plot_homology_changes_over_j(dgm_dict, save_dir):
     plt.show()
     plt.close()
 
+
 def reformat_persistence_diagrams(dgms):
     '''Reformat the persistence diagrams to be in the format required by the giotto package
     Parameters
@@ -375,7 +384,9 @@ def reformat_persistence_diagrams(dgms):
     #add extra dimension in first dimension
     dgm = np.expand_dims(dgm, axis=0)
     return dgm
-def plot_barcode(diag, dim, save_dir=None,count = 0, **kwargs):
+
+
+def plot_barcode(diag, dim, save_dir=None, count=0, **kwargs):
     """ taken from giotto-tda issues
     Plot the barcode for a persistence diagram using matplotlib
     ----------
@@ -390,7 +401,8 @@ def plot_barcode(diag, dim, save_dir=None,count = 0, **kwargs):
 
     """
     diag_dim = diag[diag[:, 2] == dim]
-    birth = diag_dim[:, 0]; death = diag_dim[:, 1]
+    birth = diag_dim[:, 0];
+    death = diag_dim[:, 1]
     finite_bars = death[death != np.inf]
     if len(finite_bars) > 0:
         inf_end = 2 * max(finite_bars)
@@ -412,13 +424,13 @@ def plot_barcode(diag, dim, save_dir=None,count = 0, **kwargs):
             hom_group_text = 'H2'
             plt.plot([b, d], [i, i], color=kwargs.get('color', 'g'), lw=kwargs.get('linewidth', 2))
 
-
-    plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) +' and trial ' + str(count)))
+    plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) + ' and trial ' + str(count)))
     plt.xlabel(kwargs.get('xlabel', 'Filtration Value'))
     plt.yticks([])
     plt.tight_layout()
     if save_dir is not None:
-        plt.savefig(save_dir + '/barcode_fold_trialid_' + str(count) +'_dim_'+ str(dim)+'_.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_dir + '/barcode_fold_trialid_' + str(count) + '_dim_' + str(dim) + '_.png', dpi=300,
+                    bbox_inches='tight')
     # plt.show()
     plt.close('all')
 
@@ -467,7 +479,6 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
         diagram = all_diagrams[i]
         mega_diagram_list.extend(diagram)
 
-
     # Stack diagrams into a single ndarray
     num_diagrams = len(mega_diagram_list)
 
@@ -502,8 +513,8 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     return distance_matrix_dict
 
 
-
-def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True, use_peak_control = False, cumulative_windows = False):
+def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True,
+                             use_peak_control=False, cumulative_windows=False, shuffled_control=False):
     pairs_list = []
     dgm_dict_storage = {}
     distance_matrix_dict = {}  # Dictionary to store pairwise distances
@@ -518,7 +529,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
 
     if cumulative_param:
         all_diagrams = []  # List to store all persistence diagrams
-        if use_peak_control == False:
+        if use_peak_control == False and shuffled_control == False:
             sinusoid_df_across_trials = pd.DataFrame()
             for i in range(len(sorted_list)):
                 dgm_dict = {}
@@ -545,8 +556,47 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                         dgm_dict)
 
                 df_output, _ = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
-                                                          trial_number=i)
-                fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param, trial_number=i)
+                                                             trial_number=i)
+                fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str,
+                                                                     cumulative_param=cumulative_param, trial_number=i)
+                sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
+        elif shuffled_control:
+            all_diagrams = []  # List to store all persistence diagrams
+            sinusoid_df_across_trials = pd.DataFrame()
+            for i in range(len(sorted_list)):
+                dgm_dict = {}
+                sorted_data_trial = reduced_data[sorted_list[i], :]
+                shuffled_sorted_data_trial = copy.deepcopy(sorted_data_trial)
+                np.random.shuffle(shuffled_sorted_data_trial)
+                #check if the shuffled data is the same as the original
+                assert np.array_equal(sorted_data_trial, shuffled_sorted_data_trial) == False
+                # Break each sorted_data_trial into chunks of segment_length
+                reduced_data_loop_list = []
+                for j in range(0, len(shuffled_sorted_data_trial), segment_length):
+                    # Needs to be cumulative
+                    if cumulative_windows:
+                        reduced_data_loop = shuffled_sorted_data_trial[0:j + segment_length, :]
+                    else:
+                        reduced_data_loop = shuffled_sorted_data_trial[j:j + segment_length, :]
+
+                    # Append to a list
+                    reduced_data_loop_list.append(reduced_data_loop)
+                    dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+                    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                    dgm_dict[j] = dgm
+
+                    dgm_dict_storage[(i, j)] = dgm_gtda
+                    all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+
+                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
+                        dgm_dict)
+
+                df_output, _ = plot_homology_changes_heatmap(dgm_dict, folder_str,
+                                                             cumulative_param=cumulative_param,
+                                                             trial_number=i, shuffled_control=shuffled_control)
+                fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str,
+                                                                     cumulative_param=cumulative_param,
+                                                                     trial_number=i, shuffled_control=shuffled_control)
                 sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
 
         elif use_peak_control:
@@ -572,19 +622,27 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                     dgm_dict_storage[(i, j)] = dgm_gtda
                     all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
-                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}_control_{use_peak_control}.npy',
+                np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(
+                    i) + f'_cumulative_{cumulative_param}_control_{use_peak_control}.npy',
                         dgm_dict)
 
-                df_output, equal_peak_sanity = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
-                                                          trial_number=i, use_peak_control = use_peak_control, old_segment_length=segment_length, new_segment_length=segment_length_new)
+                df_output, equal_peak_sanity = plot_homology_changes_heatmap(dgm_dict, folder_str,
+                                                                             cumulative_param=cumulative_param,
+                                                                             trial_number=i,
+                                                                             use_peak_control=use_peak_control,
+                                                                             old_segment_length=segment_length,
+                                                                             new_segment_length=segment_length_new)
                 equal_peak_sanity_list.append(equal_peak_sanity)
                 #get the fraction of 1s
-                frac_of_ones = len([x for x in equal_peak_sanity_list if x == 1])/len(equal_peak_sanity_list)
+                frac_of_ones = len([x for x in equal_peak_sanity_list if x == 1]) / len(equal_peak_sanity_list)
 
         if sinusoid_df_across_trials is not None:
             #calculate the mean per dimension
-            sinusoid_df_across_trials['mean'] = sinusoid_df_across_trials.groupby(['Dimension'])['R-squared'].transform('mean')
-            sinusoid_df_across_trials.to_csv(folder_str + f'/r_squared_values_sinusoidfit_whole_cumulative_{cumulative_param}.csv', index=False)
+            sinusoid_df_across_trials['mean'] = sinusoid_df_across_trials.groupby(['Dimension'])['R-squared'].transform(
+                'mean')
+            sinusoid_df_across_trials.to_csv(
+                folder_str + f'/r_squared_values_sinusoidfit_whole_cumulative_{cumulative_param}_shuffled_{shuffled_control}.csv',
+                index=False)
 
         with open(folder_str + '/all_diagrams_h2_cumulative_trialbysegment.pkl', 'wb') as f:
             pickle.dump(all_diagrams, f)
@@ -606,9 +664,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
                 dgm_gtda = dgm_gtda[0]
                 plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
 
-
     return all_diagrams, dgm_dict_storage, sinusoid_df_across_trials
-
 
 
 def main():
@@ -616,6 +672,8 @@ def main():
     base_dir = 'C:/neural_data/'
     big_list = []
     calculate_distance = False
+    cumul_windows = False
+    shuffle_control = True
     #check if all_diagrams.pkl exists in the base directory
     if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance:
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
@@ -623,7 +681,8 @@ def main():
 
     else:
         sinusoid_df_across_trials_and_animals = pd.DataFrame()
-        for subdir in [  f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019',]:
+        for subdir in [f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
+                       f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', ]:
             window_df = pd.read_csv(
                 f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
             # find the rat_id
@@ -639,7 +698,6 @@ def main():
             #make input df
             input_df = pd.DataFrame(labels, columns=col_list)
 
-
             print('at dir ', subdir)
             sub_folder = subdir + '/plot_results/'
             #get list of files in the directory
@@ -653,26 +711,25 @@ def main():
             else:
                 savedir = sub_folder + files[0]
 
-            pairs_list, _, sinusoid_df_across_trials = run_persistence_analysis(savedir, input_df, cumulative_param=True, use_peak_control=False)
-            sinusoid_df_across_trials_and_animals = pd.concat([sinusoid_df_across_trials_and_animals, sinusoid_df_across_trials])
+            pairs_list, _, sinusoid_df_across_trials = run_persistence_analysis(savedir, input_df,
+                                                                                cumulative_param=True,
+                                                                                use_peak_control=False,
+                                                                                shuffled_control=shuffle_control,
+                                                                                cumulative_windows=cumul_windows)
+            sinusoid_df_across_trials_and_animals = pd.concat(
+                [sinusoid_df_across_trials_and_animals, sinusoid_df_across_trials])
             #append pairs_list to a big_list
             big_list.append(pairs_list)
-        sinusoid_df_across_trials_and_animals['mean_across_animals'] = sinusoid_df_across_trials_and_animals.groupby(['Dimension'])['R-squared'].transform('mean')
-        sinusoid_df_across_trials_and_animals.to_csv(f'{base_dir}/r_squared_values_sinusoidfit_whole_cumulative_True_across_animals.csv', index=False)
+        sinusoid_df_across_trials_and_animals['mean_across_animals'] = \
+        sinusoid_df_across_trials_and_animals.groupby(['Dimension'])['R-squared'].transform('mean')
+        sinusoid_df_across_trials_and_animals.to_csv(
+            f'{base_dir}/r_squared_values_sinusoidfit_whole_cumulative_{cumul_windows}_across_animals_shuffled_{shuffle_control}.csv', index=False)
 
         #calculate the bottleneck distance
 
     # distance_matrix_dict = calculate_bottleneck_distance(big_list, base_dir)
-        #save the pairs list
-        # np.save(savedir + '/pairs_list.npy', pairs_list)
-
-
-
-
-
-
-
-
+    #save the pairs list
+    # np.save(savedir + '/pairs_list.npy', pairs_list)
 
 
 if __name__ == '__main__':
