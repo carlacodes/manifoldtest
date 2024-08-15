@@ -483,7 +483,7 @@ def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    calculate_distance = False
+    calculate_distance = True
     cumul_windows = False
     shuffle_control = False
     #check if all_diagrams.pkl exists in the base directory
@@ -533,6 +533,7 @@ def main():
 
             #append pairs_list to a big_list
             big_list.append(pairs_list)
+            distance_matrix_dict = calculate_bottleneck_distance(pairs_list, base_dir)
         sinusoid_df_across_trials_and_animals['mean_across_animals'] = \
         sinusoid_df_across_trials_and_animals.groupby(['Dimension'])['R-squared'].transform('mean')
         sinusoid_df_across_trials_and_animals.to_csv(
