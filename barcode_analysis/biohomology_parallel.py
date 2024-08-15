@@ -12,7 +12,10 @@ from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
 import pickle
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing as mp
+import numpy as np
+import pickle
+from persim import bottleneck
 ##Todo: remove ripser_parallel functionality
 
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
@@ -425,42 +428,51 @@ def compute_distance(mega_diagram_list, m, n, l):
 
     return m, n, bottleneck(first_array, second_array)
 
-def calculate_bottleneck_distance(all_diagrams, folder_str):
-    print('..calculating distance matrix')
-    mega_diagram_list = []
-    for i in range(len(all_diagrams)):
-        diagram = all_diagrams[i]
-        mega_diagram_list.extend(diagram)
 
+
+def calculate_bottleneck_distance(all_diagrams, folder_str):
+    """
+    Calculate the bottleneck distance matrix for all diagrams.
+
+    Parameters
+    ----------
+    all_diagrams: list
+        List of all persistence diagrams.
+    folder_str: str
+        Directory to save the distance matrix.
+
+    Returns
+    -------
+    dict
+        Dictionary containing the distance matrices for each dimension.
+    """
+    print('..calculating distance matrix')
+    mega_diagram_list = [diagram for diagrams in all_diagrams for diagram in diagrams]
     num_diagrams = len(mega_diagram_list)
     distance_matrix_dict = {}
 
-    with ProcessPoolExecutor(max_workers=25) as executor:
-        for l in [0]:
-            print('calculating distance matrix for dimension ', l)
-            distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
-            futures = [
-                executor.submit(compute_distance, mega_diagram_list, m, n, l)
-                for m in range(num_diagrams) for n in range(m + 1, num_diagrams)
-            ]
-            for future in as_completed(futures, timeout=60):  # Add a timeout of 60 seconds
-                try:
-                    m, n, distance = future.result()
-                    distance_matrix[m, n] = distance
-                    # print('distance computed')
-                except Exception as e:
-                    print(f"Task failed with exception: {e}")
+    def compute_distance(args):
+        m, n, l = args
+        first_array = np.squeeze(mega_diagram_list[m])
+        first_array = first_array[first_array[:, 2] == l][:, 0:2]
+        second_array = np.squeeze(mega_diagram_list[n])
+        second_array = second_array[second_array[:, 2] == l][:, 0:2]
+        return m, n, l, bottleneck(first_array, second_array)
 
-            distance_matrix = np.triu(distance_matrix)
-            distance_matrix_dict[l] = distance_matrix
-            print('the mean distance for dimension ', l, ' is ', np.nanmean(distance_matrix))
-            print('the mean standard deviation for dimension ', l, ' is ', np.nanstd(distance_matrix))
+    for l in [0, 1, 2]:
+        distance_matrix = np.full((num_diagrams, num_diagrams), np.nan)
+        with mp.Pool(processes=15) as pool:
+            args = [(m, n, l) for m in range(num_diagrams) for n in range(m + 1, num_diagrams)]
+            results = pool.map(compute_distance, args)
+            for m, n, l, distance in results:
+                distance_matrix[m, n] = distance
+                distance_matrix[n, m] = distance
+        distance_matrix_dict[l] = distance_matrix
 
-    with open(folder_str + '/distance_matrix_dict.pkl', 'wb') as f:
+    with open(f'{folder_str}/distance_matrix_dict.pkl', 'wb') as f:
         pickle.dump(distance_matrix_dict, f)
 
     return distance_matrix_dict
-
 
 def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_length=40, cumulative_param=True):
     pairs_list = []
@@ -481,24 +493,19 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             dgm_dict = {}
             sorted_data_trial = reduced_data[sorted_list[i], :]
             # Break each sorted_data_trial into chunks of segment_length
-            reduced_data_loop_list = []
-            for j in range(0, len(sorted_data_trial), segment_length):
-                # Needs to be cumulative
-                reduced_data_loop = sorted_data_trial[0:j + segment_length, :]
-                # Append to a list
-                reduced_data_loop_list.append(reduced_data_loop)
-                dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-                dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                dgm_dict[j] = dgm
 
-                dgm_dict_storage[(i, j)] = dgm_gtda
-                all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+            dgm = ripser_parallel(sorted_data_trial, maxdim=2, n_threads=20, return_generators=True)
+            dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+            dgm_dict[i] = dgm
+
+            dgm_dict_storage[(i, j)] = dgm_gtda
+            all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
                     dgm_dict)
 
-            df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
-                                                      trial_number=i)
+            # df_output = plot_homology_changes_heatmap(dgm_dict, folder_str, cumulative_param=cumulative_param,
+            #                                           trial_number=i)
             # fit_params = utils.fit_sinusoid_data_whole(df_output, folder_str, cumulative_param=cumulative_param)
 
 
@@ -519,49 +526,52 @@ if __name__ == '__main__':
     base_dir = 'C:/neural_data/'
     big_list = []
     #check if all_diagrams.pkl exists in the base directory
-    if os.path.exists(f'{base_dir}/all_diagrams.pkl'):
-        with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
-            big_list = pickle.load(f)
+    # if os.path.exists(f'{base_dir}/all_diagrams.pkl'):
+    #     with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
+    #         big_list = pickle.load(f)
+    #
+    # else:
 
-    else:
-
-        for subdir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
-            window_df = pd.read_csv(
-                f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
-            # find the rat_id
-            rat_id = subdir.split('/')[-2]
-            # filter for window_size
-            window_df = window_df[window_df['window_size'] == 250]
-            num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
-            #read the input label data
-            spike_dir = os.path.join(subdir, 'physiology_data')
-            dlc_dir = os.path.join(subdir, 'positional_data')
-            labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
-            col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
-            #make input df
-            input_df = pd.DataFrame(labels, columns=col_list)
+    for subdir in [f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019']:
+        window_df = pd.read_csv(
+            f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
+        # find the rat_id
+        rat_id = subdir.split('/')[-2]
+        # filter for window_size
+        window_df = window_df[window_df['window_size'] == 250]
+        num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
+        #read the input label data
+        spike_dir = os.path.join(subdir, 'physiology_data')
+        dlc_dir = os.path.join(subdir, 'positional_data')
+        labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
+        col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
+        #make input df
+        input_df = pd.DataFrame(labels, columns=col_list)
 
 
-            print('at dir ', subdir)
-            sub_folder = subdir + '/plot_results/'
-            #get list of files in the directory
-            files = os.listdir(sub_folder)
-            #check if more than two dirs
-            if len(files) >= 2:
-                #choose the most recently modified directory
-                files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
-                #get the most recently modified directory
-                savedir = sub_folder + files[-1]
-            else:
-                savedir = sub_folder + files[0]
+        print('at dir ', subdir)
+        sub_folder = subdir + '/plot_results/'
+        #get list of files in the directory
+        files = os.listdir(sub_folder)
+        #check if more than two dirs
+        if len(files) >= 2:
+            #choose the most recently modified directory
+            files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
+            #get the most recently modified directory
+            savedir = sub_folder + files[-1]
+        else:
+            savedir = sub_folder + files[0]
 
-            pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True)
-            #append pairs_list to a big_list
-            big_list.append(pairs_list)
+        pairs_list, _ = run_persistence_analysis(savedir, input_df, cumulative_param=True)
+        distance_matrix_dict = calculate_bottleneck_distance(pairs_list, base_dir)
+
+        #append pairs_list to a big_list
+        big_list.append(pairs_list)
+
 
         #calculate the bottleneck distance
 
-    distance_matrix_dict = calculate_bottleneck_distance(big_list, base_dir)
+    # distance_matrix_dict = calculate_bottleneck_distance(big_list, base_dir)
         #save the pairs list
         # np.save(savedir + '/pairs_list.npy', pairs_list)
 
