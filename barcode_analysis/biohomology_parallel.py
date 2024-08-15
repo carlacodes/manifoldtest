@@ -413,7 +413,53 @@ def process_data(reduced_data, trial_indices, segment_length, cumulative=False):
     return sorted_list
 
 
+def calculate_bottleneck_distance_nonpara(all_diagrams, folder_str):
+    #concatenate the diagrams all together into one mega list
+    print('..calculating distance matrix')
+    mega_diagram_list = []
+    for i in range(len(all_diagrams)):
+        diagram = all_diagrams[i]
+        mega_diagram_list.extend(diagram)
 
+    # Stack diagrams into a single ndarray
+    num_diagrams = len(mega_diagram_list)
+
+    distance_matrix_dict = {}
+    pair_list = []
+    for l in [0, 1, 2]:
+        distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
+        for m in range(num_diagrams):
+            for n in range(m + 1, num_diagrams):
+                if m == n:
+                    continue
+                elif (n, m) in pair_list:
+                    continue
+                first_array = mega_diagram_list[m]
+                first_array = np.squeeze(first_array)  # Remove the extra dimension
+                # filter for the dimension
+                first_array = first_array[first_array[:, 2] == l]
+                # now take the first two columns for persim formatting
+                first_array = first_array[:, 0:2]
+
+                second_array = mega_diagram_list[n]
+                second_array = np.squeeze(second_array)  # Remove the extra dimension
+                # filter for the dimension
+                second_array = second_array[second_array[:, 2] == l]
+                # now take the first two columns for persim formatting
+                second_array = second_array[:, 0:2]
+                distance_matrix[m, n] = bottleneck(first_array, second_array)
+                distance_matrix[n, m] = distance_matrix[m, n]
+                pair_list.append((m,n))
+
+        # Save the distance matrix
+        #remove the diagonal from the matrix
+        distance_matrix = np.triu(distance_matrix)
+        distance_matrix_dict[l] = distance_matrix
+    with open(folder_str + '/distance_matrix_dict.pkl', 'wb') as f:
+        pickle.dump(distance_matrix_dict, f)
+    #remove the diagonal from the matrix
+
+    return distance_matrix_dict
 
 def compute_distance(mega_diagram_list, m, n, l):
     first_array = np.asarray(mega_diagram_list[m])
@@ -430,7 +476,16 @@ def compute_distance(mega_diagram_list, m, n, l):
 
 
 
-def calculate_bottleneck_distance(all_diagrams, folder_str):
+
+def compute_distance(args):
+    m, n, l, mega_diagram_list = args
+    first_array = np.squeeze(mega_diagram_list[m])
+    first_array = first_array[first_array[:, 2] == l][:, 0:2]
+    second_array = np.squeeze(mega_diagram_list[n])
+    second_array = second_array[second_array[:, 2] == l][:, 0:2]
+    return m, n, l, bottleneck(first_array, second_array)
+
+def calculate_bottleneck_distance(all_diagrams, folder_str, num_threads=4):
     """
     Calculate the bottleneck distance matrix for all diagrams.
 
@@ -440,6 +495,8 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
         List of all persistence diagrams.
     folder_str: str
         Directory to save the distance matrix.
+    num_threads: int
+        Number of threads to use for parallel computation.
 
     Returns
     -------
@@ -451,18 +508,10 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     num_diagrams = len(mega_diagram_list)
     distance_matrix_dict = {}
 
-    def compute_distance(args):
-        m, n, l = args
-        first_array = np.squeeze(mega_diagram_list[m])
-        first_array = first_array[first_array[:, 2] == l][:, 0:2]
-        second_array = np.squeeze(mega_diagram_list[n])
-        second_array = second_array[second_array[:, 2] == l][:, 0:2]
-        return m, n, l, bottleneck(first_array, second_array)
-
     for l in [0, 1, 2]:
         distance_matrix = np.full((num_diagrams, num_diagrams), np.nan)
-        with mp.Pool(processes=15) as pool:
-            args = [(m, n, l) for m in range(num_diagrams) for n in range(m + 1, num_diagrams)]
+        with mp.Pool(processes=num_threads) as pool:
+            args = [(m, n, l, mega_diagram_list) for m in range(num_diagrams) for n in range(m + 1, num_diagrams)]
             results = pool.map(compute_distance, args)
             for m, n, l, distance in results:
                 distance_matrix[m, n] = distance
@@ -498,7 +547,7 @@ def run_persistence_analysis(folder_str, input_df, use_ripser=False, segment_len
             dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
             dgm_dict[i] = dgm
 
-            dgm_dict_storage[(i, j)] = dgm_gtda
+
             all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
             np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
