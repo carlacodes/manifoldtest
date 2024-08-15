@@ -55,21 +55,23 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
 
         x_data = filtered_data['Interval'].values
         y_data = filtered_data['death_minus_birth'].values
-        #take the mean y_data for each x_data
-        y_data = np.array([np.mean(y_data[np.where(x_data == i)]) for i in x_data])
-        if len(y_data) < 10:
-            print('not enough points, risk of overfitting')
+        unique_x = np.unique(x_data)
+        y_data_new = []
+        for i in unique_x:
+            y_data_new.append(np.mean(y_data[x_data == i]))
+        if len(y_data_new) < 4:
+            print('not enough points, less than 10, risk of overfitting')
             continue
 
-        initial_guess = [1, 1, 0, np.mean(y_data)]
+        initial_guess = [1, 1, 0, np.mean(y_data_new)]
         try:
-            params, _ = curve_fit(sinusoidal, x_data, y_data, p0=initial_guess)
+            params, _ = curve_fit(sinusoidal, unique_x, y_data_new, p0=initial_guess)
         except Exception as e:
             print(f'Failed to fit sinusoidal function for dimension {dim}, error: {e}')
             continue
 
         fit_params[dim] = params
-        r_squared = calculate_goodness_of_fit(x_data, y_data, sinusoidal(x_data, *params))
+        r_squared = calculate_goodness_of_fit(unique_x, y_data_new, sinusoidal(unique_x, *params))
         r_squared_df_individual = pd.DataFrame([{'Dimension': dim, 'R-squared': r_squared}])
 
         # Concatenate with the existing DataFrame
@@ -77,8 +79,8 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         print(f'R-squared for dimension {dim}: {r_squared}')
 
         plt.figure(figsize=(10, 6))
-        plt.plot(x_data, y_data, 'bo', label='Filtered Data')
-        plt.plot(x_data, sinusoidal(x_data, *params), 'r-', label='Fitted Function')
+        plt.plot(unique_x, y_data_new, 'bo', label='Filtered Data')
+        plt.plot(unique_x, sinusoidal(unique_x, *params), 'r-', label='Fitted Function')
         plt.title(f'Sinusoidal Fit for Homology Dimension {dim}, r2 score: {r_squared:.2f}')
         plt.xlabel('Interval (j)')
         plt.ylabel('Death - Birth')

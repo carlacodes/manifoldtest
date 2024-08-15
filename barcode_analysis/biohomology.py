@@ -485,7 +485,7 @@ def main():
     big_list = []
     calculate_distance = False
     cumul_windows = False
-    shuffle_control = False
+    shuffle_control = True
     #check if all_diagrams.pkl exists in the base directory
     if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance:
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
