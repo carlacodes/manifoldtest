@@ -49,7 +49,7 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
 
         # Filter data based on the threshold
         filtered_data = dim_data[dim_data['death_minus_birth'] > threshold]
-        if filtered_data.empty or len(filtered_data) < 10:
+        if filtered_data.empty:
             print(f"No data points above threshold {threshold} for dimension {dim} or less than 4 data points.")
             continue
 
@@ -57,6 +57,9 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         y_data = filtered_data['death_minus_birth'].values
         #take the mean y_data for each x_data
         y_data = np.array([np.mean(y_data[np.where(x_data == i)]) for i in x_data])
+        if len(y_data) < 10:
+            print('not enough points, risk of overfitting')
+            continue
 
         initial_guess = [1, 1, 0, np.mean(y_data)]
         try:
