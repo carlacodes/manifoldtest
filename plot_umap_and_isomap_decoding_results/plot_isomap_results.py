@@ -142,8 +142,9 @@ def train_and_test_on_isomap_randcv(
         pipeline_copy.set_params(**manual_params)
         if null_distribution:
             spks_copy = copy.deepcopy(spks)
-            np.random.shuffle(spks_copy, axis=0)
-            assert np.all(spks_copy != spks)
+            while np.array_equal(spks_copy, spks):
+                np.random.shuffle(spks_copy)
+            assert not np.array_equal(spks_copy, spks)
             pipeline_copy.fit(spks_copy, y)
             custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
             custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
@@ -424,7 +425,7 @@ def main():
             regressor,
             regressor_kwargs,
             reducer,
-            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds, null_distribution = null_distribution
+            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds, null_distribution=null_distribution
         )
         if just_folds == True:
             continue

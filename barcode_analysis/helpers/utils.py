@@ -49,7 +49,7 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
 
         # Filter data based on the threshold
         filtered_data = dim_data[dim_data['death_minus_birth'] > threshold]
-        if filtered_data.empty or len(filtered_data) < 4:
+        if filtered_data.empty or len(filtered_data) < 10:
             print(f"No data points above threshold {threshold} for dimension {dim} or less than 4 data points.")
             continue
 

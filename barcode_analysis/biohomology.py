@@ -330,7 +330,10 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                              use_peak_control=False, cumulative_windows=False, shuffled_control=False):
     dgm_dict_storage = {}
     sinusoid_df_across_trials = None
-    reduced_data = np.load(folder_str + '/full_set_transformed.npy')
+    if shuffled_control:
+        reduced_data = np.load(folder_str + '/full_set_transformed_null.npy')
+    else:
+        reduced_data = np.load(folder_str + '/full_set_transformed.npy')
     trial_info = input_df
     trial_indices = trial_info['trial']
 
@@ -379,9 +382,9 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
                 shuffled_sorted_data_trial = np.copy(sorted_data_trial)
-                np.random.shuffle(shuffled_sorted_data_trial)
+                # np.random.shuffle(shuffled_sorted_data_trial)
                 # Check if the shuffled data is the same as the original
-                assert not np.array_equal(sorted_data_trial, shuffled_sorted_data_trial)
+                # assert not np.array_equal(sorted_data_trial, shuffled_sorted_data_trial)
                 # Break each shuffled_sorted_data_trial into sliding windows
                 reduced_data_loop_list = []
                 for start in range(0, len(shuffled_sorted_data_trial) - segment_length + 1, stride):
@@ -407,10 +410,10 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                 df_output, _ = plot_homology_changes_heatmap(dgm_dict, folder_str,
                                                              cumulative_param=cumulative_param,
                                                              trial_number=i, shuffled_control=shuffled_control)
-                # fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str,
-                #                                                      cumulative_param=cumulative_param,
-                #                                                      trial_number=i, shuffled_control=shuffled_control)
-                # sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
+                fit_params, df_means = utils.fit_sinusoid_data_filtered(df_output, folder_str,
+                                                                     cumulative_param=cumulative_param,
+                                                                     trial_number=i, shuffled_control=shuffled_control)
+                sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
 
         elif use_peak_control:
             equal_peak_sanity_list = []
@@ -516,7 +519,7 @@ def main():
                 #choose the most recently modified directory
                 files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
                 #get the second most recently modified directory
-                savedir = sub_folder + files[-2]
+                savedir = sub_folder + files[-1]
             else:
                 savedir = sub_folder + files[0]
 
