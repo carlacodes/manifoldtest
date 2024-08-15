@@ -59,7 +59,7 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         y_data_new = []
         for i in unique_x:
             y_data_new.append(np.mean(y_data[x_data == i]))
-        if len(y_data_new) < 4:
+        if len(y_data_new) < 5:
             print('not enough points, less than 10, risk of overfitting')
             continue
 
