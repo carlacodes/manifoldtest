@@ -296,10 +296,15 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     num_diagrams = len(mega_diagram_list)
 
     distance_matrix_dict = {}
+    pair_list = []
     for l in [0, 1, 2]:
         distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
         for m in range(num_diagrams):
             for n in range(m + 1, num_diagrams):
+                if m == n:
+                    continue
+                elif (n, m) in pair_list:
+                    continue
                 first_array = mega_diagram_list[m]
                 first_array = np.squeeze(first_array)  # Remove the extra dimension
                 # filter for the dimension
@@ -314,6 +319,8 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
                 # now take the first two columns for persim formatting
                 second_array = second_array[:, 0:2]
                 distance_matrix[m, n] = bottleneck(first_array, second_array)
+                distance_matrix[n, m] = distance_matrix[m, n]
+                pair_list.append((m,n))
 
         # Save the distance matrix
         #remove the diagonal from the matrix
@@ -483,11 +490,11 @@ def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    calculate_distance = True
+    calculate_distance_big = False
     cumul_windows = False
     shuffle_control = False
     #check if all_diagrams.pkl exists in the base directory
-    if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance:
+    if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance_big:
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
             big_list = pickle.load(f)
 
