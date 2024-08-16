@@ -15,6 +15,13 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
+from sklearn.pipeline import Pipeline
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import BaseCrossValidator
+from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import Isomap
+from manifold_neural.helpers.datahandling import DataHandler
 
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
     """
@@ -334,8 +341,15 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
 
 
 def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20, cumulative_param=True,
-                             use_peak_control=False, cumulative_windows=False, shuffled_control=False):
+                             use_peak_control=False, cumulative_windows=False, shuffled_control=False, sub_manifold=True, manual_parms = None):
+
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('reducer', Isomap(n_jobs=-1)),
+    ])
+
     dgm_dict_storage = {}
+    spk_dir = folder_str.split('/')[0:1] + '/physiology_data'
     sinusoid_df_across_trials = None
     if shuffled_control:
         reduced_data = np.load(folder_str + '/full_set_transformed_null.npy')
@@ -354,6 +368,11 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
             for i in range(len(sorted_list)):
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
+                spike_data = np.load(f'{spk_dir}/inputs_10052024_250.npy')
+                #apply the same isomap transformation to the data
+                spike_data_trial = spike_data[sorted_list[i], :]
+                pipeline.set_params(**manual_params)
+
                 # Break each sorted_data_trial into sliding windows
                 reduced_data_loop_list = []
                 for start in range(0, len(sorted_data_trial) - segment_length + 1, stride):
@@ -361,17 +380,29 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                     # Needs to be cumulative
                     if cumulative_windows:
                         reduced_data_loop = sorted_data_trial[:end, :]
+                        loop_spk_data = spike_data_trial[start:end, :]
+
                     else:
                         reduced_data_loop = sorted_data_trial[start:end, :]
-
+                        loop_spk_data = spike_data_trial[start:end, :]
                     # Append to a list
                     reduced_data_loop_list.append(reduced_data_loop)
-                    dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-                    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                    dgm_dict[start] = dgm
+                    if sub_manifold:
+                        manifold_window = pipeline.named_steps['reducer'].transform(
+                            pipeline.named_steps['scaler'].transform(loop_spk_data))
+                        dgm = ripser_parallel(manifold_window, maxdim=2, n_threads=20, return_generators=True)
+                        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                        dgm_dict[start] = dgm
 
-                    dgm_dict_storage[(i, start)] = dgm_gtda
-                    all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+                        dgm_dict_storage[(i, start)] = dgm_gtda
+                        all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+                    else:
+                        dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+                        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                        dgm_dict[start] = dgm
+
+                        dgm_dict_storage[(i, start)] = dgm_gtda
+                        all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
                 np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
                         dgm_dict)
@@ -529,6 +560,12 @@ def main():
                 savedir = sub_folder + files[-1]
             else:
                 savedir = sub_folder + files[0]
+
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
+                'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
+            rat_id = subdir.split('/')[-2]
+            manual_params_rat = previous_results[rat_id]
+            manual_params_rat = manual_params_rat.item()
 
             pairs_list, _, sinusoid_df_across_trials = run_persistence_analysis(savedir, input_df,
                                                                                 cumulative_param=True,
