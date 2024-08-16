@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
+from pathlib import Path
 from sklearn.pipeline import Pipeline
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.neighbors import KNeighborsRegressor
@@ -181,7 +182,7 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices=None, end_in
         plt.ylabel('Interval (j)')
         plt.tight_layout()
         plt.savefig(
-            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}_control_{use_peak_control}_shuffled_{shuffled_control}.png',
+            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}_control_{use_peak_control}_shuffled_{shuffled_control}_1608.png',
             dpi=300,
             bbox_inches='tight')
 
@@ -195,7 +196,7 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices=None, end_in
         plt.ylabel('Interval (j)')
         plt.tight_layout()
         plt.savefig(
-            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_control_{use_peak_control}_shuffled_{shuffled_control}.png',
+            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_control_{use_peak_control}_shuffled_{shuffled_control}_1608.png',
             dpi=300,
             bbox_inches='tight')
     #add a colorbar label
@@ -340,16 +341,26 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     return distance_matrix_dict
 
 
-def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20, cumulative_param=True,
-                             use_peak_control=False, cumulative_windows=False, shuffled_control=False, sub_manifold=True, manual_parms = None):
-
+def run_persistence_analysis(folder_str, input_df, segment_length=250, stride=125, cumulative_param=True,
+                             use_peak_control=False, cumulative_windows=False, shuffled_control=False, sub_manifold=True, manual_params = None):
+    regressor = KNeighborsRegressor
+    regressor_kwargs = {'n_neighbors': 70}
+    reducer = Isomap
+    reducer_kwargs = {
+        'n_components': 3,
+        'metric': 'cosine',
+        'n_jobs': -1,
+    }
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
         ('reducer', Isomap(n_jobs=-1)),
+        ('estimator', MultiOutputRegressor(regressor(n_jobs=-1)))
     ])
 
     dgm_dict_storage = {}
-    spk_dir = folder_str.split('/')[0:1] + '/physiology_data'
+    spk_dir = Path(folder_str)
+    #go two folders up
+    spk_dir = spk_dir.parents[1] / 'physiology_data'
     sinusoid_df_across_trials = None
     if shuffled_control:
         reduced_data = np.load(folder_str + '/full_set_transformed_null.npy')
@@ -376,18 +387,25 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                 # Break each sorted_data_trial into sliding windows
                 reduced_data_loop_list = []
                 for start in range(0, len(sorted_data_trial) - segment_length + 1, stride):
+                    print(start)
                     end = start + segment_length
                     # Needs to be cumulative
                     if cumulative_windows:
                         reduced_data_loop = sorted_data_trial[:end, :]
                         loop_spk_data = spike_data_trial[start:end, :]
+                        input_df_trial = input_df.iloc[sorted_list[i][:end]]
 
                     else:
                         reduced_data_loop = sorted_data_trial[start:end, :]
                         loop_spk_data = spike_data_trial[start:end, :]
+                        input_df_trial = input_df.iloc[sorted_list[i][start:end]]
                     # Append to a list
                     reduced_data_loop_list.append(reduced_data_loop)
                     if sub_manifold:
+                        regress = ['x', 'y', 'cos_hd', 'sin_hd']
+                        y = input_df_trial[regress].values
+                        pipeline.fit(loop_spk_data, y)
+
                         manifold_window = pipeline.named_steps['reducer'].transform(
                             pipeline.named_steps['scaler'].transform(loop_spk_data))
                         dgm = ripser_parallel(manifold_window, maxdim=2, n_threads=20, return_generators=True)
@@ -556,8 +574,10 @@ def main():
             if len(files) >= 2:
                 #choose the most recently modified directory
                 files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
+                #remove files that have 'test' in them
+                files = [x for x in files if 'test' not in x]
                 #get the second most recently modified directory
-                savedir = sub_folder + files[-1]
+                savedir = sub_folder + files[-2]
             else:
                 savedir = sub_folder + files[0]
 
@@ -571,7 +591,7 @@ def main():
                                                                                 cumulative_param=True,
                                                                                 use_peak_control=False,
                                                                                 shuffled_control=shuffle_control,
-                                                                                cumulative_windows=cumul_windows)
+                                                                                cumulative_windows=cumul_windows, manual_params=manual_params_rat)
             sinusoid_df_across_trials_and_animals = pd.concat(
                 [sinusoid_df_across_trials_and_animals, sinusoid_df_across_trials])
 
