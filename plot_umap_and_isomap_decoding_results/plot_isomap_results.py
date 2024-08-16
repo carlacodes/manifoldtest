@@ -446,7 +446,7 @@ def main():
         now_day = datetime.now().strftime("%Y-%m-%d")
 
 
-        save_dir_path = Path(f'{data_dir}/plot_results/plot_isomap_{now_day}')
+        save_dir_path = Path(f'{data_dir}/plot_results/plot_test_isomap_{now_day}')
         save_dir = save_dir_path
         save_dir.mkdir(parents=True, exist_ok=True)
 
