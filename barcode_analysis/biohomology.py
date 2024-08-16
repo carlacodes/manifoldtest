@@ -542,6 +542,7 @@ def main():
     calculate_distance_big = False
     cumul_windows = False
     shuffle_control = False
+    sub_man_param   = True
     #check if all_diagrams.pkl exists in the base directory
     if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance_big:
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
@@ -591,13 +592,13 @@ def main():
                                                                                 cumulative_param=True,
                                                                                 use_peak_control=False,
                                                                                 shuffled_control=shuffle_control,
-                                                                                cumulative_windows=cumul_windows, manual_params=manual_params_rat)
+                                                                                cumulative_windows=cumul_windows, manual_params=manual_params_rat, sub_manifold=sub_man_param)
             sinusoid_df_across_trials_and_animals = pd.concat(
                 [sinusoid_df_across_trials_and_animals, sinusoid_df_across_trials])
 
             #append pairs_list to a big_list
             big_list.append(pairs_list)
-            distance_matrix_dict = calculate_bottleneck_distance(pairs_list, base_dir)
+            # distance_matrix_dict = calculate_bottleneck_distance(pairs_list, base_dir)
         sinusoid_df_across_trials_and_animals['mean_across_animals'] = \
         sinusoid_df_across_trials_and_animals.groupby(['Dimension'])['R-squared'].transform('mean')
         sinusoid_df_across_trials_and_animals.to_csv(

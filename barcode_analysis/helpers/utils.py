@@ -16,8 +16,8 @@ def generate_white_noise_control(df, noise_level=1.0, iterations=1000, savedir =
         r_squared_values.append(r_squared_df['R-squared'].mean())
     return r_squared_values
 
-def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False,
-                               threshold=0):
+
+def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False, threshold=0):
     """
     Fit a sinusoidal function to the filtered dataset where death_minus_birth is above a threshold.
 
@@ -60,12 +60,15 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         for i in unique_x:
             y_data_new.append(np.mean(y_data[x_data == i]))
         if len(y_data_new) < 5:
-            print('not enough points, less than 10, risk of overfitting')
+            print('Not enough points, less than 10, risk of overfitting')
             continue
 
-        initial_guess = [1, 1, 0, np.mean(y_data_new)]
+        # Initial guess and bounds
+        initial_guess = [1, 2 * np.pi / np.ptp(unique_x), 0, np.mean(y_data_new)]
+        bounds = ([0.1, 0.01, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # Example bounds
+
         try:
-            params, _ = curve_fit(sinusoidal, unique_x, y_data_new, p0=initial_guess)
+            params, _ = curve_fit(sinusoidal, unique_x, y_data_new, p0=initial_guess, bounds=bounds)
         except Exception as e:
             print(f'Failed to fit sinusoidal function for dimension {dim}, error: {e}')
             continue
@@ -96,6 +99,7 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         index=False)
 
     return fit_params, r_squared_df
+
 
 
 def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False, trial_number = None, shuffled_control = False):
