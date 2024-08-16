@@ -1,0 +1,20 @@
+Loading compilers/gnu/4.9.2
+  ERROR: Module cannot be loaded due to a conflict.
+    HINT: Might try "module unload compilers" first.
+Loading cmake/3.13.3
+  ERROR: Module cannot be loaded due to a conflict.
+    HINT: Might try "module unload cmake" first.
+Traceback (most recent call last):
+  File "/home/zceccgr/Scratch/zceccgr/manifoldtest/biohomology.py", line 92, in <module>
+    main()
+  File "/home/zceccgr/Scratch/zceccgr/manifoldtest/biohomology.py", line 83, in main
+    pairs_list = run_persistence_analysis(savedir, dimension=dimension)
+  File "/home/zceccgr/Scratch/zceccgr/manifoldtest/biohomology.py", line 48, in run_persistence_analysis
+    pairs = rpp.run("--format point-cloud --dim " + str(dimension), reduced_data)[dimension]
+  File "/lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/__init__.py", line 124, in run
+    prog = ctypes.cdll.LoadLibrary(path)
+  File "/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/ctypes/__init__.py", line 452, in LoadLibrary
+    return self._dlltype(name)
+  File "/shared/ucl/apps/python/3.9.10/gnu-4.9.2/lib/python3.9/ctypes/__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /shared/ucl/apps/gcc/4.9.2/lib64/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by /lustre/home/zceccgr/envlib/ripserenv/lib/python3.9/site-packages/ripserplusplus/libpyripser++.so)
