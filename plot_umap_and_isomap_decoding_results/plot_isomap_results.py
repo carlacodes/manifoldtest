@@ -21,7 +21,63 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 import logging
+def evaluate_isomap_components(spks, bhv, regress, manual_params, savedir):
+    y = bhv[regress].values
+    max_components = manual_params['reducer__n_components']
+    n_components_range = range(2, max_components + 1)
+    results = []
 
+    # Remove 'reducer__n_components' from manual_params
+    manual_params = {k: v for k, v in manual_params.items() if k != 'reducer__n_components'}
+
+    for n_components in n_components_range:
+        pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('reducer', Isomap(n_components=n_components, n_jobs=-1)),
+            ('estimator', MultiOutputRegressor(KNeighborsRegressor(n_neighbors=70, n_jobs=-1)))
+        ])
+
+        # Set the remaining parameters
+        pipeline.set_params(**manual_params)
+
+        # Split the data into training and testing sets
+        n_timesteps = spks.shape[0]
+        custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=10)
+
+        train_scores = []
+        test_scores = []
+
+        for train_index, test_index in custom_folds:
+            spks_train, spks_test = spks[train_index], spks[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            pipeline.fit(spks_train, y_train)
+            y_pred = pipeline.predict(spks_test)
+
+            train_score = r2_score(y_train, pipeline.predict(spks_train))
+            test_score = r2_score(y_test, y_pred)
+
+            train_scores.append(train_score)
+            test_scores.append(test_score)
+
+        mean_train_score = np.mean(train_scores)
+        mean_test_score = np.mean(test_scores)
+        results.append((n_components, mean_train_score, mean_test_score))
+
+    results_df = pd.DataFrame(results, columns=['n_components', 'mean_train_score', 'mean_test_score'])
+    results_df.to_csv(f'{savedir}/isomap_components_evaluation.csv', index=False)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(results_df['n_components'], results_df['mean_train_score'], label='Train Score')
+    plt.plot(results_df['n_components'], results_df['mean_test_score'], label='Test Score')
+    plt.xlabel('Number of Isomap Components')
+    plt.ylabel('R2 Score')
+    plt.title('Isomap Components Evaluation')
+    plt.legend()
+    plt.savefig(f'{savedir}/isomap_components_evaluation.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    plt.close('all')
+    return results_df
 class ZScoreCV(BaseCrossValidator):
     def __init__(self, spks, custom_folds):
         self.spks = spks
@@ -391,10 +447,12 @@ def main():
     big_result_df_train = pd.DataFrame()
     big_result_df_shuffle = pd.DataFrame()
     big_result_df_shuffle_train = pd.DataFrame()
+    big_componentresult_df = pd.DataFrame()
     # f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
     # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
     just_folds = False
     null_distribution = False
+    component_investigation = True
     for data_dir in [ f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
@@ -450,18 +508,29 @@ def main():
         save_dir = save_dir_path
         save_dir.mkdir(parents=True, exist_ok=True)
 
-        best_params, mean_score, result_df, result_df_shuffle, result_df_train, result_df_shuffle_train = train_and_test_on_isomap_randcv(
-            X_for_umap,
-            label_df,
-            regress,
-            regressor,
-            regressor_kwargs,
-            reducer,
-            reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat, just_folds=just_folds, null_distribution=null_distribution
-        )
+
+
+
         if just_folds == True:
             continue
+        elif component_investigation:
+            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress, regressor,
+                                                                  manual_params_rat, save_dir)
+            component_exploration_df['rat_id'] = rat_id
+            big_componentresult_df = pd.concat([big_componentresult_df, component_exploration_df], axis=0)
+
+
         else:
+            best_params, mean_score, result_df, result_df_shuffle, result_df_train, result_df_shuffle_train = train_and_test_on_isomap_randcv(
+                X_for_umap,
+                label_df,
+                regress,
+                regressor,
+                regressor_kwargs,
+                reducer,
+                reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat,
+                just_folds=just_folds, null_distribution=null_distribution
+            )
             result_df['rat_id'] = rat_id
             result_df_shuffle['rat_id'] = rat_id
             result_df_train['rat_id'] = rat_id
@@ -479,6 +548,7 @@ def main():
         big_result_df_train.to_csv(f'{base_dir}/big_result_df_train_isomap_250.csv', index=False)
         big_result_df_shuffle.to_csv(f'{base_dir}/big_result_df_shuffle_isomap_250.csv', index=False)
         big_result_df_shuffle_train.to_csv(f'{base_dir}/big_result_df_train_shuffle_isomap_250.csv', index=False)
+        big_componentresult_df.to_csv(f'{base_dir}/big_component_invesitgation_result_df_isomap_250.csv', index=False)
 
 
 

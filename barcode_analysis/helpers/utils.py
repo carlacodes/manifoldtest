@@ -32,13 +32,25 @@ def read_distance_matrix(file_path):
         Distance matrix read from the file.
     """
     #load from pkl file
+
     distance_matrix = pd.read_pickle(file_path)
+    std_dev_distance_list = []
+    mean_distance_list = []
     #calculate the mean
-    mean_distance = distance_matrix.mean().mean()
-    print(f'Mean distance: {mean_distance}')
-    #calculate the std dev
-    std_dev_distance = distance_matrix.stack().std()
-    return distance_matrix
+    for dim in distance_matrix.keys():
+        dim_matrix = distance_matrix[dim]
+        #take the upper triangle, remove the nans
+        dim_matrix_df = pd.DataFrame(dim_matrix)
+        dim_matrix_upper = dim_matrix_df.where(np.triu(np.ones(dim_matrix_df.shape), k=1).astype(bool))
+        distance_matrix[dim] = dim_matrix_upper.values#]
+        mean_distance = dim_matrix_upper.stack().mean()
+        mean_distance_list.append(mean_distance)
+        print(f'Mean distance for group {dim}: {mean_distance}')
+        #calculate the std dev
+        std_dev_distance = dim_matrix_upper.stack().std()
+        std_dev_distance_list.append(std_dev_distance)
+        print(f'Standard deviation of distance for group {dim}: ', std_dev_distance)
+    return mean_distance_list, std_dev_distance_list, distance_matrix
 
 def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False, threshold=0):
     """

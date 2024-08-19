@@ -539,7 +539,7 @@ def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    calculate_distance_big = False
+    calculate_distance_big = True
     cumul_windows = False
     shuffle_control = False
     sub_man_param = False
@@ -547,6 +547,8 @@ def main():
     if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance_big:
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
             big_list = pickle.load(f)
+        mean_distance, mean_std_dev, _ = utils.read_distance_matrix(base_dir + '/distance_matrix_dict.pkl')
+
 
     else:
         sinusoid_df_across_trials_and_animals = pd.DataFrame()
