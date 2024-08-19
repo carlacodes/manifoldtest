@@ -341,7 +341,7 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     return distance_matrix_dict
 
 
-def run_persistence_analysis(folder_str, input_df, segment_length=250, stride=125, cumulative_param=True,
+def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20, cumulative_param=True,
                              use_peak_control=False, cumulative_windows=False, shuffled_control=False, sub_manifold=True, manual_params = None):
     regressor = KNeighborsRegressor
     regressor_kwargs = {'n_neighbors': 70}
@@ -542,7 +542,7 @@ def main():
     calculate_distance_big = False
     cumul_windows = False
     shuffle_control = False
-    sub_man_param   = True
+    sub_man_param = False
     #check if all_diagrams.pkl exists in the base directory
     if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance_big:
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:

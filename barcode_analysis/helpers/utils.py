@@ -17,6 +17,29 @@ def generate_white_noise_control(df, noise_level=1.0, iterations=1000, savedir =
     return r_squared_values
 
 
+def read_distance_matrix(file_path):
+    """
+    Read a distance matrix from a file.
+
+    Parameters
+    ----------
+    file_path: str
+        Path to the file containing the distance matrix.
+
+    Returns
+    -------
+    distance_matrix: np.ndarray
+        Distance matrix read from the file.
+    """
+    #load from pkl file
+    distance_matrix = pd.read_pickle(file_path)
+    #calculate the mean
+    mean_distance = distance_matrix.mean().mean()
+    print(f'Mean distance: {mean_distance}')
+    #calculate the std dev
+    std_dev_distance = distance_matrix.stack().std()
+    return distance_matrix
+
 def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False, threshold=0):
     """
     Fit a sinusoidal function to the filtered dataset where death_minus_birth is above a threshold.
@@ -64,8 +87,10 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
             continue
 
         # Initial guess and bounds
-        initial_guess = [1, 2 * np.pi / np.ptp(unique_x), 0, np.mean(y_data_new)]
-        bounds = ([0.1, 0.01, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # Example bounds
+        # initial_guess = [1, 2 * np.pi / np.ptp(unique_x), 0, np.mean(y_data_new)]
+        # bounds = ([0.1, 0.01, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # Example bounds
+        initial_guess = [np.std(y_data_new), 2 * np.pi / np.ptp(unique_x), 0, np.mean(y_data_new)]
+        bounds = ([0, 0, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf])
 
         try:
             params, _ = curve_fit(sinusoidal, unique_x, y_data_new, p0=initial_guess, bounds=bounds)
