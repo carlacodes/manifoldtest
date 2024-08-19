@@ -24,7 +24,7 @@ import logging
 def evaluate_isomap_components(spks, bhv, regress, manual_params, savedir):
     y = bhv[regress].values
     max_components = manual_params['reducer__n_components']
-    n_components_range = range(2, max_components + 1)
+    n_components_range = range(1, max_components + 1)
     results = []
 
     # Remove 'reducer__n_components' from manual_params
@@ -514,8 +514,9 @@ def main():
         if just_folds == True:
             continue
         elif component_investigation:
-            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress, regressor,
-                                                                  manual_params_rat, save_dir)
+
+            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress, manual_params_rat,
+                                                                  save_dir)
             component_exploration_df['rat_id'] = rat_id
             big_componentresult_df = pd.concat([big_componentresult_df, component_exploration_df], axis=0)
 
