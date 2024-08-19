@@ -21,55 +21,58 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 import logging
-def evaluate_isomap_components(spks, bhv, regress, manual_params, savedir):
-    y = bhv[regress].values
-    max_components = manual_params['reducer__n_components']
-    n_components_range = range(1, max_components + 1)
+def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir):
     results = []
-
+    max_components = manual_params['reducer__n_components']
     # Remove 'reducer__n_components' from manual_params
     manual_params = {k: v for k, v in manual_params.items() if k != 'reducer__n_components'}
 
-    for n_components in n_components_range:
-        pipeline = Pipeline([
-            ('scaler', StandardScaler()),
-            ('reducer', Isomap(n_components=n_components, n_jobs=-1)),
-            ('estimator', MultiOutputRegressor(KNeighborsRegressor(n_neighbors=70, n_jobs=-1)))
-        ])
+    for regress in regress_pairs:
+        y = bhv[regress].values
+        n_components_range = range(1, max_components + 1)
 
-        # Set the remaining parameters
-        pipeline.set_params(**manual_params)
+        for n_components in n_components_range:
+            pipeline = Pipeline([
+                ('scaler', StandardScaler()),
+                ('reducer', Isomap(n_components=n_components, n_jobs=-1)),
+                ('estimator', MultiOutputRegressor(KNeighborsRegressor(n_neighbors=70, n_jobs=-1)))
+            ])
 
-        # Split the data into training and testing sets
-        n_timesteps = spks.shape[0]
-        custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=10)
+            # Set the remaining parameters
+            pipeline.set_params(**manual_params)
 
-        train_scores = []
-        test_scores = []
+            # Split the data into training and testing sets
+            n_timesteps = spks.shape[0]
+            custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=10)
 
-        for train_index, test_index in custom_folds:
-            spks_train, spks_test = spks[train_index], spks[test_index]
-            y_train, y_test = y[train_index], y[test_index]
+            train_scores = []
+            test_scores = []
 
-            pipeline.fit(spks_train, y_train)
-            y_pred = pipeline.predict(spks_test)
+            for train_index, test_index in custom_folds:
+                spks_train, spks_test = spks[train_index], spks[test_index]
+                y_train, y_test = y[train_index], y[test_index]
 
-            train_score = r2_score(y_train, pipeline.predict(spks_train))
-            test_score = r2_score(y_test, y_pred)
+                pipeline.fit(spks_train, y_train)
+                y_pred = pipeline.predict(spks_test)
 
-            train_scores.append(train_score)
-            test_scores.append(test_score)
+                train_score = r2_score(y_train, pipeline.predict(spks_train))
+                test_score = r2_score(y_test, y_pred)
 
-        mean_train_score = np.mean(train_scores)
-        mean_test_score = np.mean(test_scores)
-        results.append((n_components, mean_train_score, mean_test_score))
+                train_scores.append(train_score)
+                test_scores.append(test_score)
 
-    results_df = pd.DataFrame(results, columns=['n_components', 'mean_train_score', 'mean_test_score'])
+            mean_train_score = np.mean(train_scores)
+            mean_test_score = np.mean(test_scores)
+            results.append((regress, n_components, mean_train_score, mean_test_score))
+
+    results_df = pd.DataFrame(results, columns=['regress', 'n_components', 'mean_train_score', 'mean_test_score'])
     results_df.to_csv(f'{savedir}/isomap_components_evaluation.csv', index=False)
 
     plt.figure(figsize=(10, 6))
-    plt.plot(results_df['n_components'], results_df['mean_train_score'], label='Train Score')
-    plt.plot(results_df['n_components'], results_df['mean_test_score'], label='Test Score')
+    for regress in regress_pairs:
+        subset = results_df[results_df['regress'] == regress]
+        plt.plot(subset['n_components'], subset['mean_train_score'], label=f'Train Score {regress}')
+        plt.plot(subset['n_components'], subset['mean_test_score'], label=f'Test Score {regress}')
     plt.xlabel('Number of Isomap Components')
     plt.ylabel('R2 Score')
     plt.title('Isomap Components Evaluation')
@@ -515,11 +518,13 @@ def main():
             continue
         elif component_investigation:
 
-            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress, manual_params_rat,
-                                                                  save_dir)
+            regress_pairs = [['x', 'y'], ['cos_hd', 'sin_hd']]
+
+            # Example usage
+            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress_pairs,
+                                                                  manual_params_rat, save_dir)
             component_exploration_df['rat_id'] = rat_id
             big_componentresult_df = pd.concat([big_componentresult_df, component_exploration_df], axis=0)
-
 
         else:
             best_params, mean_score, result_df, result_df_shuffle, result_df_train, result_df_shuffle_train = train_and_test_on_isomap_randcv(
