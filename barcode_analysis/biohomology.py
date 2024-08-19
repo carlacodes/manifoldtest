@@ -15,6 +15,14 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
 from helpers import utils
 from persim import bottleneck
+from pathlib import Path
+from sklearn.pipeline import Pipeline
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import BaseCrossValidator
+from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import Isomap
+from manifold_neural.helpers.datahandling import DataHandler
 
 def plot_homology_changes_heatmap_interval(dgm_dict, save_dir, start_indices, end_indices):
     """
@@ -174,7 +182,7 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices=None, end_in
         plt.ylabel('Interval (j)')
         plt.tight_layout()
         plt.savefig(
-            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}_control_{use_peak_control}_shuffled_{shuffled_control}.png',
+            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_trialnum_{trial_number}_control_{use_peak_control}_shuffled_{shuffled_control}_1608.png',
             dpi=300,
             bbox_inches='tight')
 
@@ -188,7 +196,7 @@ def plot_homology_changes_heatmap(dgm_dict, save_dir, start_indices=None, end_in
         plt.ylabel('Interval (j)')
         plt.tight_layout()
         plt.savefig(
-            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_control_{use_peak_control}_shuffled_{shuffled_control}.png',
+            f'{save_dir}/homology_changes_heatmap_over_intervals_cumulative_{cumulative_param}_control_{use_peak_control}_shuffled_{shuffled_control}_1608.png',
             dpi=300,
             bbox_inches='tight')
     #add a colorbar label
@@ -296,10 +304,15 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
     num_diagrams = len(mega_diagram_list)
 
     distance_matrix_dict = {}
+    pair_list = []
     for l in [0, 1, 2]:
         distance_matrix = np.zeros((num_diagrams, num_diagrams)) + np.nan
         for m in range(num_diagrams):
             for n in range(m + 1, num_diagrams):
+                if m == n:
+                    continue
+                elif (n, m) in pair_list:
+                    continue
                 first_array = mega_diagram_list[m]
                 first_array = np.squeeze(first_array)  # Remove the extra dimension
                 # filter for the dimension
@@ -314,6 +327,8 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
                 # now take the first two columns for persim formatting
                 second_array = second_array[:, 0:2]
                 distance_matrix[m, n] = bottleneck(first_array, second_array)
+                distance_matrix[n, m] = distance_matrix[m, n]
+                pair_list.append((m,n))
 
         # Save the distance matrix
         #remove the diagonal from the matrix
@@ -327,10 +342,30 @@ def calculate_bottleneck_distance(all_diagrams, folder_str):
 
 
 def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20, cumulative_param=True,
-                             use_peak_control=False, cumulative_windows=False, shuffled_control=False):
+                             use_peak_control=False, cumulative_windows=False, shuffled_control=False, sub_manifold=True, manual_params = None):
+    regressor = KNeighborsRegressor
+    regressor_kwargs = {'n_neighbors': 70}
+    reducer = Isomap
+    reducer_kwargs = {
+        'n_components': 3,
+        'metric': 'cosine',
+        'n_jobs': -1,
+    }
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('reducer', Isomap(n_jobs=-1)),
+        ('estimator', MultiOutputRegressor(regressor(n_jobs=-1)))
+    ])
+
     dgm_dict_storage = {}
+    spk_dir = Path(folder_str)
+    #go two folders up
+    spk_dir = spk_dir.parents[1] / 'physiology_data'
     sinusoid_df_across_trials = None
-    reduced_data = np.load(folder_str + '/full_set_transformed.npy')
+    if shuffled_control:
+        reduced_data = np.load(folder_str + '/full_set_transformed_null.npy')
+    else:
+        reduced_data = np.load(folder_str + '/full_set_transformed.npy')
     trial_info = input_df
     trial_indices = trial_info['trial']
 
@@ -344,24 +379,48 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
             for i in range(len(sorted_list)):
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
+                spike_data = np.load(f'{spk_dir}/inputs_10052024_250.npy')
+                #apply the same isomap transformation to the data
+                spike_data_trial = spike_data[sorted_list[i], :]
+                pipeline.set_params(**manual_params)
+
                 # Break each sorted_data_trial into sliding windows
                 reduced_data_loop_list = []
                 for start in range(0, len(sorted_data_trial) - segment_length + 1, stride):
+                    print(start)
                     end = start + segment_length
                     # Needs to be cumulative
                     if cumulative_windows:
                         reduced_data_loop = sorted_data_trial[:end, :]
+                        loop_spk_data = spike_data_trial[start:end, :]
+                        input_df_trial = input_df.iloc[sorted_list[i][:end]]
+
                     else:
                         reduced_data_loop = sorted_data_trial[start:end, :]
-
+                        loop_spk_data = spike_data_trial[start:end, :]
+                        input_df_trial = input_df.iloc[sorted_list[i][start:end]]
                     # Append to a list
                     reduced_data_loop_list.append(reduced_data_loop)
-                    dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
-                    dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                    dgm_dict[start] = dgm
+                    if sub_manifold:
+                        regress = ['x', 'y', 'cos_hd', 'sin_hd']
+                        y = input_df_trial[regress].values
+                        pipeline.fit(loop_spk_data, y)
 
-                    dgm_dict_storage[(i, start)] = dgm_gtda
-                    all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+                        manifold_window = pipeline.named_steps['reducer'].transform(
+                            pipeline.named_steps['scaler'].transform(loop_spk_data))
+                        dgm = ripser_parallel(manifold_window, maxdim=2, n_threads=20, return_generators=True)
+                        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                        dgm_dict[start] = dgm
+
+                        dgm_dict_storage[(i, start)] = dgm_gtda
+                        all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
+                    else:
+                        dgm = ripser_parallel(reduced_data_loop, maxdim=2, n_threads=20, return_generators=True)
+                        dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+                        dgm_dict[start] = dgm
+
+                        dgm_dict_storage[(i, start)] = dgm_gtda
+                        all_diagrams.append(dgm_gtda)  # Collect diagrams for distance calculation
 
                 np.save(folder_str + '/dgm_fold_h2' + '_interval_' + str(i) + f'_cumulative_{cumulative_param}.npy',
                         dgm_dict)
@@ -379,9 +438,9 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                 dgm_dict = {}
                 sorted_data_trial = reduced_data[sorted_list[i], :]
                 shuffled_sorted_data_trial = np.copy(sorted_data_trial)
-                np.random.shuffle(shuffled_sorted_data_trial)
+                # np.random.shuffle(shuffled_sorted_data_trial)
                 # Check if the shuffled data is the same as the original
-                assert not np.array_equal(sorted_data_trial, shuffled_sorted_data_trial)
+                # assert not np.array_equal(sorted_data_trial, shuffled_sorted_data_trial)
                 # Break each shuffled_sorted_data_trial into sliding windows
                 reduced_data_loop_list = []
                 for start in range(0, len(shuffled_sorted_data_trial) - segment_length + 1, stride):
@@ -407,10 +466,10 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                 df_output, _ = plot_homology_changes_heatmap(dgm_dict, folder_str,
                                                              cumulative_param=cumulative_param,
                                                              trial_number=i, shuffled_control=shuffled_control)
-                # fit_params, df_means = utils.fit_sinusoid_data_whole(df_output, folder_str,
-                #                                                      cumulative_param=cumulative_param,
-                #                                                      trial_number=i, shuffled_control=shuffled_control)
-                # sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
+                fit_params, df_means = utils.fit_sinusoid_data_filtered(df_output, folder_str,
+                                                                     cumulative_param=cumulative_param,
+                                                                     trial_number=i, shuffled_control=shuffled_control)
+                sinusoid_df_across_trials = pd.concat([sinusoid_df_across_trials, df_means])
 
         elif use_peak_control:
             equal_peak_sanity_list = []
@@ -480,13 +539,16 @@ def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    calculate_distance = False
+    calculate_distance_big = True
     cumul_windows = False
     shuffle_control = False
+    sub_man_param = False
     #check if all_diagrams.pkl exists in the base directory
-    if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance:
+    if os.path.exists(f'{base_dir}/all_diagrams.pkl') and calculate_distance_big:
         with open(f'{base_dir}/all_diagrams.pkl', 'rb') as f:
             big_list = pickle.load(f)
+        mean_distance, mean_std_dev, _ = utils.read_distance_matrix(base_dir + '/distance_matrix_dict.pkl')
+
 
     else:
         sinusoid_df_across_trials_and_animals = pd.DataFrame()
@@ -515,21 +577,30 @@ def main():
             if len(files) >= 2:
                 #choose the most recently modified directory
                 files.sort(key=lambda x: os.path.getmtime(sub_folder + x))
+                #remove files that have 'test' in them
+                files = [x for x in files if 'test' not in x]
                 #get the second most recently modified directory
                 savedir = sub_folder + files[-2]
             else:
                 savedir = sub_folder + files[0]
 
+            previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
+                'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
+            rat_id = subdir.split('/')[-2]
+            manual_params_rat = previous_results[rat_id]
+            manual_params_rat = manual_params_rat.item()
+
             pairs_list, _, sinusoid_df_across_trials = run_persistence_analysis(savedir, input_df,
                                                                                 cumulative_param=True,
                                                                                 use_peak_control=False,
                                                                                 shuffled_control=shuffle_control,
-                                                                                cumulative_windows=cumul_windows)
+                                                                                cumulative_windows=cumul_windows, manual_params=manual_params_rat, sub_manifold=sub_man_param)
             sinusoid_df_across_trials_and_animals = pd.concat(
                 [sinusoid_df_across_trials_and_animals, sinusoid_df_across_trials])
 
             #append pairs_list to a big_list
             big_list.append(pairs_list)
+            # distance_matrix_dict = calculate_bottleneck_distance(pairs_list, base_dir)
         sinusoid_df_across_trials_and_animals['mean_across_animals'] = \
         sinusoid_df_across_trials_and_animals.groupby(['Dimension'])['R-squared'].transform('mean')
         sinusoid_df_across_trials_and_animals.to_csv(

@@ -16,8 +16,43 @@ def generate_white_noise_control(df, noise_level=1.0, iterations=1000, savedir =
         r_squared_values.append(r_squared_df['R-squared'].mean())
     return r_squared_values
 
-def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False,
-                               threshold=0):
+
+def read_distance_matrix(file_path):
+    """
+    Read a distance matrix from a file.
+
+    Parameters
+    ----------
+    file_path: str
+        Path to the file containing the distance matrix.
+
+    Returns
+    -------
+    distance_matrix: np.ndarray
+        Distance matrix read from the file.
+    """
+    #load from pkl file
+
+    distance_matrix = pd.read_pickle(file_path)
+    std_dev_distance_list = []
+    mean_distance_list = []
+    #calculate the mean
+    for dim in distance_matrix.keys():
+        dim_matrix = distance_matrix[dim]
+        #take the upper triangle, remove the nans
+        dim_matrix_df = pd.DataFrame(dim_matrix)
+        dim_matrix_upper = dim_matrix_df.where(np.triu(np.ones(dim_matrix_df.shape), k=1).astype(bool))
+        distance_matrix[dim] = dim_matrix_upper.values#]
+        mean_distance = dim_matrix_upper.stack().mean()
+        mean_distance_list.append(mean_distance)
+        print(f'Mean distance for group {dim}: {mean_distance}')
+        #calculate the std dev
+        std_dev_distance = dim_matrix_upper.stack().std()
+        std_dev_distance_list.append(std_dev_distance)
+        print(f'Standard deviation of distance for group {dim}: ', std_dev_distance)
+    return mean_distance_list, std_dev_distance_list, distance_matrix
+
+def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_number=None, shuffled_control=False, threshold=0):
     """
     Fit a sinusoidal function to the filtered dataset where death_minus_birth is above a threshold.
 
@@ -49,24 +84,34 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
 
         # Filter data based on the threshold
         filtered_data = dim_data[dim_data['death_minus_birth'] > threshold]
-        if filtered_data.empty or len(filtered_data) < 4:
+        if filtered_data.empty:
             print(f"No data points above threshold {threshold} for dimension {dim} or less than 4 data points.")
             continue
 
         x_data = filtered_data['Interval'].values
         y_data = filtered_data['death_minus_birth'].values
-        #take the mean y_data for each x_data
-        y_data = np.array([np.mean(y_data[np.where(x_data == i)]) for i in x_data])
+        unique_x = np.unique(x_data)
+        y_data_new = []
+        for i in unique_x:
+            y_data_new.append(np.mean(y_data[x_data == i]))
+        if len(y_data_new) < 5:
+            print('Not enough points, less than 10, risk of overfitting')
+            continue
 
-        initial_guess = [1, 1, 0, np.mean(y_data)]
+        # Initial guess and bounds
+        # initial_guess = [1, 2 * np.pi / np.ptp(unique_x), 0, np.mean(y_data_new)]
+        # bounds = ([0.1, 0.01, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # Example bounds
+        initial_guess = [np.std(y_data_new), 2 * np.pi / np.ptp(unique_x), 0, np.mean(y_data_new)]
+        bounds = ([0, 0, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf])
+
         try:
-            params, _ = curve_fit(sinusoidal, x_data, y_data, p0=initial_guess)
+            params, _ = curve_fit(sinusoidal, unique_x, y_data_new, p0=initial_guess, bounds=bounds)
         except Exception as e:
             print(f'Failed to fit sinusoidal function for dimension {dim}, error: {e}')
             continue
 
         fit_params[dim] = params
-        r_squared = calculate_goodness_of_fit(x_data, y_data, sinusoidal(x_data, *params))
+        r_squared = calculate_goodness_of_fit(unique_x, y_data_new, sinusoidal(unique_x, *params))
         r_squared_df_individual = pd.DataFrame([{'Dimension': dim, 'R-squared': r_squared}])
 
         # Concatenate with the existing DataFrame
@@ -74,8 +119,8 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         print(f'R-squared for dimension {dim}: {r_squared}')
 
         plt.figure(figsize=(10, 6))
-        plt.plot(x_data, y_data, 'bo', label='Filtered Data')
-        plt.plot(x_data, sinusoidal(x_data, *params), 'r-', label='Fitted Function')
+        plt.plot(unique_x, y_data_new, 'bo', label='Filtered Data')
+        plt.plot(unique_x, sinusoidal(unique_x, *params), 'r-', label='Fitted Function')
         plt.title(f'Sinusoidal Fit for Homology Dimension {dim}, r2 score: {r_squared:.2f}')
         plt.xlabel('Interval (j)')
         plt.ylabel('Death - Birth')
@@ -91,6 +136,7 @@ def fit_sinusoid_data_filtered(df, save_dir, cumulative_param=False, trial_numbe
         index=False)
 
     return fit_params, r_squared_df
+
 
 
 def fit_sinusoid_data_whole(df, save_dir, cumulative_param = False, trial_number = None, shuffled_control = False):
