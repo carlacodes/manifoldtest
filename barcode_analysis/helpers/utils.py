@@ -54,7 +54,7 @@ def plot_vr_complex_mosaic(points, radii, ncols=3, savedir=None, count = 0):
                 triangle = np.array([points[i], points[j], points[k]])
                 ax.fill(triangle[:, 0], triangle[:, 1], 'g', alpha=0.2)
 
-        ax.set_title(f"Vietoris-Rips Complex, r = {r:.2f}")
+        ax.set_title(f"r = {r:.2f}")
         ax.set_aspect('equal', adjustable='box')
 
     # Hide any unused subplots

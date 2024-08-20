@@ -64,7 +64,6 @@ def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir,
             mean_train_score = np.mean(train_scores)
             mean_test_score = np.mean(test_scores)
             results.append((regress, n_components, mean_train_score, mean_test_score))
-
     results_df = pd.DataFrame(results, columns=['regress', 'n_components', 'mean_train_score', 'mean_test_score'])
     results_df.to_csv(f'{savedir}/isomap_components_evaluation.csv', index=False)
 
@@ -396,7 +395,7 @@ def train_and_test_on_isomap_randcv(
                     # Create a new figure and axis
                     fig, ax = plt.subplots()
                     # Scatter plot of component i vs component j
-                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight')
+                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight', s=2)
                     # Set labels
                     ax.set_xlabel(f'isomap {i + 1}')
                     ax.set_ylabel(f'isomap {j + 1}')
