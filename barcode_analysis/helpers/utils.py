@@ -6,6 +6,76 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def plot_barcode_mosaic(diag, save_dir=None, count=0, **kwargs):
+    """
+    Plot the barcode for a persistence diagram using matplotlib in a mosaic layout.
+    ----------
+    diag: np.array: of shape (num_features, 3), i.e. each feature is
+           a triplet of (birth, death, dim) as returned by e.g.
+           VietorisRipsPersistence
+    **kwargs
+    Returns
+    -------
+    None.
+    """
+    unique_dims = np.unique(diag[:, 2])
+    num_plots = len(unique_dims)
+    cols = kwargs.get('cols', 3)
+    rows = (num_plots + cols - 1) // cols
+    fig, axes = plt.subplots(rows, cols, figsize=kwargs.get('figsize', (15, 10)))
+    axes = axes.flatten()
+    color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    letter_list = ['a)', 'b)', 'c)', 'd)', 'e', 'f', 'g']
+    for i, dim in enumerate(unique_dims):
+        ax = axes[i]
+        diag_dim = diag[diag[:, 2] == dim]
+        birth = diag_dim[:, 0]
+        death = diag_dim[:, 1]
+        finite_bars = death[death != np.inf]
+        if len(finite_bars) > 0:
+            inf_end = 2 * max(finite_bars)
+        else:
+            inf_end = 2
+        death[death == np.inf] = inf_end
+
+        if len(np.unique(birth)) > 1:
+            sorted_indices = np.argsort(birth)
+            birth = birth[sorted_indices]
+            death = death[sorted_indices]
+
+        for j, (b, d) in enumerate(zip(birth, death)):
+            if d == inf_end:
+                ax.plot([b, d], [j, j], color='k', lw=kwargs.get('linewidth', 2))
+            else:
+                ax.plot([b, d], [j, j], color=kwargs.get('color', color_list[i]), lw=kwargs.get('linewidth', 2))
+
+        ax.set_title(f'Dimension {dim}')
+        ax.set_xlabel(kwargs.get('xlabel', 'Filtration Value'))
+        ax.set_ylabel(kwargs.get('ylabel', 'Birth'))
+        min_birth = np.min(birth)
+        min_birth = np.round(min_birth, 3)
+        max_birth = np.max(birth)
+        max_birth = np.round(max_birth, 3)
+        ax.set_yticks([0, len(birth) - 1])
+        ax.set_yticklabels([min_birth, max_birth])
+        ax.annotate(letter_list[i], xy=(-0.1, 1), xycoords='axes fraction', fontsize=14, ha='center', va='center', fontweight='bold')
+
+
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.suptitle(kwargs.get('title', 'Persistence barcodes') + f', trial {count}')
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    if save_dir is not None:
+        plt.savefig(save_dir + f'/barcode_mosaic_trialid_{count}.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    plt.close('all')
+
+
 def generate_white_noise_control(df, noise_level=1.0, iterations=1000, savedir = ''):
     r_squared_values = []
     for _ in range(iterations):

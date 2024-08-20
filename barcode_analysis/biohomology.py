@@ -250,7 +250,7 @@ def plot_barcode(diag, dim, save_dir=None, count=0, **kwargs):
             hom_group_text = 'H2'
             plt.plot([b, d], [i, i], color=kwargs.get('color', 'g'), lw=kwargs.get('linewidth', 2))
 
-    plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) + ' and trial ' + str(count)))
+    plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) + ' and trial ' + str(count) + 'rat_id:'+str(save_dir.split('/')[-4])))
     plt.xlabel(kwargs.get('xlabel', 'Filtration Value'))
     min_birth = np.min(birth)
     max_birth = np.max(birth)
@@ -536,7 +536,8 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
                 dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
                 # Remove the first axis
                 dgm_gtda = dgm_gtda[0]
-                plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
+                # plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
+                utils.plot_barcode_mosaic(dgm_gtda, save_dir=folder_str, count=i)
 
     return all_diagrams, dgm_dict_storage, sinusoid_df_across_trials
 
