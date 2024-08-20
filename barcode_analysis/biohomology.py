@@ -232,6 +232,11 @@ def plot_barcode(diag, dim, save_dir=None, count=0, **kwargs):
     death[death == np.inf] = inf_end
     plt.figure(figsize=kwargs.get('figsize', (10, 5)))
     hom_group_text = ''
+    #if birth times not all the same, sort by birth times
+    if len(np.unique(birth)) > 1:
+        sorted_indices = np.argsort(birth)
+        birth = birth[sorted_indices]
+        death = death[sorted_indices]
     for i, (b, d) in enumerate(zip(birth, death)):
         if d == inf_end:
             plt.plot([b, d], [i, i], color='k', lw=kwargs.get('linewidth', 2))
@@ -247,12 +252,14 @@ def plot_barcode(diag, dim, save_dir=None, count=0, **kwargs):
 
     plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) + ' and trial ' + str(count)))
     plt.xlabel(kwargs.get('xlabel', 'Filtration Value'))
-    plt.yticks([])
+    min_birth = np.min(birth)
+    max_birth = np.max(birth)
+    plt.yticks([0, len(birth) - 1], [min_birth, max_birth])
     plt.tight_layout()
     if save_dir is not None:
         plt.savefig(save_dir + '/barcode_fold_trialid_' + str(count) + '_dim_' + str(dim) + '_.png', dpi=300,
                     bbox_inches='tight')
-    # plt.show()
+    plt.show()
     plt.close('all')
 
     # plt.show()
@@ -539,7 +546,7 @@ def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    calculate_distance_big = True
+    calculate_distance_big = False
     cumul_windows = False
     shuffle_control = False
     sub_man_param = False
@@ -591,7 +598,7 @@ def main():
             manual_params_rat = manual_params_rat.item()
 
             pairs_list, _, sinusoid_df_across_trials = run_persistence_analysis(savedir, input_df,
-                                                                                cumulative_param=True,
+                                                                                cumulative_param=False,
                                                                                 use_peak_control=False,
                                                                                 shuffled_control=shuffle_control,
                                                                                 cumulative_windows=cumul_windows, manual_params=manual_params_rat, sub_manifold=sub_man_param)

@@ -21,7 +21,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 import logging
-def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir):
+def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir, num_windows = 1000):
     results = []
     max_components = manual_params['reducer__n_components']
     # Remove 'reducer__n_components' from manual_params
@@ -43,7 +43,7 @@ def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir)
 
             # Split the data into training and testing sets
             n_timesteps = spks.shape[0]
-            custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=10)
+            custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
 
             train_scores = []
             test_scores = []
@@ -522,7 +522,7 @@ def main():
 
             # Example usage
             component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress_pairs,
-                                                                  manual_params_rat, save_dir)
+                                                                  manual_params_rat, save_dir, num_windows = num_windows)
             component_exploration_df['rat_id'] = rat_id
             big_componentresult_df = pd.concat([big_componentresult_df, component_exploration_df], axis=0)
 
