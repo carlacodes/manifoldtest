@@ -8,7 +8,47 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy as np
+import matplotlib.pyplot as plt
+from gph import ripser_parallel
+from gtda.homology._utils import _postprocess_diagrams
 
+def visualize_simplex_ripser(dgm_gtda, filtration_radii, save_dir=None):
+    """
+    Visualize the simplex at varying filtration radius lengths using ripser\_parallel.
+
+    Parameters
+    ----------
+    points: np.array
+        Array of points in the space.
+    filtration_radii: list
+        List of filtration radii to visualize.
+    save_dir: str, optional
+        Directory to save the plots.
+    """
+    for radius in filtration_radii:
+        # Compute the Vietoris-Rips persistence for the given points
+
+        # Plot the persistence diagram
+        plt.figure(figsize=(8, 6))
+        for dim in range(3):
+            plt.scatter(dgm_gtda[0][dgm_gtda[0][:, 2] == dim][:, 0], dgm_gtda[0][dgm_gtda[0][:, 2] == dim][:, 1], label=f'H{dim}')
+        plt.title(f'Simplex at Filtration Radius {radius}')
+        plt.xlabel('Birth')
+        plt.ylabel('Death')
+        plt.legend()
+        plt.tight_layout()
+
+        if save_dir:
+            plt.savefig(f'{save_dir}/simplex_filtration_radius_{radius}.png', dpi=300, bbox_inches='tight')
+
+        plt.show()
+        plt.close()
+
+# Example usage
+points = np.random.rand(10, 2)  # Random points in 2D
+filtration_radii = [0.1, 0.2, 0.3, 0.4, 0.5]
+visualize_simplex_ripser(points, filtration_radii, save_dir='C:/path_to_save_dir')
 
 def plot_barcode_mosaic(diag, save_dir=None, count=0, **kwargs):
     """
@@ -67,8 +107,8 @@ def plot_barcode_mosaic(diag, save_dir=None, count=0, **kwargs):
 
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
-
-    plt.suptitle(kwargs.get('title', 'Persistence barcodes') + f', trial {count}')
+    rat_id = str(save_dir.split('/')[-4])
+    plt.suptitle(kwargs.get('title', 'Persistence barcodes') + f', trial {count}, {rat_id}')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     if save_dir is not None:
         plt.savefig(save_dir + f'/barcode_mosaic_trialid_{count}.png', dpi=300, bbox_inches='tight')
