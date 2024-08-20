@@ -530,17 +530,22 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
         all_diagrams = []
         for i in range(len(sorted_list)):
             sorted_data_trial = reduced_data[sorted_list[i], :]
+            radii = [0.1, 0.2, 0.3]
+            utils.plot_vr_complex_mosaic(sorted_data_trial, radii, savedir=folder_str, count = i)
+
+            # for r in radii:
+            #     utils.plot_vr_complex(sorted_data_trial, r)
+
             # Plot the persistence barcode across the whole trial
-            for dim in [0, 1, 2]:
-                dgm = ripser_parallel(sorted_data_trial, maxdim=2, n_threads=20, return_generators=True)
-                dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                # Remove the first axis
-                utils.visualize_simplex_ripser(dgm_gtda, folder_str, i)
+            # for dim in [0, 1, 2]:
+            dgm = ripser_parallel(sorted_data_trial, maxdim=2, n_threads=20, return_generators=True)
+            dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+            # Remove the first axis
 
-                dgm_gtda = dgm_gtda[0]
-                # plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
+            dgm_gtda = dgm_gtda[0]
+            # plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
 
-                utils.plot_barcode_mosaic(dgm_gtda, save_dir=folder_str, count=i)
+            utils.plot_barcode_mosaic(dgm_gtda, save_dir=folder_str, count=i)
 
     return all_diagrams, dgm_dict_storage, sinusoid_df_across_trials
 

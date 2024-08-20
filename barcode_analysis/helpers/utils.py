@@ -6,49 +6,97 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
-import numpy as np
-import numpy as np
-import matplotlib.pyplot as plt
-from gph import ripser_parallel
-from gtda.homology._utils import _postprocess_diagrams
 
-def visualize_simplex_ripser(dgm_gtda, filtration_radii, save_dir=None):
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import distance_matrix
+from itertools import combinations
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import distance_matrix
+from itertools import combinations
+
+
+def plot_vr_complex_mosaic(points, radii, ncols=3, savedir=None, count = 0):
     """
-    Visualize the simplex at varying filtration radius lengths using ripser\_parallel.
+    Plot a mosaic of Vietoris-Rips complexes for different filtration radii.
 
     Parameters
     ----------
-    points: np.array
-        Array of points in the space.
-    filtration_radii: list
-        List of filtration radii to visualize.
-    save_dir: str, optional
-        Directory to save the plots.
+    points: np.ndarray
+        Array of points (n x 2) to plot.
+    radii: list or np.ndarray
+        List of radii to use for different Vietoris-Rips complexes.
+    ncols: int, optional
+        Number of columns in the mosaic (default is 3).
     """
-    for radius in filtration_radii:
-        # Compute the Vietoris-Rips persistence for the given points
+    nradii = len(radii)
+    nrows = int(np.ceil(nradii / ncols))
 
-        # Plot the persistence diagram
-        plt.figure(figsize=(8, 6))
-        for dim in range(3):
-            plt.scatter(dgm_gtda[0][dgm_gtda[0][:, 2] == dim][:, 0], dgm_gtda[0][dgm_gtda[0][:, 2] == dim][:, 1], label=f'H{dim}')
-        plt.title(f'Simplex at Filtration Radius {radius}')
-        plt.xlabel('Birth')
-        plt.ylabel('Death')
-        plt.legend()
-        plt.tight_layout()
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6 * ncols, 6 * nrows))
+    axes = axes.flatten()  # Flatten to easily index
 
-        if save_dir:
-            plt.savefig(f'{save_dir}/simplex_filtration_radius_{radius}.png', dpi=300, bbox_inches='tight')
+    for i, r in enumerate(radii):
+        ax = axes[i]
+        ax.scatter(points[:, 0], points[:, 1], c='blue', s=20)
 
-        plt.show()
-        plt.close()
+        # Compute pairwise distances
+        dist_matrix = distance_matrix(points, points)
 
-# Example usage
-points = np.random.rand(10, 2)  # Random points in 2D
-filtration_radii = [0.1, 0.2, 0.3, 0.4, 0.5]
-visualize_simplex_ripser(points, filtration_radii, save_dir='C:/path_to_save_dir')
+        # Add edges (1-simplices) if distance between points is <= r
+        for i, j in combinations(range(len(points)), 2):
+            if dist_matrix[i, j] <= r:
+                ax.plot([points[i, 0], points[j, 0]], [points[i, 1], points[j, 1]], 'k-', alpha=0.5)
+
+        # Add triangles (2-simplices) if all edges between three points are <= r
+        for i, j, k in combinations(range(len(points)), 3):
+            if dist_matrix[i, j] <= r and dist_matrix[i, k] <= r and dist_matrix[j, k] <= r:
+                triangle = np.array([points[i], points[j], points[k]])
+                ax.fill(triangle[:, 0], triangle[:, 1], 'g', alpha=0.2)
+
+        ax.set_title(f"Vietoris-Rips Complex, r = {r:.2f}")
+        ax.set_aspect('equal', adjustable='box')
+
+    # Hide any unused subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+
+    plt.tight_layout()
+    plt.savefig(savedir + f'/vietoris_rips_mosaic_trial_{count}.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+
+
+
+# Function to plot point cloud and simplices
+def plot_vr_complex(points, r):
+    plt.figure(figsize=(6, 6))
+    plt.scatter(points[:, 0], points[:, 1], c='blue', s=20)
+
+    # Compute pairwise distances
+    dist_matrix = distance_matrix(points, points)
+
+    # Add edges (1-simplices) if distance between points is <= r
+    for i, j in combinations(range(len(points)), 2):
+        if dist_matrix[i, j] <= r:
+            plt.plot([points[i, 0], points[j, 0]], [points[i, 1], points[j, 1]], 'k-', alpha=0.5)
+
+    # Add triangles (2-simplices) if all edges between three points are <= r
+    for i, j, k in combinations(range(len(points)), 3):
+        if dist_matrix[i, j] <= r and dist_matrix[i, k] <= r and dist_matrix[j, k] <= r:
+            triangle = np.array([points[i], points[j], points[k]])
+            plt.fill(triangle[:, 0], triangle[:, 1], 'g', alpha=0.2)
+
+    plt.title(f"Vietoris-Rips Complex, r = {r:.2f}")
+    # plt.xlim(0, 1)
+    # plt.ylim(0, 1)
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.show()
+
+
+# Plot the Vietoris-Rips complex for different radii
+
 
 def plot_barcode_mosaic(diag, save_dir=None, count=0, **kwargs):
     """
