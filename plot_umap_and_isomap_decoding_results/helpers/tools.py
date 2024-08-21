@@ -30,7 +30,6 @@ from sklearn.base import BaseEstimator
 from scipy.signal.windows import gaussian
 from scipy.signal import lfilter
 
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -38,10 +37,10 @@ def plot_isomap_mosaic(X_test_transformed, actual_angle, actual_distance, n_comp
     for i in range(n_components):
         # Create a mosaic layout
         layout = {
-            'Angle': [[f'ax_angle_{j}' for j in range(i + 1, n_components)]],
-            'Distance': [[f'ax_distance_{j}' for j in range(i + 1, n_components)]]
+            'Angle': [f'ax_angle_{j}' for j in range(i + 1, n_components)],
+            'Distance': [f'ax_distance_{j}' for j in range(i + 1, n_components)]
         }
-        fig, axes = plt.subplot_mosaic(layout, figsize=(15, 5))  # Landscape orientation
+        fig, axes = plt.subplot_mosaic([layout['Angle'], layout['Distance']], figsize=(15, 5))  # Landscape orientation
         fig.subplots_adjust(hspace=0.4, wspace=0.4)
 
         for j in range(i + 1, n_components):
