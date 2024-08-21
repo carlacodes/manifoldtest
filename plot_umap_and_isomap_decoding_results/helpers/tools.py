@@ -28,8 +28,45 @@ import scipy
 import pickle as pkl
 from sklearn.base import BaseEstimator
 from scipy.signal.windows import gaussian
-import matplotlib.pyplot as plt
 from scipy.signal import lfilter
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+def plot_isomap_mosaic(X_test_transformed, actual_angle, actual_distance, n_components, savedir, count):
+    for i in range(n_components):
+        # Create a mosaic layout
+        layout = {
+            'Angle': [[f'ax_angle_{j}' for j in range(i + 1, n_components)]],
+            'Distance': [[f'ax_distance_{j}' for j in range(i + 1, n_components)]]
+        }
+        fig, axes = plt.subplot_mosaic(layout, figsize=(15, 5))  # Landscape orientation
+        fig.subplots_adjust(hspace=0.4, wspace=0.4)
+
+        for j in range(i + 1, n_components):
+            ax_angle = axes[f'ax_angle_{j}']
+            sc_angle = ax_angle.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle,
+                                        cmap='twilight', s=10)
+            ax_angle.set_xlabel(f'isomap {i + 1}')
+            ax_angle.set_ylabel(f'isomap {j + 1}')
+            fig.colorbar(sc_angle, ax=ax_angle)
+            ax_angle.set_title(f'Angle: Component {i + 1} vs {j + 1}')
+
+            ax_distance = axes[f'ax_distance_{j}']
+            sc_distance = ax_distance.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance,
+                                              cmap='viridis', s=10)
+            ax_distance.set_xlabel(f'isomap {i + 1}')
+            ax_distance.set_ylabel(f'isomap {j + 1}')
+            fig.colorbar(sc_distance, ax=ax_distance)
+            ax_distance.set_title(f'Distance: Component {i + 1} vs {j + 1}')
+
+        plt.savefig(f'{savedir}/isomap_embeddings_mosaic_fold_{count}_component_{i + 1}.png', dpi=300,
+                    bbox_inches='tight')
+        plt.show()
+        plt.close('all')
+
+
 
 
 def apply_lfads_smoothing(data_in):

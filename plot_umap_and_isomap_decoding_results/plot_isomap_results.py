@@ -21,6 +21,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 import logging
+from helpers import tools
 def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir, num_windows = 1000):
     results = []
     max_components = manual_params['reducer__n_components']
@@ -70,8 +71,8 @@ def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir,
     plt.figure(figsize=(10, 6))
     for regress in regress_pairs:
         subset = results_df[results_df['regress'] == regress]
-        plt.plot(subset['n_components'], subset['mean_train_score'], label=f'Train Score {regress}')
-        plt.plot(subset['n_components'], subset['mean_test_score'], label=f'Test Score {regress}')
+        plt.plot(subset['mean_train_score'], label=f'Train Score {regress}')
+        plt.plot(subset['mean_test_score'], label=f'Test Score {regress}')
     plt.xlabel('Number of Isomap Components')
     plt.ylabel('R2 Score')
     plt.title('Isomap Components Evaluation')
@@ -376,6 +377,7 @@ def train_and_test_on_isomap_randcv(
                 f'Isomap test embeddings color-coded by head angle rel. to goal for fold: {count} rat id: {rat_id}')
             plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}.png', dpi=300, bbox_inches='tight')
             n_components = X_test_transformed.shape[1]
+            tools.plot_isomap_mosaic(X_test_transformed, actual_angle, actual_distance, n_components, savedir, count)
             # if barcode_analysis:
             #     rips_complex = gd.RipsComplex(points=X_test_transformed, max_edge_length=1)
             #     simplex_tree = rips_complex.create_simplex_tree(max_dimension=1)
@@ -395,7 +397,7 @@ def train_and_test_on_isomap_randcv(
                     # Create a new figure and axis
                     fig, ax = plt.subplots()
                     # Scatter plot of component i vs component j
-                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight', s=2)
+                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight', s=15)
                     # Set labels
                     ax.set_xlabel(f'isomap {i + 1}')
                     ax.set_ylabel(f'isomap {j + 1}')
@@ -410,7 +412,7 @@ def train_and_test_on_isomap_randcv(
                     #get distance from origin
                     fig, ax = plt.subplots()
                     # Scatter plot of component i vs component j
-                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance, cmap='viridis')
+                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance, cmap='viridis', s=15)
                     # Set labels
                     ax.set_xlabel(f'isomap {i + 1}')
                     ax.set_ylabel(f'isomap {j + 1}')
@@ -454,8 +456,8 @@ def main():
     # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
     just_folds = False
     null_distribution = False
-    component_investigation = True
-    for data_dir in [ f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
+    component_investigation = False
+    for data_dir in [ f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',]:
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
         'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
