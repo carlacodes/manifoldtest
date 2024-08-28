@@ -68,18 +68,18 @@ def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir,
     results_df = pd.DataFrame(results, columns=['regress', 'n_components', 'mean_train_score', 'mean_test_score'])
     results_df.to_csv(f'{savedir}/isomap_components_evaluation.csv', index=False)
 
-    plt.figure(figsize=(10, 6))
-    for regress in regress_pairs:
-        subset = results_df[results_df['regress'] == regress]
-        plt.plot(subset['mean_train_score'], label=f'Train Score {regress}')
-        plt.plot(subset['mean_test_score'], label=f'Test Score {regress}')
-    plt.xlabel('Number of Isomap Components')
-    plt.ylabel('R2 Score')
-    plt.title('Isomap Components Evaluation')
-    plt.legend()
-    plt.savefig(f'{savedir}/isomap_components_evaluation.png', dpi=300, bbox_inches='tight')
-    plt.show()
-    plt.close('all')
+    # plt.figure(figsize=(10, 6))
+    # for regress in regress_pairs:
+    #     subset = results_df[results_df['regress'] == regress]
+    #     plt.plot(subset['mean_train_score'], label=f'Train Score {regress}')
+    #     plt.plot(subset['mean_test_score'], label=f'Test Score {regress}')
+    # plt.xlabel('Number of Isomap Components')
+    # plt.ylabel('R2 Score')
+    # plt.title('Isomap Components Evaluation')
+    # plt.legend()
+    # plt.savefig(f'{savedir}/isomap_components_evaluation.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+    # plt.close('all')
     return results_df
 class ZScoreCV(BaseCrossValidator):
     def __init__(self, spks, custom_folds):
