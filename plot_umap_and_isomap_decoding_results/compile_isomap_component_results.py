@@ -171,7 +171,7 @@ def process_isomap_results():
     #find the elbow point
     ax[0].set_title('x, y')
     ax[0].set_ylim(0, 0.6)
-    ax[1].set_title('cos_hd, sin_hd')
+    ax[1].set_title('cos(theta), sin(theta)')
     ax[0].set_xlabel('n_components')
     ax[0].set_ylabel('mean_r2_score')
     ax[1].set_ylim(0, 0.6)
