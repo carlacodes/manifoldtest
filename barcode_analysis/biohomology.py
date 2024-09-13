@@ -232,6 +232,11 @@ def plot_barcode(diag, dim, save_dir=None, count=0, **kwargs):
     death[death == np.inf] = inf_end
     plt.figure(figsize=kwargs.get('figsize', (10, 5)))
     hom_group_text = ''
+    #if birth times not all the same, sort by birth times
+    if len(np.unique(birth)) > 1:
+        sorted_indices = np.argsort(birth)
+        birth = birth[sorted_indices]
+        death = death[sorted_indices]
     for i, (b, d) in enumerate(zip(birth, death)):
         if d == inf_end:
             plt.plot([b, d], [i, i], color='k', lw=kwargs.get('linewidth', 2))
@@ -245,14 +250,16 @@ def plot_barcode(diag, dim, save_dir=None, count=0, **kwargs):
             hom_group_text = 'H2'
             plt.plot([b, d], [i, i], color=kwargs.get('color', 'g'), lw=kwargs.get('linewidth', 2))
 
-    plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) + ' and trial ' + str(count)))
+    plt.title(kwargs.get('title', 'Persistence Barcode, ' + str(hom_group_text) + ' and trial ' + str(count) + 'rat_id:'+str(save_dir.split('/')[-4])))
     plt.xlabel(kwargs.get('xlabel', 'Filtration Value'))
-    plt.yticks([])
+    min_birth = np.min(birth)
+    max_birth = np.max(birth)
+    plt.yticks([0, len(birth) - 1], [min_birth, max_birth])
     plt.tight_layout()
     if save_dir is not None:
         plt.savefig(save_dir + '/barcode_fold_trialid_' + str(count) + '_dim_' + str(dim) + '_.png', dpi=300,
                     bbox_inches='tight')
-    # plt.show()
+    plt.show()
     plt.close('all')
 
     # plt.show()
@@ -523,13 +530,22 @@ def run_persistence_analysis(folder_str, input_df, segment_length=40, stride=20,
         all_diagrams = []
         for i in range(len(sorted_list)):
             sorted_data_trial = reduced_data[sorted_list[i], :]
+            radii = [0.1, 0.2, 0.3]
+            utils.plot_vr_complex_mosaic(sorted_data_trial, radii, savedir=folder_str, count = i)
+
+            # for r in radii:
+            #     utils.plot_vr_complex(sorted_data_trial, r)
+
             # Plot the persistence barcode across the whole trial
-            for dim in [0, 1, 2]:
-                dgm = ripser_parallel(sorted_data_trial, maxdim=2, n_threads=20, return_generators=True)
-                dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
-                # Remove the first axis
-                dgm_gtda = dgm_gtda[0]
-                plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
+            # for dim in [0, 1, 2]:
+            dgm = ripser_parallel(sorted_data_trial, maxdim=2, n_threads=20, return_generators=True)
+            dgm_gtda = _postprocess_diagrams([dgm["dgms"]], "ripser", (0, 1, 2), np.inf, True)
+            # Remove the first axis
+
+            dgm_gtda = dgm_gtda[0]
+            # plot_barcode(dgm_gtda, dim, save_dir=folder_str, count=i)
+
+            utils.plot_barcode_mosaic(dgm_gtda, save_dir=folder_str, count=i)
 
     return all_diagrams, dgm_dict_storage, sinusoid_df_across_trials
 
@@ -539,7 +555,7 @@ def main():
     #load the already reduced data
     base_dir = 'C:/neural_data/'
     big_list = []
-    calculate_distance_big = True
+    calculate_distance_big = False
     cumul_windows = False
     shuffle_control = False
     sub_man_param = False
@@ -591,7 +607,7 @@ def main():
             manual_params_rat = manual_params_rat.item()
 
             pairs_list, _, sinusoid_df_across_trials = run_persistence_analysis(savedir, input_df,
-                                                                                cumulative_param=True,
+                                                                                cumulative_param=False,
                                                                                 use_peak_control=False,
                                                                                 shuffled_control=shuffle_control,
                                                                                 cumulative_windows=cumul_windows, manual_params=manual_params_rat, sub_manifold=sub_man_param)

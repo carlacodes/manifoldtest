@@ -6,6 +6,164 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import distance_matrix
+from itertools import combinations
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import distance_matrix
+from itertools import combinations
+
+
+def plot_vr_complex_mosaic(points, radii, ncols=3, savedir=None, count = 0):
+    """
+    Plot a mosaic of Vietoris-Rips complexes for different filtration radii.
+
+    Parameters
+    ----------
+    points: np.ndarray
+        Array of points (n x 2) to plot.
+    radii: list or np.ndarray
+        List of radii to use for different Vietoris-Rips complexes.
+    ncols: int, optional
+        Number of columns in the mosaic (default is 3).
+    """
+    nradii = len(radii)
+    nrows = int(np.ceil(nradii / ncols))
+
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6 * ncols, 6 * nrows))
+    axes = axes.flatten()  # Flatten to easily index
+
+    for i, r in enumerate(radii):
+        ax = axes[i]
+        ax.scatter(points[:, 0], points[:, 1], c='blue', s=20)
+
+        # Compute pairwise distances
+        dist_matrix = distance_matrix(points, points)
+
+        # Add edges (1-simplices) if distance between points is <= r
+        for i, j in combinations(range(len(points)), 2):
+            if dist_matrix[i, j] <= r:
+                ax.plot([points[i, 0], points[j, 0]], [points[i, 1], points[j, 1]], 'k-', alpha=0.5)
+
+        # Add triangles (2-simplices) if all edges between three points are <= r
+        for i, j, k in combinations(range(len(points)), 3):
+            if dist_matrix[i, j] <= r and dist_matrix[i, k] <= r and dist_matrix[j, k] <= r:
+                triangle = np.array([points[i], points[j], points[k]])
+                ax.fill(triangle[:, 0], triangle[:, 1], 'g', alpha=0.2)
+
+        ax.set_title(f"r = {r:.2f}")
+        ax.set_aspect('equal', adjustable='box')
+
+    # Hide any unused subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+
+    plt.tight_layout()
+    plt.savefig(savedir + f'/vietoris_rips_mosaic_trial_{count}.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+
+
+
+# Function to plot point cloud and simplices
+def plot_vr_complex(points, r):
+    plt.figure(figsize=(6, 6))
+    plt.scatter(points[:, 0], points[:, 1], c='blue', s=20)
+
+    # Compute pairwise distances
+    dist_matrix = distance_matrix(points, points)
+
+    # Add edges (1-simplices) if distance between points is <= r
+    for i, j in combinations(range(len(points)), 2):
+        if dist_matrix[i, j] <= r:
+            plt.plot([points[i, 0], points[j, 0]], [points[i, 1], points[j, 1]], 'k-', alpha=0.5)
+
+    # Add triangles (2-simplices) if all edges between three points are <= r
+    for i, j, k in combinations(range(len(points)), 3):
+        if dist_matrix[i, j] <= r and dist_matrix[i, k] <= r and dist_matrix[j, k] <= r:
+            triangle = np.array([points[i], points[j], points[k]])
+            plt.fill(triangle[:, 0], triangle[:, 1], 'g', alpha=0.2)
+
+    plt.title(f"Vietoris-Rips Complex, r = {r:.2f}")
+    # plt.xlim(0, 1)
+    # plt.ylim(0, 1)
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.show()
+
+
+# Plot the Vietoris-Rips complex for different radii
+
+
+def plot_barcode_mosaic(diag, save_dir=None, count=0, **kwargs):
+    """
+    Plot the barcode for a persistence diagram using matplotlib in a mosaic layout.
+    ----------
+    diag: np.array: of shape (num_features, 3), i.e. each feature is
+           a triplet of (birth, death, dim) as returned by e.g.
+           VietorisRipsPersistence
+    **kwargs
+    Returns
+    -------
+    None.
+    """
+    unique_dims = np.unique(diag[:, 2])
+    num_plots = len(unique_dims)
+    cols = kwargs.get('cols', 3)
+    rows = (num_plots + cols - 1) // cols
+    fig, axes = plt.subplots(rows, cols, figsize=kwargs.get('figsize', (15, 10)))
+    axes = axes.flatten()
+    color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    letter_list = ['a)', 'b)', 'c)', 'd)', 'e', 'f', 'g']
+    for i, dim in enumerate(unique_dims):
+        ax = axes[i]
+        diag_dim = diag[diag[:, 2] == dim]
+        birth = diag_dim[:, 0]
+        death = diag_dim[:, 1]
+        finite_bars = death[death != np.inf]
+        if len(finite_bars) > 0:
+            inf_end = 2 * max(finite_bars)
+        else:
+            inf_end = 2
+        death[death == np.inf] = inf_end
+
+        if len(np.unique(birth)) > 1:
+            sorted_indices = np.argsort(birth)
+            birth = birth[sorted_indices]
+            death = death[sorted_indices]
+
+        for j, (b, d) in enumerate(zip(birth, death)):
+            if d == inf_end:
+                ax.plot([b, d], [j, j], color='k', lw=kwargs.get('linewidth', 2))
+            else:
+                ax.plot([b, d], [j, j], color=kwargs.get('color', color_list[i]), lw=kwargs.get('linewidth', 2))
+
+        ax.set_title(f'Dimension {dim}')
+        ax.set_xlabel(kwargs.get('xlabel', 'Filtration Value'))
+        ax.set_ylabel(kwargs.get('ylabel', 'Birth'))
+        min_birth = np.min(birth)
+        min_birth = np.round(min_birth, 3)
+        max_birth = np.max(birth)
+        max_birth = np.round(max_birth, 3)
+        ax.set_yticks([0, len(birth) - 1])
+        ax.set_yticklabels([min_birth, max_birth])
+        ax.annotate(letter_list[i], xy=(-0.1, 1), xycoords='axes fraction', fontsize=14, ha='center', va='center', fontweight='bold')
+
+
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+    rat_id = str(save_dir.split('/')[-4])
+    plt.suptitle(kwargs.get('title', 'Persistence barcodes') + f', trial {count}, {rat_id}')
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    if save_dir is not None:
+        plt.savefig(save_dir + f'/barcode_mosaic_trialid_{count}.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    plt.close('all')
+
+
 def generate_white_noise_control(df, noise_level=1.0, iterations=1000, savedir = ''):
     r_squared_values = []
     for _ in range(iterations):

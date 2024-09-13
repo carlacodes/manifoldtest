@@ -7,9 +7,7 @@ from pathlib import Path
 from sklearn.metrics import r2_score
 from manifold_neural.helpers.datahandling import DataHandler
 import matplotlib.pyplot as plt
-import gudhi as gd
 from umap import UMAP
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
@@ -21,62 +19,65 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 import logging
-def evaluate_isomap_components(spks, bhv, regress, manual_params, savedir):
-    y = bhv[regress].values
-    max_components = manual_params['reducer__n_components']
-    n_components_range = range(1, max_components + 1)
+from helpers import tools
+def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir, num_windows = 1000):
     results = []
-
+    max_components = manual_params['reducer__n_components']
     # Remove 'reducer__n_components' from manual_params
     manual_params = {k: v for k, v in manual_params.items() if k != 'reducer__n_components'}
 
-    for n_components in n_components_range:
-        pipeline = Pipeline([
-            ('scaler', StandardScaler()),
-            ('reducer', Isomap(n_components=n_components, n_jobs=-1)),
-            ('estimator', MultiOutputRegressor(KNeighborsRegressor(n_neighbors=70, n_jobs=-1)))
-        ])
+    for regress in regress_pairs:
+        y = bhv[regress].values
+        n_components_range = range(1, max_components + 1)
 
-        # Set the remaining parameters
-        pipeline.set_params(**manual_params)
+        for n_components in n_components_range:
+            pipeline = Pipeline([
+                ('scaler', StandardScaler()),
+                ('reducer', Isomap(n_components=n_components, n_jobs=-1)),
+                ('estimator', MultiOutputRegressor(KNeighborsRegressor(n_neighbors=70, n_jobs=-1)))
+            ])
 
-        # Split the data into training and testing sets
-        n_timesteps = spks.shape[0]
-        custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=10)
+            # Set the remaining parameters
+            pipeline.set_params(**manual_params)
 
-        train_scores = []
-        test_scores = []
+            # Split the data into training and testing sets
+            n_timesteps = spks.shape[0]
+            custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
 
-        for train_index, test_index in custom_folds:
-            spks_train, spks_test = spks[train_index], spks[test_index]
-            y_train, y_test = y[train_index], y[test_index]
+            train_scores = []
+            test_scores = []
 
-            pipeline.fit(spks_train, y_train)
-            y_pred = pipeline.predict(spks_test)
+            for train_index, test_index in custom_folds:
+                spks_train, spks_test = spks[train_index], spks[test_index]
+                y_train, y_test = y[train_index], y[test_index]
 
-            train_score = r2_score(y_train, pipeline.predict(spks_train))
-            test_score = r2_score(y_test, y_pred)
+                pipeline.fit(spks_train, y_train)
+                y_pred = pipeline.predict(spks_test)
 
-            train_scores.append(train_score)
-            test_scores.append(test_score)
+                train_score = r2_score(y_train, pipeline.predict(spks_train))
+                test_score = r2_score(y_test, y_pred)
 
-        mean_train_score = np.mean(train_scores)
-        mean_test_score = np.mean(test_scores)
-        results.append((n_components, mean_train_score, mean_test_score))
+                train_scores.append(train_score)
+                test_scores.append(test_score)
 
-    results_df = pd.DataFrame(results, columns=['n_components', 'mean_train_score', 'mean_test_score'])
+            mean_train_score = np.mean(train_scores)
+            mean_test_score = np.mean(test_scores)
+            results.append((regress, n_components, mean_train_score, mean_test_score))
+    results_df = pd.DataFrame(results, columns=['regress', 'n_components', 'mean_train_score', 'mean_test_score'])
     results_df.to_csv(f'{savedir}/isomap_components_evaluation.csv', index=False)
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(results_df['n_components'], results_df['mean_train_score'], label='Train Score')
-    plt.plot(results_df['n_components'], results_df['mean_test_score'], label='Test Score')
-    plt.xlabel('Number of Isomap Components')
-    plt.ylabel('R2 Score')
-    plt.title('Isomap Components Evaluation')
-    plt.legend()
-    plt.savefig(f'{savedir}/isomap_components_evaluation.png', dpi=300, bbox_inches='tight')
-    plt.show()
-    plt.close('all')
+    # plt.figure(figsize=(10, 6))
+    # for regress in regress_pairs:
+    #     subset = results_df[results_df['regress'] == regress]
+    #     plt.plot(subset['mean_train_score'], label=f'Train Score {regress}')
+    #     plt.plot(subset['mean_test_score'], label=f'Test Score {regress}')
+    # plt.xlabel('Number of Isomap Components')
+    # plt.ylabel('R2 Score')
+    # plt.title('Isomap Components Evaluation')
+    # plt.legend()
+    # plt.savefig(f'{savedir}/isomap_components_evaluation.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+    # plt.close('all')
     return results_df
 class ZScoreCV(BaseCrossValidator):
     def __init__(self, spks, custom_folds):
@@ -374,6 +375,7 @@ def train_and_test_on_isomap_randcv(
                 f'Isomap test embeddings color-coded by head angle rel. to goal for fold: {count} rat id: {rat_id}')
             plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}.png', dpi=300, bbox_inches='tight')
             n_components = X_test_transformed.shape[1]
+            tools.plot_isomap_mosaic(X_test_transformed, actual_angle, actual_distance, n_components, savedir, count)
             # if barcode_analysis:
             #     rips_complex = gd.RipsComplex(points=X_test_transformed, max_edge_length=1)
             #     simplex_tree = rips_complex.create_simplex_tree(max_dimension=1)
@@ -393,7 +395,7 @@ def train_and_test_on_isomap_randcv(
                     # Create a new figure and axis
                     fig, ax = plt.subplots()
                     # Scatter plot of component i vs component j
-                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight')
+                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight', s=15)
                     # Set labels
                     ax.set_xlabel(f'isomap {i + 1}')
                     ax.set_ylabel(f'isomap {j + 1}')
@@ -408,7 +410,7 @@ def train_and_test_on_isomap_randcv(
                     #get distance from origin
                     fig, ax = plt.subplots()
                     # Scatter plot of component i vs component j
-                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance, cmap='viridis')
+                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance, cmap='viridis', s=15)
                     # Set labels
                     ax.set_xlabel(f'isomap {i + 1}')
                     ax.set_ylabel(f'isomap {j + 1}')
@@ -448,33 +450,27 @@ def main():
     big_result_df_shuffle = pd.DataFrame()
     big_result_df_shuffle_train = pd.DataFrame()
     big_componentresult_df = pd.DataFrame()
-    # f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-    # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
     just_folds = False
     null_distribution = False
     component_investigation = True
-    for data_dir in [ f'{base_dir}/rat_10/23-11-2021', f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',]:
+    for data_dir in [ f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',]:
         print(f'Processing {data_dir}')
         previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
         'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
         rat_id = data_dir.split('/')[-2]
         manual_params_rat = previous_results[rat_id]
         manual_params_rat = manual_params_rat.item()
-
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
         col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
-
         spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
-
         window_df = pd.read_csv(f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
             #find the rat_id
         rat_id = data_dir.split('/')[-2]
         #filter for window_size
         window_df = window_df[window_df['window_size'] == 250]
         num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
-
         spike_data_copy = copy.deepcopy(spike_data)
         tolerance = 1e-10
         if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
@@ -485,24 +481,11 @@ def main():
         columns_to_remove = np.where(percent_zeros > 99.5)[0]
         spike_data_copy = np.delete(spike_data_copy, columns_to_remove, axis=1)
         X_for_umap = spike_data_copy
-
         labels_for_umap = labels
         label_df = pd.DataFrame(labels_for_umap, columns=col_list)
-
         regressor = KNeighborsRegressor
-        regressor_kwargs = {'n_neighbors': 70}
-        reducer = Isomap
-        reducer_kwargs = {
-            'n_components': 3,
-            'metric': 'cosine',
-            'n_jobs': -1,
-        }
-
         regress = ['x', 'y', 'cos_hd', 'sin_hd']
-
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
-
 
         save_dir_path = Path(f'{data_dir}/plot_results/plot_test_isomap_{now_day}')
         save_dir = save_dir_path
@@ -514,22 +497,18 @@ def main():
         if just_folds == True:
             continue
         elif component_investigation:
-
-            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress, manual_params_rat,
-                                                                  save_dir)
+            regress_pairs = [['x', 'y'], ['cos_hd', 'sin_hd']]
+            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress_pairs,
+                                                                  manual_params_rat, save_dir, num_windows = num_windows)
             component_exploration_df['rat_id'] = rat_id
             big_componentresult_df = pd.concat([big_componentresult_df, component_exploration_df], axis=0)
-
 
         else:
             best_params, mean_score, result_df, result_df_shuffle, result_df_train, result_df_shuffle_train = train_and_test_on_isomap_randcv(
                 X_for_umap,
                 label_df,
                 regress,
-                regressor,
-                regressor_kwargs,
-                reducer,
-                reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat,
+                regressor, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat,
                 just_folds=just_folds, null_distribution=null_distribution
             )
             result_df['rat_id'] = rat_id
