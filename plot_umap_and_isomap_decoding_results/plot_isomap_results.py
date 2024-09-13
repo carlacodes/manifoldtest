@@ -5,20 +5,16 @@ from sklearn.neighbors import KNeighborsRegressor
 from pathlib import Path
 from sklearn.metrics import r2_score
 from manifold_neural.helpers.datahandling import DataHandler
-import matplotlib.pyplot as plt
 from umap import UMAP
 import pandas as pd
-from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
-import sys
 import os
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
-import logging
-from helpers import tools
+
 def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir, num_windows = 1000):
     results = []
     max_components = manual_params['reducer__n_components']
@@ -90,41 +86,6 @@ class ZScoreCV(BaseCrossValidator):
 
     def get_n_splits(self, X=None, y=None, groups=None):
         return len(self.custom_folds)
-class CustomUMAP(BaseEstimator):
-    def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
-                 n_epochs=None, learning_rate=1.0, init='spectral',
-                 min_dist=0.1, spread=1.0, low_memory=False,
-                 random_state=None, verbose=False):
-        self.n_neighbors = n_neighbors
-        self.n_components = n_components
-        self.metric = metric
-        self.n_epochs = n_epochs
-        self.learning_rate = learning_rate
-        self.init = init
-        self.min_dist = min_dist
-        self.spread = spread
-        self.low_memory = low_memory
-        self.random_state = random_state
-        self.verbose = verbose
-
-    def fit(self, X, y=None):
-        self.model_ = UMAP(n_neighbors=self.n_neighbors,
-                           n_components=self.n_components,
-                           metric=self.metric,
-                           n_epochs=self.n_epochs,
-                           learning_rate=self.learning_rate,
-                           init=self.init,
-                           min_dist=self.min_dist,
-                           spread=self.spread,
-                           low_memory=self.low_memory,
-                           random_state=self.random_state,
-                           verbose=self.verbose)
-
-        self.model_.fit(X)
-        return self
-
-    def transform(self, X):
-        return self.model_.transform(X)
 
 
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
