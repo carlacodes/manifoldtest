@@ -1,4 +1,3 @@
-# from pathlib import Path
 import copy
 from datetime import datetime
 from sklearn.multioutput import MultiOutputRegressor
@@ -338,7 +337,6 @@ def train_and_test_on_isomap_randcv(
                 pipeline.named_steps['scaler'].transform(spks_test))
             X_train_transformed = pipeline.named_steps['reducer'].transform(
                 pipeline.named_steps['scaler'].transform(spks_train))
-
 
 
             actual_angle = np.arctan2(y_test[:, 2], y_test[:, 3])
