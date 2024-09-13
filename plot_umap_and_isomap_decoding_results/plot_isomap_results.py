@@ -172,21 +172,11 @@ def train_and_test_on_isomap_randcv(
         spks,
         bhv,
         regress,
-        regressor,
-        regressor_kwargs,
-        reducer,
-        reducer_kwargs, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, barcode_analysis=True, just_folds = True, null_distribution=False):
-
+        regressor, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, just_folds=True, null_distribution=False):
 
     y = bhv[regress].values
-
-    # Create your custom folds
     n_timesteps = spks.shape[0]
-
     custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
-    #save the custom_folds
-
-    # Example, you can use your custom folds here
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
         ('reducer', Isomap(n_jobs=-1)),
