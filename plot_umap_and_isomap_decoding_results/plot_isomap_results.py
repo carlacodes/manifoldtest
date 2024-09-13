@@ -164,128 +164,91 @@ def format_params(params):
         formatted_params[formatted_key] = value
     return formatted_params
 
-def train_and_test_on_isomap_randcv(
-        spks,
-        bhv,
-        regress,
-        regressor, use_rand_search=False, manual_params=None, rat_id=None, savedir=None, num_windows=None, just_folds=True, null_distribution=False):
+class IsomapTrainer:
+    def __init__(self, spks, bhv, regress, regressor, savedir, num_windows, manual_params=None, just_folds=True, null_distribution=False):
+        self.spks = spks
+        self.bhv = bhv
+        self.regress = regress
+        self.regressor = regressor
+        self.savedir = savedir
+        self.num_windows = num_windows
+        self.manual_params = manual_params
+        self.just_folds = just_folds
+        self.null_distribution = null_distribution
+        self.custom_folds = self.create_folds(spks.shape[0], num_folds=5, num_windows=num_windows)
+        self.pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('reducer', Isomap(n_jobs=-1)),
+            ('estimator', MultiOutputRegressor(regressor(n_jobs=-1)))
+        ])
 
-    y = bhv[regress].values
-    n_timesteps = spks.shape[0]
-    custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
-    pipeline = Pipeline([
-        ('scaler', StandardScaler()),
-        ('reducer', Isomap(n_jobs=-1)),
-        ('estimator', MultiOutputRegressor(regressor(n_jobs=-1)))
-    ])
+    def create_folds(self, n_timesteps, num_folds=5, num_windows=10):
+        n_windows_total = num_folds * num_windows
+        window_size = n_timesteps / n_windows_total
+        window_start_ind = np.round(np.arange(0, n_windows_total) * window_size)
+        folds = []
 
+        for i in range(num_folds):
+            test_windows = np.arange(i, n_windows_total, num_folds)
+            test_ind = []
+            for j in test_windows:
+                test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + np.round(window_size)))
+            train_ind = list(set(range(n_timesteps)) - set(test_ind))
+            test_ind = [int(i) for i in test_ind]
+            folds.append((train_ind, test_ind))
+        return folds
 
-    if just_folds:
-        pipeline_copy = copy.deepcopy(pipeline)
-        pipeline_copy.set_params(**manual_params)
-        if null_distribution:
-            spks_copy = copy.deepcopy(spks)
-            while np.array_equal(spks_copy, spks):
-                np.random.shuffle(spks_copy)
-            assert not np.array_equal(spks_copy, spks)
-            pipeline_copy.fit(spks_copy, y)
-            custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
-            custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
-            full_set_transformed = pipeline_copy.named_steps['reducer'].transform(
-                pipeline_copy.named_steps['scaler'].transform(spks_copy))
-            np.save(f'{savedir}/full_set_transformed_null.npy', full_set_transformed)
-
-        else:
-
-            pipeline_copy.fit(spks, y)
-
-            custom_folds_df = pd.DataFrame(custom_folds, columns=['train', 'test'])
-            custom_folds_df.to_csv(f'{savedir}/custom_folds.csv', index=False)
-            full_set_transformed = pipeline_copy.named_steps['reducer'].transform(
-                pipeline_copy.named_steps['scaler'].transform(spks))
-            np.save(f'{savedir}/full_set_transformed.npy', full_set_transformed)
-        return None, None, None, None
-
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_file = open(f"{savedir}/random_search_{now}.log", "w")
-    original_stdout = sys.stdout
-    sys.stdout = log_file
-    best_params = None
-    best_score = None
-    fold_dataframe = None
-    fold_dataframe_shuffle = None
-    if use_rand_search:
-
-
-        param_grid = {
-            'estimator__estimator__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
-            'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-            'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-            'reducer__metric': ['euclidean', 'cosine', 'minkowski'],
-            'reducer__n_neighbors': [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 150, 200],
-        }
-
-        zscore_cv = ZScoreCV(spks, custom_folds)
-
-        # Initialize BayesSearchCV
-        random_search = RandomizedSearchCV(
-            pipeline,
-            param_distributions=param_grid,
-            n_iter=500,
-            cv=zscore_cv,
-            verbose=3,
-            n_jobs=10,
-            scoring='r2'
-        )
-
-        # Fit BayesSearchCV
-        random_search.fit(spks, y)
-        sys.stdout = original_stdout
-        log_file.close()
-
-        # Get the best parameters and score
-        best_params = random_search.best_params_
-        best_score = random_search.best_score_
-    else:
+    def train_and_test(self):
+        y = self.bhv[self.regress].values
+        if self.just_folds:
+            self.pipeline.set_params(**self.manual_params)
+            if self.null_distribution:
+                spks_copy = copy.deepcopy(self.spks)
+                while np.array_equal(spks_copy, self.spks):
+                    np.random.shuffle(spks_copy)
+                assert not np.array_equal(spks_copy, self.spks)
+                self.pipeline.fit(spks_copy, y)
+                custom_folds_df = pd.DataFrame(self.custom_folds, columns=['train', 'test'])
+                custom_folds_df.to_csv(f'{self.savedir}/custom_folds.csv', index=False)
+                full_set_transformed = self.pipeline.named_steps['reducer'].transform(
+                    self.pipeline.named_steps['scaler'].transform(spks_copy))
+                np.save(f'{self.savedir}/full_set_transformed_null.npy', full_set_transformed)
+            else:
+                self.pipeline.fit(self.spks, y)
+                custom_folds_df = pd.DataFrame(self.custom_folds, columns=['train', 'test'])
+                custom_folds_df.to_csv(f'{self.savedir}/custom_folds.csv', index=False)
+                full_set_transformed = self.pipeline.named_steps['reducer'].transform(
+                    self.pipeline.named_steps['scaler'].transform(self.spks))
+                np.save(f'{self.savedir}/full_set_transformed.npy', full_set_transformed)
+            return None, None, None, None
 
         train_scores = []
         test_scores = []
-
-        # count = 0
         fold_dataframe = pd.DataFrame()
         fold_dataframe_train = pd.DataFrame()
-
         fold_dataframe_shuffle = pd.DataFrame()
         fold_dataframe_shuffle_train = pd.DataFrame()
-        print('beginning cv with custom folds')
-        pipeline_shuffle = copy.deepcopy(pipeline)
 
-        for count, (train_index, test_index) in enumerate(custom_folds):
-            # Split the data into training and testing sets
-            spks_train, spks_test = spks[train_index], spks[test_index]
+        for count, (train_index, test_index) in enumerate(self.custom_folds):
+            spks_train, spks_test = self.spks[train_index], self.spks[test_index]
             y_train, y_test = y[train_index], y[test_index]
             y_test_shuffle = copy.deepcopy(y_test)
             np.random.shuffle(y_test_shuffle)
             y_train_shuffle = copy.deepcopy(y_train)
             np.random.shuffle(y_train_shuffle)
 
+            self.pipeline.set_params(**self.manual_params)
+            pipeline_shuffle = copy.deepcopy(self.pipeline)
+            pipeline_shuffle.set_params(**self.manual_params)
 
-            # Set the parameters
-            pipeline.set_params(**manual_params)
-            pipeline_shuffle.set_params(**manual_params)
-
-            # Fit the pipeline on the training data
-            print('fitting on the training data')
-            pipeline.fit(spks_train, y_train)
+            self.pipeline.fit(spks_train, y_train)
             pipeline_shuffle.fit(spks_train, y_train_shuffle)
 
-            # Use the pipeline to predict on the test set
-            y_pred = pipeline.predict(spks_test)
+            y_pred = self.pipeline.predict(spks_test)
             y_pred_shuffle = pipeline_shuffle.predict(spks_test)
-
-            y_pred_train = pipeline.predict(spks_train)
+            y_pred_train = self.pipeline.predict(spks_train)
             y_pred_train_shuffle = pipeline_shuffle.predict(spks_train)
-            #get the individual scores
+
             indiv_results_dataframe = pd.DataFrame()
             indiv_results_dataframe_train = pd.DataFrame()
             indiv_results_dataframe_shuffle = pd.DataFrame()
@@ -295,26 +258,20 @@ def train_and_test_on_isomap_randcv(
                 score_indiv = r2_score(y_test[:, i], y_pred[:, i])
                 score_indiv_shuffle = r2_score(y_test_shuffle[:, i], y_pred_shuffle[:, i])
                 indiv_results_dataframe = pd.concat(
-                    [indiv_results_dataframe, pd.DataFrame([score_indiv], columns=[regress[i]])], axis=1)
+                    [indiv_results_dataframe, pd.DataFrame([score_indiv], columns=[self.regress[i]])], axis=1)
                 indiv_results_dataframe_shuffle = pd.concat(
-                    [indiv_results_dataframe_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[regress[i]])],
+                    [indiv_results_dataframe_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[self.regress[i]])],
                     axis=1)
-
-                print(f'R2 score for {regress[i]} is {score_indiv}')
 
             for j in range(y_train.shape[1]):
                 score_indiv = r2_score(y_train[:, j], y_pred_train[:, j])
-                print(f'R2 score for {regress[j]} is {score_indiv} for the shuffle')
                 score_indiv_shuffle = r2_score(y_train_shuffle[:, j], y_pred_train_shuffle[:, j])
                 indiv_results_dataframe_train = pd.concat(
-                    [indiv_results_dataframe_train, pd.DataFrame([score_indiv], columns=[regress[j]])], axis=1)
+                    [indiv_results_dataframe_train, pd.DataFrame([score_indiv], columns=[self.regress[j]])], axis=1)
                 indiv_results_dataframe_train_shuffle = pd.concat(
-                    [indiv_results_dataframe_train_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[regress[j]])],
+                    [indiv_results_dataframe_train_shuffle, pd.DataFrame([score_indiv_shuffle], columns=[self.regress[j]])],
                     axis=1)
 
-
-
-            # break down the score into its components
             indiv_results_dataframe['fold'] = count
             indiv_results_dataframe_shuffle['fold'] = count
             indiv_results_dataframe_train['fold'] = count
@@ -322,103 +279,29 @@ def train_and_test_on_isomap_randcv(
 
             fold_dataframe = pd.concat([fold_dataframe, indiv_results_dataframe], axis=0)
             fold_dataframe_shuffle = pd.concat([fold_dataframe_shuffle, indiv_results_dataframe_shuffle], axis=0)
-            fold_dataframe_train = pd.concat([fold_dataframe, indiv_results_dataframe_train], axis=0)
-            fold_dataframe_shuffle_train = pd.concat([fold_dataframe_shuffle, indiv_results_dataframe_train_shuffle], axis=0)
+            fold_dataframe_train = pd.concat([fold_dataframe_train, indiv_results_dataframe_train], axis=0)
+            fold_dataframe_shuffle_train = pd.concat([fold_dataframe_shuffle_train, indiv_results_dataframe_train_shuffle], axis=0)
 
-            # Calculate the training and test scores
-            train_score = pipeline.score(spks_train, y_train)
-            test_score = pipeline.score(spks_test, y_test)
+            train_score = self.pipeline.score(spks_train, y_train)
+            test_score = self.pipeline.score(spks_test, y_test)
             train_scores.append(train_score)
             test_scores.append(test_score)
 
-            # Extract transformed test data for plotting
-            # Assuming 'reducer' is the name of the dimensionality reduction step in your pipeline
-            X_test_transformed = pipeline.named_steps['reducer'].transform(
-                pipeline.named_steps['scaler'].transform(spks_test))
-            X_train_transformed = pipeline.named_steps['reducer'].transform(
-                pipeline.named_steps['scaler'].transform(spks_train))
-
-
-            actual_angle = np.arctan2(y_test[:, 2], y_test[:, 3])
-            actual_distance = np.sqrt(y_test[:, 0] ** 2 + y_test[:, 1] ** 2)
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            sc = ax.scatter(X_test_transformed[:, 0], X_test_transformed[:, 1], c=actual_angle, cmap='viridis')
-            ax.set_xlabel('Component 1')
-            ax.set_ylabel('Component 2')
-            ax.set_zlabel('Component 3')
-            cbar = plt.colorbar(sc, ax=ax)
-            ax.set_title(
-                f'Isomap test embeddings color-coded by head angle rel. to goal for fold: {count} rat id: {rat_id}')
-            plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}.png', dpi=300, bbox_inches='tight')
-            n_components = X_test_transformed.shape[1]
-            tools.plot_isomap_mosaic(X_test_transformed, actual_angle, actual_distance, n_components, savedir, count)
-            # if barcode_analysis:
-            #     rips_complex = gd.RipsComplex(points=X_test_transformed, max_edge_length=1)
-            #     simplex_tree = rips_complex.create_simplex_tree(max_dimension=1)
-            #     persistence = simplex_tree.persistence()
-            #
-            #     # Optionally, you can also plot the persistence diagram
-            #     print('plotting persistence')
-            #     gd.plot_persistence_diagram(persistence)
-            #     plt.savefig(f'{savedir}/barcode_fold_{count}.png', dpi=300, bbox_inches='tight')
-            #     # plt.show()
-            #     # plt.close('all')
-
-
-            # Iterate over each unique pair of components
-            for i in range(n_components):
-                for j in range(i + 1, n_components):
-                    # Create a new figure and axis
-                    fig, ax = plt.subplots()
-                    # Scatter plot of component i vs component j
-                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_angle, cmap='twilight', s=15)
-                    # Set labels
-                    ax.set_xlabel(f'isomap {i + 1}')
-                    ax.set_ylabel(f'isomap {j + 1}')
-                    # Add a color bar
-                    plt.colorbar(sc, ax=ax)
-                    plt.savefig(f'{savedir}/isomap_embeddings_fold_{count}_components_{i}_{j}.png', dpi=300,
-                                bbox_inches='tight')
-                    # plt.show()
-                    plt.close('all')
-
-                    #color code by xy position
-                    #get distance from origin
-                    fig, ax = plt.subplots()
-                    # Scatter plot of component i vs component j
-                    sc = ax.scatter(X_test_transformed[:, i], X_test_transformed[:, j], c=actual_distance, cmap='viridis', s=15)
-                    # Set labels
-                    ax.set_xlabel(f'isomap {i + 1}')
-                    ax.set_ylabel(f'isomap {j + 1}')
-                    # Add a color bar
-                    plt.colorbar(sc, ax=ax)
-                    plt.savefig(
-                        f'{savedir}/isomap_embeddings_fold_{count}_colorcodedbydistancefromorigin_components_{i}_{j}.png',
-                        dpi=300, bbox_inches='tight')
-                    # plt.show()
-                    plt.close('all')
-
-
-            filename = f"{savedir}/X_test_transformed_fold_{count}.npy"
-            filename_train = f"{savedir}/X_train_transformed_fold_{count}.npy"
-            logging.info(f'Saving transformed test data to {filename}')
-            np.save(filename, X_test_transformed)
-            np.save(filename_train, X_train_transformed)
-            # count += 1
-
-            # Calculate the mean training and test scores
         mean_train_score = np.mean(train_scores)
         mean_test_score = np.mean(test_scores)
-        print(f'Mean training score: {mean_train_score}')
-        print(f'Mean test score: {mean_test_score}')
-        fold_dataframe.to_csv(f'{savedir}/fold_results.csv', index=False)
-        fold_dataframe_train.to_csv(f'{savedir}/fold_results_train.csv', index=False)
-        fold_dataframe_shuffle.to_csv(f'{savedir}/fold_results_shuffle.csv', index=False)
-        fold_dataframe_shuffle_train.to_csv(f'{savedir}/fold_results_train_shuffle.csv', index=False)
+        fold_dataframe.to_csv(f'{self.savedir}/fold_results.csv', index=False)
+        fold_dataframe_train.to_csv(f'{self.savedir}/fold_results_train.csv', index=False)
+        fold_dataframe_shuffle.to_csv(f'{self.savedir}/fold_results_shuffle.csv', index=False)
+        fold_dataframe_shuffle_train.to_csv(f'{self.savedir}/fold_results_train_shuffle.csv', index=False)
 
-    return best_params, best_score, fold_dataframe, fold_dataframe_shuffle, fold_dataframe_train, fold_dataframe_shuffle_train
+        return None, None, fold_dataframe, fold_dataframe_shuffle, fold_dataframe_train, fold_dataframe_shuffle_train
 
+    def save_results(self, big_result_df, big_result_df_train, big_result_df_shuffle, big_result_df_shuffle_train, big_componentresult_df):
+        big_result_df.to_csv(f'{self.savedir}/big_result_df_isomap_250.csv', index=False)
+        big_result_df_train.to_csv(f'{self.savedir}/big_result_df_train_isomap_250.csv', index=False)
+        big_result_df_shuffle.to_csv(f'{self.savedir}/big_result_df_shuffle_isomap_250.csv', index=False)
+        big_result_df_shuffle_train.to_csv(f'{self.savedir}/big_result_df_train_shuffle_isomap_250.csv', index=False)
+        big_componentresult_df.to_csv(f'{self.savedir}/big_component_invesitgation_result_df_isomap_250.csv', index=False)
 
 def main():
     base_dir = 'C:/neural_data/'
@@ -430,22 +313,19 @@ def main():
     just_folds = False
     null_distribution = False
     component_investigation = True
-    for data_dir in [ f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',]:
+
+    for data_dir in [f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021']:
         print(f'Processing {data_dir}')
-        previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
-        'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
+        previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_sanitycheckallvarindepen_isomap_2024-07-')
         rat_id = data_dir.split('/')[-2]
-        manual_params_rat = previous_results[rat_id]
-        manual_params_rat = manual_params_rat.item()
+        manual_params_rat = previous_results[rat_id].item()
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
         col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
         spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
         window_df = pd.read_csv(f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
-            #find the rat_id
         rat_id = data_dir.split('/')[-2]
-        #filter for window_size
         window_df = window_df[window_df['window_size'] == 250]
         num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
         spike_data_copy = copy.deepcopy(spike_data)
@@ -463,54 +343,35 @@ def main():
         regressor = KNeighborsRegressor
         regress = ['x', 'y', 'cos_hd', 'sin_hd']
         now_day = datetime.now().strftime("%Y-%m-%d")
-
         save_dir_path = Path(f'{data_dir}/plot_results/plot_test_isomap_{now_day}')
         save_dir = save_dir_path
         save_dir.mkdir(parents=True, exist_ok=True)
 
+        trainer = IsomapTrainer(
+            spks=spike_data_copy,
+            bhv=label_df,
+            regress=regress,
+            regressor=regressor,
+            savedir=save_dir,
+            num_windows=num_windows,
+            manual_params=manual_params_rat,
+            just_folds=just_folds,
+            null_distribution=null_distribution
+        )
 
-
-
-        if just_folds == True:
-            continue
+        if just_folds:
+            trainer.train_and_test()
         elif component_investigation:
-            regress_pairs = [['x', 'y'], ['cos_hd', 'sin_hd']]
-            component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress_pairs,
-                                                                  manual_params_rat, save_dir, num_windows = num_windows)
-            component_exploration_df['rat_id'] = rat_id
-            big_componentresult_df = pd.concat([big_componentresult_df, component_exploration_df], axis=0)
-
+            results, results_train, results_shuffle, results_shuffle_train = trainer.train_and_test()
+            big_result_df = pd.concat([big_result_df, results], axis=0)
+            big_result_df_train = pd.concat([big_result_df_train, results_train], axis=0)
+            big_result_df_shuffle = pd.concat([big_result_df_shuffle, results_shuffle], axis=0)
+            big_result_df_shuffle_train = pd.concat([big_result_df_shuffle_train, results_shuffle_train], axis=0)
         else:
-            best_params, mean_score, result_df, result_df_shuffle, result_df_train, result_df_shuffle_train = train_and_test_on_isomap_randcv(
-                X_for_umap,
-                label_df,
-                regress,
-                regressor, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat,
-                just_folds=just_folds, null_distribution=null_distribution
-            )
-            result_df['rat_id'] = rat_id
-            result_df_shuffle['rat_id'] = rat_id
-            result_df_train['rat_id'] = rat_id
-            result_df_shuffle_train['rat_id'] = rat_id
+            trainer.train_and_test()
 
-            big_result_df = pd.concat([big_result_df, result_df], axis=0)
-            big_result_df_train = pd.concat([big_result_df_train, result_df_train], axis=0)
-
-            big_result_df_shuffle = pd.concat([big_result_df_shuffle, result_df_shuffle], axis=0)
-            big_result_df_shuffle_train = pd.concat([big_result_df_shuffle_train, result_df_shuffle_train], axis =0)
-    if just_folds == True:
-        return None
-    else:
-        big_result_df.to_csv(f'{base_dir}/big_result_df_isomap_250.csv', index=False)
-        big_result_df_train.to_csv(f'{base_dir}/big_result_df_train_isomap_250.csv', index=False)
-        big_result_df_shuffle.to_csv(f'{base_dir}/big_result_df_shuffle_isomap_250.csv', index=False)
-        big_result_df_shuffle_train.to_csv(f'{base_dir}/big_result_df_train_shuffle_isomap_250.csv', index=False)
-        big_componentresult_df.to_csv(f'{base_dir}/big_component_invesitgation_result_df_isomap_250.csv', index=False)
-
-
-
-
+    if not just_folds:
+        trainer.save_results(big_result_df, big_result_df_train, big_result_df_shuffle, big_result_df_shuffle_train, big_componentresult_df)
 
 if __name__ == '__main__':
-    #
     main()
