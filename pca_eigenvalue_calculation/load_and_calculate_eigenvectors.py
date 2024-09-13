@@ -108,8 +108,7 @@ def main():
     plt.xlabel('Principal Component')
     plt.ylabel('Variance Explained')
     plt.show()
-    #calculatie the inflection point
-    #calculate the gradient of the explained variance ratio
+    #calculate the inflection point and the gradient of the explained variance ratio
     explained_variance_ratio_gradient = np.gradient(pca.explained_variance_ratio_)
     fig, ax = plt.subplots()
     plt.plot(np.arange(1, 113), explained_variance_ratio_gradient)

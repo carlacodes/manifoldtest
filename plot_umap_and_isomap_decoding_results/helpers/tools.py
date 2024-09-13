@@ -33,6 +33,43 @@ from scipy.signal import lfilter
 import matplotlib.pyplot as plt
 import numpy as np
 
+def create_folds(n_timesteps, num_folds=5, num_windows=10):
+    n_windows_total = num_folds * num_windows
+    window_size = n_timesteps / n_windows_total
+
+    # window_start_ind = np.arange(0, n_windows_total) * window_size
+    window_start_ind = np.round(np.arange(0, n_windows_total) * window_size)
+
+    folds = []
+
+    for i in range(num_folds):
+        test_windows = np.arange(i, n_windows_total, num_folds)
+        test_ind = []
+        for j in test_windows:
+            test_ind.extend(np.arange(window_start_ind[j], window_start_ind[j] + np.round(window_size)))
+
+        train_ind = list(set(range(n_timesteps)) - set(test_ind))
+        # convert test_ind to int
+        test_ind = [int(i) for i in test_ind]
+
+        folds.append((train_ind, test_ind))
+        # print the ratio
+        ratio = len(train_ind) / len(test_ind)
+        print(f'Ratio of train to test indices is {ratio}')
+
+    return folds
+
+def format_params(params):
+    formatted_params = {}
+    for key, value in params.items():
+        if key.startswith('estimator__'):
+            # Add another 'estimator__' prefix to the key
+            formatted_key = 'estimator__estimator__' + key[len('estimator__'):]
+        else:
+            formatted_key = key
+        formatted_params[formatted_key] = value
+    return formatted_params
+
 def plot_isomap_mosaic(X_test_transformed, actual_angle, actual_distance, n_components, savedir, count):
     for i in range(n_components):
         # Create a mosaic layout
