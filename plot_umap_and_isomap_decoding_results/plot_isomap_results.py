@@ -272,7 +272,6 @@ def train_and_test_on_isomap_randcv(
 
 
             # Set the parameters
-            # formatted_params = format_params(manual_params)
             pipeline.set_params(**manual_params)
             pipeline_shuffle.set_params(**manual_params)
 
@@ -287,7 +286,7 @@ def train_and_test_on_isomap_randcv(
 
             y_pred_train = pipeline.predict(spks_train)
             y_pred_train_shuffle = pipeline_shuffle.predict(spks_train)
-            #get the individaul scores
+            #get the individual scores
             indiv_results_dataframe = pd.DataFrame()
             indiv_results_dataframe_train = pd.DataFrame()
             indiv_results_dataframe_shuffle = pd.DataFrame()
