@@ -13,62 +13,6 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 
-def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir, num_windows = 1000):
-    results = []
-    max_components = manual_params['reducer__n_components']
-    # Remove 'reducer__n_components' from manual_params
-    manual_params = {k: v for k, v in manual_params.items() if k != 'reducer__n_components'}
-
-    for regress in regress_pairs:
-        y = bhv[regress].values
-        n_components_range = range(1, max_components + 1)
-
-        for n_components in n_components_range:
-            pipeline = Pipeline([
-                ('scaler', StandardScaler()),
-                ('reducer', Isomap(n_components=n_components, n_jobs=-1)),
-                ('estimator', MultiOutputRegressor(KNeighborsRegressor(n_neighbors=70, n_jobs=-1)))
-            ])
-
-            pipeline.set_params(**manual_params)
-            n_timesteps = spks.shape[0]
-            custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
-
-            train_scores = []
-            test_scores = []
-
-            for train_index, test_index in custom_folds:
-                spks_train, spks_test = spks[train_index], spks[test_index]
-                y_train, y_test = y[train_index], y[test_index]
-
-                pipeline.fit(spks_train, y_train)
-                y_pred = pipeline.predict(spks_test)
-
-                train_score = r2_score(y_train, pipeline.predict(spks_train))
-                test_score = r2_score(y_test, y_pred)
-
-                train_scores.append(train_score)
-                test_scores.append(test_score)
-
-            mean_train_score = np.mean(train_scores)
-            mean_test_score = np.mean(test_scores)
-            results.append((regress, n_components, mean_train_score, mean_test_score))
-    results_df = pd.DataFrame(results, columns=['regress', 'n_components', 'mean_train_score', 'mean_test_score'])
-    results_df.to_csv(f'{savedir}/isomap_components_evaluation.csv', index=False)
-
-    # plt.figure(figsize=(10, 6))
-    # for regress in regress_pairs:
-    #     subset = results_df[results_df['regress'] == regress]
-    #     plt.plot(subset['mean_train_score'], label=f'Train Score {regress}')
-    #     plt.plot(subset['mean_test_score'], label=f'Test Score {regress}')
-    # plt.xlabel('Number of Isomap Components')
-    # plt.ylabel('R2 Score')
-    # plt.title('Isomap Components Evaluation')
-    # plt.legend()
-    # plt.savefig(f'{savedir}/isomap_components_evaluation.png', dpi=300, bbox_inches='tight')
-    # plt.show()
-    # plt.close('all')
-    return results_df
 class ZScoreCV(BaseCrossValidator):
     def __init__(self, spks, custom_folds):
         self.spks = spks
