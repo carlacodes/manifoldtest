@@ -1,4 +1,3 @@
-# from pathlib import Path
 import copy
 from sklearn.neighbors import KNeighborsRegressor
 from manifold_neural.helpers.datahandling import DataHandler
@@ -23,48 +22,7 @@ def process_isomap_results():
 
     for data_dir in [f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',]:
         print(f'Processing {data_dir}')
-        previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results(
-        'randsearch_sanitycheckallvarindepen_isomap_2024-07-')
         rat_id = data_dir.split('/')[-2]
-        manual_params_rat = previous_results[rat_id]
-        manual_params_rat = manual_params_rat.item()
-        spike_dir = os.path.join(data_dir, 'physiology_data')
-        dlc_dir = os.path.join(data_dir, 'positional_data')
-        labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
-        col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
-        spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
-        window_df = pd.read_csv(f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
-            #find the rat_id
-        rat_id = data_dir.split('/')[-2]
-        #filter for window_size
-        window_df = window_df[window_df['window_size'] == 250]
-        num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
-
-        spike_data_copy = copy.deepcopy(spike_data)
-        tolerance = 1e-10
-        if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
-            print('There are neurons with constant firing rates')
-            spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
-
-        percent_zeros = np.mean(spike_data_copy == 0, axis=0) * 100
-        columns_to_remove = np.where(percent_zeros > 99.5)[0]
-        spike_data_copy = np.delete(spike_data_copy, columns_to_remove, axis=1)
-        X_for_umap = spike_data_copy
-
-        labels_for_umap = labels
-        label_df = pd.DataFrame(labels_for_umap, columns=col_list)
-
-        regressor = KNeighborsRegressor
-        regressor_kwargs = {'n_neighbors': 70}
-        reducer = Isomap
-        reducer_kwargs = {
-            'n_components': 3,
-            'metric': 'cosine',
-            'n_jobs': -1,
-        }
-
-        regress = ['x', 'y', 'cos_hd', 'sin_hd']
-
         sub_folder = data_dir + '/plot_results/'
         # get list of files in the directory
         files = os.listdir(sub_folder)
