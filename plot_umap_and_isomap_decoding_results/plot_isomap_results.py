@@ -13,22 +13,6 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.manifold import Isomap
 
-class ZScoreCV(BaseCrossValidator):
-    def __init__(self, spks, custom_folds):
-        self.spks = spks
-        self.custom_folds = custom_folds
-
-    def split(self, X, y=None, groups=None):
-        for train_idx, test_idx in self.custom_folds:
-            scaler = StandardScaler()
-            # Fit on training data and transform both training and testing data
-            self.spks[train_idx] = scaler.fit_transform(self.spks[train_idx])
-            self.spks[test_idx] = scaler.transform(self.spks[test_idx])
-            yield train_idx, test_idx
-
-    def get_n_splits(self, X=None, y=None, groups=None):
-        return len(self.custom_folds)
-
 
 def create_folds(n_timesteps, num_folds=5, num_windows=10):
     n_windows_total = num_folds * num_windows
