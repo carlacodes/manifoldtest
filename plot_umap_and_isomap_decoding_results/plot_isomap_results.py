@@ -37,10 +37,7 @@ def evaluate_isomap_components(spks, bhv, regress_pairs, manual_params, savedir,
                 ('estimator', MultiOutputRegressor(KNeighborsRegressor(n_neighbors=70, n_jobs=-1)))
             ])
 
-            # Set the remaining parameters
             pipeline.set_params(**manual_params)
-
-            # Split the data into training and testing sets
             n_timesteps = spks.shape[0]
             custom_folds = create_folds(n_timesteps, num_folds=5, num_windows=num_windows)
 
@@ -212,11 +209,7 @@ def train_and_test_on_isomap_randcv(
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = open(f"{savedir}/random_search_{now}.log", "w")
-
-    # Save the original stdout
     original_stdout = sys.stdout
-
-    # Redirect stdout to the log file
     sys.stdout = log_file
     best_params = None
     best_score = None
@@ -267,9 +260,6 @@ def train_and_test_on_isomap_randcv(
         fold_dataframe_shuffle_train = pd.DataFrame()
         print('beginning cv with custom folds')
         pipeline_shuffle = copy.deepcopy(pipeline)
-
-
-
 
         for count, (train_index, test_index) in enumerate(custom_folds):
             # Split the data into training and testing sets
