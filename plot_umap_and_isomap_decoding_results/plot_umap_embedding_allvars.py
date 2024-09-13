@@ -1,35 +1,25 @@
-# from pathlib import Path
 import copy
 from datetime import datetime
-from sklearn.model_selection import ParameterSampler
 from sklearn.multioutput import MultiOutputRegressor
 import matplotlib.pyplot as plt
-from sklearn.pipeline import Pipeline
-# from helpers.datahandling import DataHandler
 from scipy.stats import randint
 from sklearn.neighbors import KNeighborsRegressor
 from manifold_neural.helpers.datahandling import DataHandler
 from pathlib import Path
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import r2_score
 from umap import UMAP
-from sklearn.decomposition import PCA
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
-from skopt import BayesSearchCV
-from sklearn.pipeline import Pipeline
 import logging
 import sys
 from helpers import tools
-
-''' Modified from Jules Lebert's code
-spks was a numpy arrray of size trial* timebins*neuron, and bhv is  a pandas dataframe where each row represents a trial, the trial is the index '''
 import os
 import scipy
-import pickle as pkl
 from sklearn.base import BaseEstimator
 
+'''do NOT use, old version'''
 
 class CustomUMAP(BaseEstimator):
     def __init__(self, n_neighbors=15, n_components=2, metric='euclidean',
@@ -117,9 +107,6 @@ def train_and_test_on_umap_randcv(
 
 
     y = bhv[regress].values
-
-    random_search_results = []
-
     # Create your custom folds
     n_timesteps = spks.shape[0]
 
@@ -129,16 +116,6 @@ def train_and_test_on_umap_randcv(
         ('reducer', CustomUMAP()),
         ('estimator', MultiOutputRegressor(regressor()))
     ])
-
-    # Define the parameter grid
-    # param_grid = {
-    #     'estimator__n_neighbors': [2, 5, 10, 30, 40, 50, 60, 70],
-    #     'reducer__n_components': [2],
-    #     'estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-    #     'reducer__n_neighbors': [10, 20, 30, 40, 50, 60, 70],
-    #     'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
-    #     'reducer__random_state': [42]
-    # }
     # get the date
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_file = open(f"{save_dir_path}/random_search_{now}.log", "w")
@@ -150,15 +127,6 @@ def train_and_test_on_umap_randcv(
     sys.stdout = log_file
 
     if use_rand_search:
-        # Define the parameter grid
-        # param_grid = {
-        #     'estimator__estimator__n_neighbors': (2, 70),  # range of values
-        #     'reducer__n_components': (3, 10),
-        #     'estimator__estimator__metric': ['euclidean', 'cosine', 'minkowski'],
-        #     'reducer__n_neighbors': (2, 70),  # range of values
-        #     'reducer__min_dist': (0.0001, 0.3),  # range of values
-        #     'reducer__random_state': [42]
-        # }
         param_grid = {
            'reducer__n_components': [3, 4, 5, 6, 7, 8, 9, 10],
             'reducer__min_dist': [0.0001, 0.001, 0.01, 0.1, 0.3],
@@ -177,20 +145,13 @@ def train_and_test_on_umap_randcv(
             n_jobs=-1,
             scoring='r2'
         )
-
-        # Fit BayesSearchCV
         random_search.fit(spks, y)
         sys.stdout = original_stdout
 
         log_file.close()
-
-        # Get the best parameters and score
         best_params = random_search.best_params_
         best_score = random_search.best_score_
     else:
-        # Manually set the parameters
-
-        # Initialize lists to store the scores
         train_scores = []
         test_scores = []
 
@@ -263,7 +224,6 @@ def main():
     dlc_dir = os.path.join(data_dir, 'positional_data')
     labels = np.load(f'{dlc_dir}/labels_250_scale_to_angle_range_False.npy')
     col_list = np.load(f'{dlc_dir}/col_names_250_scale_to_angle_range_False.npy')
-    lfp_data = np.load(f'{spike_dir}/theta_sin_and_cos_bin_overlap_False_window_size_20.npy')
     spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
     old_spike_data = np.load(f'{spike_dir}/inputs_overlap_False_window_size_250.npy')
     #check if they are the same array
@@ -272,8 +232,6 @@ def main():
     else:
         print('The two arrays are not the same')
 
-
-    # print out the first couple of rows of the lfp_data
     #randsearch_allvars_lfadssmooth_empiricalwindows_1000iter_independentvar_2024-05-24
     previous_results, score_dict, num_windows_dict = DataHandler.load_previous_results('randsearch_allvars_lfadssmooth_empiricalwindow_zscoredlabels_1000iter_independentvar_')
     rat_id = data_dir.split('/')[-3]
@@ -281,7 +239,6 @@ def main():
     manual_params = manual_params.item()
 
     num_windows = num_windows_dict[rat_id]
-
     spike_data_copy = copy.deepcopy(spike_data)
     tolerance = 1e-10  # or any small number that suits your needs
     if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
@@ -289,40 +246,20 @@ def main():
         # remove those neurons
         spike_data_copy = spike_data_copy[:, np.abs(np.std(spike_data_copy, axis=0)) >= tolerance]
 
-    X_for_umap, removed_indices = tools.apply_lfads_smoothing(spike_data_copy)
-    X_for_umap = scipy.stats.zscore(X_for_umap, axis=0)
-
+    X_for_umap = spike_data_copy
 
     labels_for_umap = labels
-    #remove the indices
-    labels_for_umap = np.delete(labels_for_umap, removed_indices, axis=0)
-
     label_df = pd.DataFrame(labels_for_umap,
                             columns=col_list)
     label_df['time_index'] = np.arange(0, label_df.shape[0])
-
-    #plot angle sin and angle cos to goal
-    fig, ax = plt.subplots()
-    ax.plot(label_df['sin_relative_direction'][:120], label = 'angle_sin_goal')
-    ax.plot(label_df['cos_relative_direction'][:120], label = 'angle_cos_goal')
-    ax.legend()
-    plt.show()
-
-
-
     regressor = KNeighborsRegressor
     regressor_kwargs = {'n_neighbors': 70, 'metric': 'euclidean'}
-
     reducer = UMAP
-
     reducer_kwargs = {
         'n_components': 3,
-        # 'n_neighbors': 70,
-        # 'min_dist': 0.3,
         'metric': 'euclidean',
         'n_jobs': 1,
     }
-
     regress = ['x', 'y',  'cos_relative_direction', 'sin_relative_direction']  # changing to two target variables
 
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -331,20 +268,15 @@ def main():
     filename_mean_score = f'mean_score_all_trials_randsearch_250bin_340windows_jake_fold_{now}.npy'
     save_dir_path = Path(f'{data_dir}/randsearch_allvars_lfadssmooth_340windows_1000iter_independentvar_{now_day}')
     save_dir_path.mkdir(parents=True, exist_ok=True)
-    # initalise a logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    # create a file handler
     handler = logging.FileHandler(save_dir_path / f'rand_search_cv_{now}.log')
     handler.setLevel(logging.INFO)
-    # create a logging format
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
-    # add the handlers to the logger
     logger.addHandler(handler)
     logger.info('Starting the training and testing of the lfp data with the spike data')
     #remove numpy array, just get mapping from manual_params
-
     best_params, mean_score = train_and_test_on_umap_randcv(
         X_for_umap,
         label_df,
