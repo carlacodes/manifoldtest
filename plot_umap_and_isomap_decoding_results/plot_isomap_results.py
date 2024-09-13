@@ -5,11 +5,9 @@ from sklearn.neighbors import KNeighborsRegressor
 from pathlib import Path
 from sklearn.metrics import r2_score
 from manifold_neural.helpers.datahandling import DataHandler
-from umap import UMAP
 import pandas as pd
 from sklearn.pipeline import Pipeline
 import os
-from sklearn.base import BaseEstimator
 from sklearn.model_selection import BaseCrossValidator
 from sklearn.preprocessing import StandardScaler
 import numpy as np
