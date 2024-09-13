@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import numpy as np
-from sklearn.manifold import Isomap
 from kneed import KneeLocator
 
 def find_elbow_point(x, y):
@@ -13,13 +12,9 @@ def find_elbow_point(x, y):
     return kneedle.elbow
 
 
-
-
 def process_isomap_results():
     base_dir = 'C:/neural_data/'
-
     big_componentresult_df = pd.DataFrame()
-
     for data_dir in [f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021', f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019', f'{base_dir}/rat_10/23-11-2021',]:
         print(f'Processing {data_dir}')
         rat_id = data_dir.split('/')[-2]
@@ -61,9 +56,7 @@ def process_isomap_results():
 
 
     x_values_cos_sin = df_cos_sin_mean.index.values
-
     y_values_cos_sin = df_cos_sin_mean['mean_test_score'].values
-
     x_values_xy = df_xy_mean.index.values
     y_values_xy = df_xy_mean['mean_test_score'].values
 
@@ -95,8 +88,6 @@ def process_isomap_results():
 
     print(f'Eighty percent point for test cos_sin: {eighty_percent_point_cos_sin}')
     print(f'Eighty percent point for train cos_sin: {eighty_percent_point_train_cos_sin}')
-
-
     print(f'Eighty percent point for test xy: {eighty_percent_point}')
     print(f'Eighty percent point for train xy: {eighty_percent_point_train}')
 

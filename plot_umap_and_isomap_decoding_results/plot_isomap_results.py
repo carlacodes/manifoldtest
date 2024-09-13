@@ -7,9 +7,7 @@ from pathlib import Path
 from sklearn.metrics import r2_score
 from manifold_neural.helpers.datahandling import DataHandler
 import matplotlib.pyplot as plt
-import gudhi as gd
 from umap import UMAP
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
@@ -452,8 +450,6 @@ def main():
     big_result_df_shuffle = pd.DataFrame()
     big_result_df_shuffle_train = pd.DataFrame()
     big_componentresult_df = pd.DataFrame()
-    # f'{base_dir}/rat_8/15-10-2019', f'{base_dir}/rat_9/10-12-2021',
-    # f'{base_dir}/rat_3/25-3-2019', f'{base_dir}/rat_7/6-12-2019',
     just_folds = False
     null_distribution = False
     component_investigation = True
@@ -464,21 +460,17 @@ def main():
         rat_id = data_dir.split('/')[-2]
         manual_params_rat = previous_results[rat_id]
         manual_params_rat = manual_params_rat.item()
-
         spike_dir = os.path.join(data_dir, 'physiology_data')
         dlc_dir = os.path.join(data_dir, 'positional_data')
         labels = np.load(f'{dlc_dir}/labels_250_raw.npy')
         col_list = np.load(f'{dlc_dir}/col_names_250_raw.npy')
-
         spike_data = np.load(f'{spike_dir}/inputs_10052024_250.npy')
-
         window_df = pd.read_csv(f'{base_dir}/mean_p_value_vs_window_size_across_rats_grid_250_windows_scale_to_angle_range_False_allo_True.csv')
             #find the rat_id
         rat_id = data_dir.split('/')[-2]
         #filter for window_size
         window_df = window_df[window_df['window_size'] == 250]
         num_windows = window_df[window_df['rat_id'] == rat_id]['minimum_number_windows'].values[0]
-
         spike_data_copy = copy.deepcopy(spike_data)
         tolerance = 1e-10
         if np.any(np.abs(np.std(spike_data_copy, axis=0)) < tolerance):
@@ -489,24 +481,11 @@ def main():
         columns_to_remove = np.where(percent_zeros > 99.5)[0]
         spike_data_copy = np.delete(spike_data_copy, columns_to_remove, axis=1)
         X_for_umap = spike_data_copy
-
         labels_for_umap = labels
         label_df = pd.DataFrame(labels_for_umap, columns=col_list)
-
         regressor = KNeighborsRegressor
-        regressor_kwargs = {'n_neighbors': 70}
-        reducer = Isomap
-        reducer_kwargs = {
-            'n_components': 3,
-            'metric': 'cosine',
-            'n_jobs': -1,
-        }
-
         regress = ['x', 'y', 'cos_hd', 'sin_hd']
-
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         now_day = datetime.now().strftime("%Y-%m-%d")
-
 
         save_dir_path = Path(f'{data_dir}/plot_results/plot_test_isomap_{now_day}')
         save_dir = save_dir_path
@@ -518,10 +497,7 @@ def main():
         if just_folds == True:
             continue
         elif component_investigation:
-
             regress_pairs = [['x', 'y'], ['cos_hd', 'sin_hd']]
-
-            # Example usage
             component_exploration_df = evaluate_isomap_components(X_for_umap, label_df, regress_pairs,
                                                                   manual_params_rat, save_dir, num_windows = num_windows)
             component_exploration_df['rat_id'] = rat_id
@@ -532,10 +508,7 @@ def main():
                 X_for_umap,
                 label_df,
                 regress,
-                regressor,
-                regressor_kwargs,
-                reducer,
-                reducer_kwargs, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat,
+                regressor, num_windows=num_windows, savedir=save_dir, manual_params=manual_params_rat,
                 just_folds=just_folds, null_distribution=null_distribution
             )
             result_df['rat_id'] = rat_id
